@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cockpit Builder — Blueprint das Telas</title>
+<style>
+  :root{
+    --fundo:#0c1018; --painel:#141c2b;
+    --texto:#eef2fb; --texto-2:#9aa7be; --texto-3:#5d6a83;
+    --fio:rgba(255,255,255,.09); --fio-2:rgba(255,255,255,.17);
+    --azul:#4e7df6; --verde:#54c98a; --ambar:#f5b23f; --vermelho:#e5484d;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden;background:var(--fundo);
+    color:var(--texto);font-family:var(--sans);font-size:14px}
+  button{font-family:inherit;color:inherit}
+  .app{display:flex;height:100%}
+
+  /* ===================== BARRA LATERAL ===================== */
+  .lateral{width:288px;flex:none;display:flex;flex-direction:column;
+    background:rgba(16,22,34,.96);border-right:1px solid var(--fio)}
+
+  .marca{padding:18px;border-bottom:1px solid var(--fio);display:flex;align-items:center;gap:11px}
+  .marca .logo{width:27px;height:27px;border-radius:8px;flex:none;font-size:14px;
+    background:linear-gradient(140deg,#4e7df6,#9e6cf2);display:flex;
+    align-items:center;justify-content:center}
+  .marca b{font-size:13.5px;font-weight:700;display:block;letter-spacing:-.01em}
+  .marca i{font-size:10.5px;color:var(--texto-3);display:block;margin-top:2px;font-style:normal}
+
+  .busca{margin:14px 14px 4px;display:flex;align-items:center;gap:8px;padding:8px 11px;
+    border-radius:9px;background:rgba(255,255,255,.04);border:1px solid var(--fio);
+    color:var(--texto-3);font-size:12.5px}
+
+  .secao{padding:13px 15px 5px;display:flex;align-items:baseline;gap:8px}
+  .secao b{font-size:9.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--texto-3)}
+  .secao i{margin-left:auto;font-size:10px;color:var(--texto-3);font-style:normal}
+
+  .arvore{flex:1;overflow:auto;padding:2px 10px 12px;min-height:90px}
+
+  /* ---------- camadas ---------- */
+  .camadas-cx{flex:none;display:flex;flex-direction:column;height:40%;min-height:168px;
+    border-top:1px solid var(--fio)}
+  .camadas{flex:1;overflow:auto;padding:2px 10px 12px}
+  .cam{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:8px;
+    cursor:grab;font-size:12.5px;user-select:none}
+  .cam:hover{background:rgba(255,255,255,.06)}
+  .cam.sel{background:rgba(78,125,246,.2)}
+  .cam.sel .nm{color:#fff}
+  .cam .fig{width:17px;flex:none;display:flex;justify-content:center;color:var(--texto-2)}
+  .cam.sel .fig{color:var(--azul)}
+  .cam .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    font-weight:600;color:var(--texto-2)}
+  .cam .olho{flex:none;width:22px;height:22px;border:none;border-radius:6px;background:none;
+    color:var(--texto-3);cursor:pointer;display:flex;align-items:center;justify-content:center;
+    padding:0;opacity:0;transition:opacity .12s}
+  .cam:hover .olho{opacity:1}
+  .cam .olho.fixo{opacity:1;color:var(--texto-3)}
+  .cam.oculta .nm,.cam.oculta .fig{opacity:.4}
+  .cam.puxando{opacity:.35}
+  .cam.alvo{box-shadow:inset 0 2px 0 var(--azul)}
+  .cam-vazio{padding:16px 13px;font-size:11.5px;color:var(--texto-3);line-height:1.5}
+  .cam-dica{padding:0 15px 12px;font-size:10px;color:var(--texto-3);line-height:1.4}
+
+  body[data-modo="pub"] .camadas-cx{display:none}
+  .linha{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:8px;
+    cursor:pointer;transition:background .12s}
+  .linha:hover{background:rgba(255,255,255,.06)}
+  .linha .rot{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;
+    white-space:nowrap;font-size:13px;font-weight:600}
+  .linha .ic,.linha .seta{flex:none;display:flex;color:var(--texto-2)}
+  .linha .seta{color:var(--texto-3)}
+  .pasta > .linha .rot{font-size:11px;font-weight:700;letter-spacing:.03em;
+    text-transform:uppercase;color:var(--texto-2)}
+  .filhos{padding-left:10px;margin-left:11px;border-left:1px solid var(--fio)}
+  .filhos .linha{padding-left:10px}
+  .filhos .linha.ativa{background:rgba(78,125,246,.2)}
+  .filhos .linha.ativa .rot{color:#fff}
+  .filhos .linha.ativa .ic{color:var(--azul)}
+
+  .selo{flex:none;font-size:8.5px;font-weight:700;letter-spacing:.09em;padding:2px 6px;
+    border-radius:4px;border:1px solid currentColor;text-transform:uppercase}
+  .selo.pub{color:var(--verde)}
+  .selo.rasc{color:var(--ambar)}
+
+  .linha .acoes{flex:none;display:flex;gap:2px;opacity:0;transition:opacity .12s}
+  .linha:hover .acoes{opacity:1}
+  .linha .acoes button{width:23px;height:23px;border:none;border-radius:6px;background:none;
+    color:var(--texto-3);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+  .linha .acoes button:hover{background:rgba(255,255,255,.13);color:var(--texto)}
+
+  .rodape-lat{padding:12px 14px 14px;border-top:1px solid var(--fio);
+    display:flex;flex-direction:column;gap:7px}
+  .criar{display:flex;align-items:center;gap:9px;width:100%;padding:9px 11px;border-radius:9px;
+    border:1px dashed var(--fio-2);background:none;color:var(--texto-2);cursor:pointer;
+    font-size:12.5px;font-weight:600}
+  .criar:hover{border-color:var(--azul);color:var(--texto)}
+  .criar.forte{border-style:solid;background:rgba(78,125,246,.16);
+    border-color:rgba(78,125,246,.42);color:#fff}
+
+  /* modo publicado esconde tudo que é de autor */
+  body[data-modo="pub"] .rodape-lat,
+  body[data-modo="pub"] .linha .acoes,
+  body[data-modo="pub"] .direita{display:none}
+
+  /* ===================== CENTRO ===================== */
+  .centro{flex:1;display:flex;flex-direction:column;min-width:0}
+
+  .topo{height:58px;flex:none;display:flex;align-items:center;gap:12px;padding:0 20px;
+    border-bottom:1px solid var(--fio);background:rgba(16,22,34,.7)}
+  .caminho{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--texto-3)}
+  .caminho b{color:var(--texto);font-weight:700}
+  .topo .dir{margin-left:auto;display:flex;gap:6px;align-items:center}
+  .btopo{display:flex;align-items:center;gap:7px;padding:7px 12px;border-radius:8px;
+    border:1px solid var(--fio);background:none;color:var(--texto-2);cursor:pointer;
+    font-size:12px;font-weight:600}
+  .btopo:hover{background:rgba(255,255,255,.06);color:var(--texto)}
+  .btopo.acao{background:rgba(78,125,246,.18);border-color:rgba(78,125,246,.45);color:#fff}
+  .btopo.publicar{background:rgba(84,201,138,.16);border-color:rgba(84,201,138,.45);color:#dfffe9}
+
+  .palco{flex:1;position:relative;overflow:hidden;
+    background:
+      radial-gradient(900px 520px at 55% 30%,rgba(78,125,246,.06),transparent 62%),
+      linear-gradient(rgba(255,255,255,.021) 1px,transparent 1px) 0 0/38px 38px,
+      linear-gradient(90deg,rgba(255,255,255,.021) 1px,transparent 1px) 0 0/38px 38px}
+
+  .dica{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);text-align:center;
+    color:var(--texto-3);pointer-events:none;max-width:42ch}
+  .dica .t{font-size:14px;font-weight:700;color:var(--texto-2)}
+  .dica .s{font-size:12px;line-height:1.5;margin-top:6px}
+
+  /* ---------- barra de baixo ---------- */
+  .barra{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);
+    display:flex;gap:4px;align-items:center;background:rgba(13,18,29,.96);
+    border:1px solid var(--fio);border-radius:14px;padding:7px 9px;
+    box-shadow:0 16px 44px rgba(0,0,0,.55)}
+  .fer{width:40px;height:40px;border:none;border-radius:10px;background:none;
+    color:var(--texto-2);cursor:pointer;display:flex;align-items:center;justify-content:center;
+    position:relative}
+  .fer:hover{background:rgba(255,255,255,.09);color:#fff}
+  .fer.on{background:var(--azul);color:#fff}
+  .fer .tip{position:absolute;bottom:48px;left:50%;transform:translateX(-50%);
+    background:#0d1420;border:1px solid var(--fio);border-radius:7px;padding:5px 9px;
+    font-size:11px;font-weight:600;white-space:nowrap;color:var(--texto);
+    opacity:0;pointer-events:none;transition:opacity .12s}
+  .fer:hover .tip{opacity:1}
+  .divisor{width:1px;height:26px;background:var(--fio);margin:0 5px;flex:none}
+  .btexto{display:flex;align-items:center;gap:8px;height:40px;padding:0 14px;border:none;
+    border-radius:10px;background:none;color:var(--texto-2);cursor:pointer;
+    font-size:12.5px;font-weight:600;white-space:nowrap}
+  .btexto:hover{background:rgba(255,255,255,.09);color:#fff}
+  .btexto.on{background:rgba(78,125,246,.26);color:#fff}
+  .btexto.destaque{color:var(--ambar)}
+  .prog{display:flex;align-items:center;gap:9px;padding:0 14px;color:var(--texto-3);font-size:11.5px}
+  .prog .barrinha{width:78px;height:4px;border-radius:3px;background:rgba(255,255,255,.13)}
+  .prog .barrinha i{display:block;height:100%;width:22%;border-radius:3px;background:var(--verde)}
+
+  /* ===================== PAINEL DIREITO ===================== */
+  .direita{width:296px;flex:none;border-left:1px solid var(--fio);
+    background:rgba(16,22,34,.96);display:flex;flex-direction:column}
+  .cab{padding:17px 18px 14px;border-bottom:1px solid var(--fio)}
+  .cab b{font-size:13px;font-weight:700;display:block}
+  .cab span{font-size:11px;color:var(--texto-3);display:block;margin-top:4px;line-height:1.45}
+  .corpo{flex:1;overflow:auto;padding:16px 18px}
+
+  .titulinho{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--texto-3);margin:0 0 10px}
+  .titulinho + .titulinho, .grupo + .grupo{margin-top:22px}
+
+  /* paleta de formas */
+  .formas{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .forma{border:1px solid var(--fio);border-radius:9px;padding:9px 5px 7px;background:none;
+    cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:7px}
+  .forma:hover{border-color:var(--azul);background:rgba(78,125,246,.09)}
+  .forma .pv{width:38px;height:26px;border:1.5px solid var(--texto-2);background:rgba(255,255,255,.05)}
+  .forma span{font-size:9.5px;color:var(--texto-3);text-align:center;line-height:1.2}
+  .pv.f-acao{border-radius:5px}
+  .pv.f-inicio{border-radius:99px}
+  .pv.f-decisao{clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);border-radius:2px}
+  .pv.f-entrada{clip-path:polygon(17% 0,100% 0,83% 100%,0 100%)}
+  .pv.f-doc{clip-path:polygon(0 0,100% 0,100% 78%,50% 100%,0 78%);border-radius:3px}
+  .pv.f-dados{border-radius:50%/26%}
+  .pv.f-texto{border:none;background:none;position:relative}
+  .pv.f-texto::after{content:'T';position:absolute;inset:0;display:flex;align-items:center;
+    justify-content:center;font-size:19px;font-weight:700;color:var(--texto-2)}
+  .pv.f-nota{border-radius:3px;background:rgba(245,178,63,.22);border-color:rgba(245,178,63,.65)}
+  .pv.f-area{border-style:dashed;border-radius:5px;background:rgba(255,255,255,.03)}
+
+  /* propriedades */
+  .prop{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:9px 0;border-bottom:1px solid var(--fio)}
+  .prop:last-child{border-bottom:none}
+  .prop .lb{font-size:12px;color:var(--texto-2)}
+  .cores{display:flex;gap:5px}
+  .cores i{width:19px;height:19px;border-radius:5px;display:inline-block;
+    border:1px solid rgba(255,255,255,.22)}
+  .segm{display:flex;border:1px solid var(--fio);border-radius:7px;overflow:hidden}
+  .segm span{padding:5px 9px;font-size:10.5px;color:var(--texto-3);
+    border-right:1px solid var(--fio)}
+  .segm span:last-child{border-right:none}
+  .segm span.on{background:rgba(78,125,246,.24);color:#fff}
+  .campo{width:56px;padding:5px 8px;border:1px solid var(--fio);border-radius:7px;
+    font-size:11.5px;color:var(--texto-2);text-align:center}
+
+  .nota-rodape{margin:0 18px 18px;padding:12px 14px;border-radius:10px;font-size:11.5px;
+    line-height:1.5;color:var(--texto-2)}
+  .nota-rodape.ed{background:rgba(245,178,63,.1);border:1px solid rgba(245,178,63,.32)}
+  .nota-rodape b{color:#fff}
+
+  .so-ed{display:none}  body[data-modo="ed"]  .so-ed{display:block}
+  .so-pb{display:none}  body[data-modo="pub"] .so-pb{display:block}
+  body[data-modo="ed"]  .barra-pb{display:none}
+  body[data-modo="pub"] .barra-ed{display:none}
+</style>
+</head>
+<body data-modo="ed">
+
+<div class="app">
+
+  <!-- ===================== BARRA LATERAL ===================== -->
+  <aside class="lateral">
+    <div class="marca">
+      <span class="logo">🏗</span>
+      <span><b>Cockpit Builder</b><i>Obra 10k</i></span>
+    </div>
+
+    <div class="busca">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      Buscar página
+    </div>
+
+    <div class="secao"><b>Páginas</b></div>
+    <nav class="arvore" id="arvore"></nav>
+
+    <div class="camadas-cx">
+      <div class="secao"><b>Camadas</b><i id="camCont"></i></div>
+      <div class="cam-dica">o de cima aparece na frente · arraste pra reordenar</div>
+      <div class="camadas" id="camadas"></div>
+    </div>
+
+    <div class="rodape-lat">
+      <button class="criar forte">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+        Criar página
+      </button>
+      <button class="criar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        Criar pasta
+      </button>
+    </div>
+  </aside>
+
+  <!-- ===================== CENTRO ===================== -->
+  <div class="centro">
+
+    <div class="topo">
+      <div class="caminho">
+        <span id="cmPasta">Método 10k</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 6l6 6-6 6"/></svg>
+        <b id="cmPagina">Página dos Pilares</b>
+        <span class="selo rasc so-ed" style="margin-left:4px">rascunho</span>
+        <span class="selo pub so-pb" style="margin-left:4px">publicada</span>
+      </div>
+      <div class="dir">
+        <button class="btopo"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17z"/></svg>Renomear</button>
+        <button class="btopo"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Duplicar</button>
+        <button class="btopo"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg>Excluir</button>
+        <span style="width:6px"></span>
+        <button class="btopo publicar so-ed" id="btPublicar">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+          Publicar
+        </button>
+        <button class="btopo acao so-pb" id="btEditar">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17z"/></svg>
+          Editar
+        </button>
+      </div>
+    </div>
+
+    <div class="palco">
+      <div class="dica">
+        <div class="t so-ed">Página em branco</div>
+        <div class="s so-ed">Escolha uma forma na barra de baixo e clique aqui pra desenhar.</div>
+        <div class="t so-pb">É isto que o aluno vê</div>
+        <div class="s so-pb">Os botões da barra levam direto a cada trecho da página.</div>
+      </div>
+
+      <!-- ---------- barra: MODO EDIÇÃO ---------- -->
+      <div class="barra barra-ed">
+        <button class="fer on"><span class="tip">Selecionar</span>
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 8.2-6.1 1.4L10.4 19z"/></svg></button>
+        <button class="fer"><span class="tip">Mover a tela</span>
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V11m0-1V4.5a1.5 1.5 0 0 1 3 0V11m0-.5V6a1.5 1.5 0 0 1 3 0v7.5a6.5 6.5 0 0 1-6.5 6.5h-1a5.5 5.5 0 0 1-4-1.8L6 15.5a1.6 1.6 0 0 1 2.4-2L9 14.5"/></svg></button>
+        <button class="fer"><span class="tip">Conectar</span>
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 18C4 9 10 6 19 6"/><path d="M14 4l5 2-2 5"/></svg></button>
+
+        <span class="divisor"></span>
+
+        <button class="fer"><span class="tip">Ação</span>
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="2"/></svg></button>
+        <button class="fer"><span class="tip">Decisão</span>
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 9-9 9-9-9z"/></svg></button>
+        <button class="fer"><span class="tip">Texto</span>
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg></button>
+        <button class="fer"><span class="tip">Mais formas</span>
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M12 5v14M5 12h14"/></svg></button>
+
+        <span class="divisor"></span>
+
+        <button class="fer"><span class="tip">Desfazer</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 7H15a5 5 0 0 1 0 10h-4"/><path d="M9 3L5 7l4 4"/></svg></button>
+        <button class="fer"><span class="tip">Refazer</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 7H9a5 5 0 0 0 0 10h4"/><path d="M15 3l4 4-4 4"/></svg></button>
+        <button class="fer"><span class="tip">Excluir</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg></button>
+
+        <span class="divisor"></span>
+
+        <button class="btexto destaque">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="3.4"/></svg>
+          Salvar este ponto
+        </button>
+      </div>
+
+      <!-- ---------- barra: MODO PUBLICADO ---------- -->
+      <div class="barra barra-pb">
+        <button class="btexto on"><kbd style="opacity:.5;font-size:10px">1</kbd> Ver tudo</button>
+        <button class="btexto"><kbd style="opacity:.5;font-size:10px">2</kbd> Pilar 01</button>
+        <button class="btexto"><kbd style="opacity:.5;font-size:10px">3</kbd> Pilar 02</button>
+        <button class="btexto"><kbd style="opacity:.5;font-size:10px">4</kbd> Pilar 03</button>
+        <button class="btexto"><kbd style="opacity:.5;font-size:10px">5</kbd> Pilar 04</button>
+        <button class="btexto"><kbd style="opacity:.5;font-size:10px">6</kbd> Só o essencial</button>
+        <span class="divisor"></span>
+        <span class="prog"><span class="barrinha"><i></i></span> 8 de 36</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== PAINEL DIREITO ===================== -->
+  <aside class="direita">
+
+    <!-- ---------- EDIÇÃO ---------- -->
+    <div class="so-ed">
+      <div class="cab"><b>Elementos</b><span>Clique numa forma e depois na tela pra colocar</span></div>
+    </div>
+    <div class="corpo so-ed">
+      <p class="titulinho">Formas do fluxograma</p>
+      <div class="formas">
+        <button class="forma"><i class="pv f-acao"></i><span>Ação</span></button>
+        <button class="forma"><i class="pv f-inicio"></i><span>Início / Fim</span></button>
+        <button class="forma"><i class="pv f-decisao"></i><span>Decisão</span></button>
+        <button class="forma"><i class="pv f-entrada"></i><span>Entrada</span></button>
+        <button class="forma"><i class="pv f-doc"></i><span>Documento</span></button>
+        <button class="forma"><i class="pv f-dados"></i><span>Repositório</span></button>
+        <button class="forma"><i class="pv f-texto"></i><span>Texto</span></button>
+        <button class="forma"><i class="pv f-nota"></i><span>Nota</span></button>
+        <button class="forma"><i class="pv f-area"></i><span>Área</span></button>
+      </div>
+
+      <p class="titulinho" style="margin-top:24px">Do item selecionado</p>
+      <div class="prop"><span class="lb">Cor</span>
+        <span class="cores">
+          <i style="background:#4e7df6"></i><i style="background:#54c98a"></i>
+          <i style="background:#f5b23f"></i><i style="background:#e5484d"></i>
+          <i style="background:#9e6cf2"></i>
+        </span></div>
+      <div class="prop"><span class="lb">Linha</span>
+        <span class="segm"><span class="on">Sólida</span><span>Tracejada</span><span>Recusa</span></span></div>
+      <div class="prop"><span class="lb">Tamanho</span>
+        <span style="display:flex;gap:6px"><span class="campo">180</span><span class="campo">64</span></span></div>
+      <div class="prop"><span class="lb">Ordem</span>
+        <span class="segm"><span>Pra frente</span><span>Pra trás</span></span></div>
+    </div>
+    <div class="nota-rodape ed so-ed">
+      <b>Só o autor vê esta barra.</b><br>
+      Enquanto a página é rascunho, ela não existe pro aluno.
+    </div>
+
+    <!-- No modo publicado a coluna inteira sai: o aluno só precisa da tela. -->
+
+  </aside>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+var IC={
+  seta:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M6 9l6 6 6-6"/></svg>',
+  pasta:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+  pagina:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>',
+  lapis:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17z"/></svg>',
+  mais:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 5v14M5 12h14"/></svg>'
+};
+
+/* miniaturas das formas, pra lista de camadas */
+var FIG={
+  area:   '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="4 3"><rect x="3" y="5" width="18" height="14" rx="2"/></svg>',
+  acao:   '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="2"/></svg>',
+  decisao:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 9-9 9-9-9z"/></svg>',
+  inicio: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="10" rx="5"/></svg>',
+  doc:    '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v12l-8 3-8-3z"/></svg>',
+  linha:  '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 18C4 9 10 6 19 6"/><path d="M14 4l5 2-2 5"/></svg>',
+  texto:  '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg>',
+  nota:   '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v11l-5 5H4z"/><path d="M20 15h-5v5"/></svg>'
+};
+var OLHO={
+  ver:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="2.6"/></svg>',
+  sem:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4l16 16"/><path d="M9.5 6.4A9.6 9.6 0 0 1 12 6c6.4 0 10 6 10 6a17 17 0 0 1-3.3 3.8M6.5 8.2A16.7 16.7 0 0 0 2 12s3.6 6 10 6c1 0 1.9-.1 2.7-.4"/></svg>'
+};
+
+/* A lista de camadas é do TOPO pro fundo: o primeiro da lista fica na frente. */
+var DADOS=[
+  {nome:'Método 10k', paginas:[
+    {nome:'Página do Flywheel', pub:true, camadas:[]},
+    {nome:'Página dos Pilares', pub:false, camadas:[
+      {tipo:'texto',   nome:'Título da página'},
+      {tipo:'acao',    nome:'Passo · Estratégia'},
+      {tipo:'acao',    nome:'Passo · Copy'},
+      {tipo:'linha',   nome:'Conector'},
+      {tipo:'nota',    nome:'Recado do autor'},
+      {tipo:'area',    nome:'Faixa · Pilar 01'}
+    ]}
+  ]},
+  {nome:'Fluxogramas', paginas:[
+    {nome:'Onboarding', pub:true, camadas:[
+      {tipo:'inicio',  nome:'Início'},
+      {tipo:'doc',     nome:'Contrato'},
+      {tipo:'decisao', nome:'Aprovou?'},
+      {tipo:'linha',   nome:'Conector de recusa'},
+      {tipo:'area',    nome:'Trilha de Copy'}
+    ]}
+  ]}
+];
+var ativa={pasta:0, pagina:1};
+var camSel=-1;
+
+var arvore=document.getElementById('arvore');
+
+function montar(){
+  arvore.innerHTML='';
+  DADOS.forEach(function(p,pi){
+    var caixa=document.createElement('div');caixa.className='pasta';
+
+    var lp=document.createElement('div');lp.className='linha';
+    lp.innerHTML='<span class="seta">'+IC.seta+'</span><span class="ic">'+IC.pasta+'</span>'+
+      '<span class="rot">'+p.nome+'</span>'+
+      '<span class="acoes"><button>'+IC.mais+'</button><button>'+IC.lapis+'</button></span>';
+    caixa.appendChild(lp);
+
+    var filhos=document.createElement('div');filhos.className='filhos';
+    p.paginas.forEach(function(g,gi){
+      var l=document.createElement('div');
+      l.className='linha'+(pi===ativa.pasta&&gi===ativa.pagina?' ativa':'');
+      l.innerHTML='<span class="ic">'+IC.pagina+'</span><span class="rot">'+g.nome+'</span>'+
+        '<span class="selo '+(g.pub?'pub':'rasc')+'">'+(g.pub?'no ar':'rascunho')+'</span>'+
+        '<span class="acoes"><button>'+IC.lapis+'</button></span>';
+      l.onclick=function(){
+        ativa={pasta:pi,pagina:gi};camSel=-1;
+        document.body.setAttribute('data-modo',g.pub?'pub':'ed');
+        montar();caminho();camadas();
+      };
+      filhos.appendChild(l);
+    });
+    caixa.appendChild(filhos);
+    arvore.appendChild(caixa);
+  });
+}
+
+function caminho(){
+  var p=DADOS[ativa.pasta];
+  document.getElementById('cmPasta').textContent=p.nome;
+  document.getElementById('cmPagina').textContent=p.paginas[ativa.pagina].nome;
+}
+
+/* ---------- camadas da página aberta ---------- */
+var elCam=document.getElementById('camadas'), elCont=document.getElementById('camCont');
+var puxando=-1;
+
+function lista(){return DADOS[ativa.pasta].paginas[ativa.pagina].camadas;}
+
+function camadas(){
+  var L=lista();
+  elCont.textContent=L.length?L.length+(L.length>1?' itens':' item'):'';
+  elCam.innerHTML='';
+
+  if(!L.length){
+    var v=document.createElement('div');v.className='cam-vazio';
+    v.textContent='Nada desenhado ainda. Cada forma que entrar na tela vira uma linha aqui.';
+    elCam.appendChild(v);return;
+  }
+
+  L.forEach(function(c,i){
+    var r=document.createElement('div');
+    r.className='cam'+(i===camSel?' sel':'')+(c.oculta?' oculta':'');
+    r.draggable=true;
+    r.innerHTML='<span class="fig">'+(FIG[c.tipo]||FIG.acao)+'</span>'+
+                '<span class="nm">'+c.nome+'</span>'+
+                '<button class="olho'+(c.oculta?' fixo':'')+'">'+
+                  (c.oculta?OLHO.sem:OLHO.ver)+'</button>';
+
+    r.onclick=function(){camSel=i;camadas();};
+    r.querySelector('.olho').onclick=function(e){
+      e.stopPropagation();c.oculta=!c.oculta;camadas();};
+
+    /* arrastar pra reordenar — é o que prova o "quem está na frente" */
+    r.ondragstart=function(e){
+      puxando=i;r.classList.add('puxando');
+      e.dataTransfer.effectAllowed='move';
+      try{e.dataTransfer.setData('text/plain',String(i));}catch(err){}
+    };
+    r.ondragend=function(){
+      puxando=-1;r.classList.remove('puxando');
+      var t=elCam.querySelectorAll('.cam');
+      for(var k=0;k<t.length;k++)t[k].classList.remove('alvo');
+    };
+    r.ondragover=function(e){
+      e.preventDefault();
+      if(puxando<0||puxando===i)return;
+      var t=elCam.querySelectorAll('.cam');
+      for(var k=0;k<t.length;k++)t[k].classList.remove('alvo');
+      r.classList.add('alvo');
+    };
+    r.ondrop=function(e){
+      e.preventDefault();
+      if(puxando<0||puxando===i)return;
+      var mov=L.splice(puxando,1)[0];
+      L.splice(i,0,mov);
+      camSel=i;puxando=-1;camadas();
+    };
+
+    elCam.appendChild(r);
+  });
+}
+
+/* o único comportamento vivo: alternar rascunho ⇄ publicada */
+function modo(m){
+  document.body.setAttribute('data-modo',m);
+  DADOS[ativa.pasta].paginas[ativa.pagina].pub=(m==='pub');
+  montar();
+}
+document.getElementById('btPublicar').onclick=function(){modo('pub');};
+document.getElementById('btEditar').onclick=function(){modo('ed');};
+
+/* realce nas barras — só visual */
+function grupo(sel){
+  var b=document.querySelectorAll(sel);
+  for(var i=0;i<b.length;i++)(function(x){
+    x.onclick=function(){
+      for(var j=0;j<b.length;j++)b[j].classList.remove('on');
+      x.classList.add('on');
+    };
+  })(b[i]);
+}
+grupo('.barra-ed .fer');
+grupo('.barra-pb .btexto');
+grupo('.forma');
+
+montar();caminho();camadas();
+})();
+</script>
+</body>
+</html>

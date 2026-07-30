@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cockpit Builder — A Obra (conceito)</title>
+<style>
+  :root{
+    --ground:#0c1018; --ground-2:#111826; --panel:#141c2b; --panel-2:#182130;
+    --slab:#20283a; --slab-2:#28324a;
+    --ink:#eef2fb; --ink-dim:#9aa7be; --ink-faint:#5d6a83;
+    --hair:rgba(255,255,255,.09); --hair-2:rgba(255,255,255,.05);
+    --p1:#4e7df6; --p2:#54c98a; --p3:#33c6d6; --p4:#e8a13c;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono","Cascadia Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:var(--ground); color:var(--ink); font-family:var(--sans);
+    background-image:radial-gradient(rgba(255,255,255,.045) 1px, transparent 1px);
+    background-size:28px 28px; background-position:-1px -1px;
+    display:flex; flex-direction:column; overflow:hidden;
+  }
+
+  /* ---------- badge / HUD ---------- */
+  .badge{
+    position:fixed; top:14px; left:16px; z-index:10; display:flex; align-items:baseline; gap:9px;
+    background:rgba(10,14,24,.88); border:1px solid var(--hair); border-radius:999px; padding:8px 16px;
+    backdrop-filter:blur(10px); box-shadow:0 8px 30px rgba(0,0,0,.45);
+  }
+  .badge b{font:800 12px/1 var(--sans); letter-spacing:.14em}
+  .badge span{font:600 11px/1 var(--mono); color:var(--ink-dim); letter-spacing:.08em}
+
+  .hud{
+    position:fixed; top:14px; right:16px; z-index:10; width:250px;
+    background:rgba(10,14,24,.88); border:1px solid var(--hair); border-radius:14px; padding:14px 15px 15px;
+    backdrop-filter:blur(10px); box-shadow:0 8px 30px rgba(0,0,0,.45);
+  }
+  .hud-k{font:600 8.5px/1 var(--mono); letter-spacing:.28em; color:var(--ink-faint); text-transform:uppercase}
+  .hud-n{font:700 26px/1 var(--mono); margin:9px 0 3px; font-variant-numeric:tabular-nums}
+  .hud-n i{font-style:normal; font-size:14px; color:var(--ink-faint)}
+  .bar{height:6px; border-radius:99px; background:var(--slab); overflow:hidden; margin:9px 0 2px}
+  .bar i{display:block; height:100%; border-radius:99px; background:var(--p1); width:0;
+         transition:width .6s cubic-bezier(.4,0,.2,1), background .4s}
+
+  .legend{margin-top:15px; border-top:1px solid var(--hair-2); padding-top:12px; display:grid; gap:7px}
+  .lg{display:flex; align-items:center; gap:9px; font:600 10.5px/1.35 var(--mono); letter-spacing:.02em}
+  .lg .sw{width:9px; height:9px; border-radius:2px; flex:none; border:1px solid transparent}
+  .lg .nm{color:var(--ink-dim); flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .lg .st{font-size:8.5px; letter-spacing:.1em; color:var(--ink-faint)}
+  .lg.on .nm{color:var(--ink)}
+  .lg.on .st{color:var(--p1)}
+
+  /* ---------- controles ---------- */
+  .dock{
+    position:fixed; left:50%; bottom:16px; transform:translateX(-50%); z-index:10;
+    display:flex; gap:4px; align-items:center;
+    background:rgba(10,14,24,.88); border:1px solid rgba(255,255,255,.12); border-radius:999px; padding:5px 8px;
+    backdrop-filter:blur(10px); box-shadow:0 8px 30px rgba(0,0,0,.45);
+  }
+  .dock button{
+    appearance:none; border:none; background:none; color:rgba(235,240,250,.72);
+    font:600 12px/1 var(--sans); padding:8px 13px; border-radius:999px; cursor:pointer; white-space:nowrap;
+  }
+  .dock button:hover{background:rgba(255,255,255,.08); color:#fff}
+  .dock button.on{background:rgba(78,125,246,.22); color:#fff}
+  .dock .hint{font:500 10px/1.3 var(--sans); color:rgba(235,240,250,.35);
+              padding:0 10px; border-left:1px solid rgba(255,255,255,.1); margin-left:3px}
+
+  /* ---------- cena ---------- */
+  #stage{flex:1; min-height:0; display:block; width:100%}
+
+  .slab-face{transition:opacity .45s, fill .45s, stroke .45s}
+  .holo{opacity:.55}
+  .holo-line{fill:none; stroke-width:1.1; stroke-dasharray:5 4}
+  .built-glow{filter:url(#glow)}
+
+  .flabel{font:700 10px/1 var(--mono); letter-spacing:.14em}
+  .fsub{font:500 9px/1 var(--mono); letter-spacing:.04em; fill:var(--ink-faint)}
+  .fcount{font:600 9px/1 var(--mono); letter-spacing:.08em; fill:var(--ink-faint)}
+  .tag8020{font:700 7px/1 var(--mono); letter-spacing:.06em}
+
+  .scan{opacity:.5}
+  @media (prefers-reduced-motion:reduce){ .scan{display:none} }
+  @keyframes sweep{ 0%{transform:translateY(60px)} 100%{transform:translateY(-260px)} }
+  @keyframes flicker{ 0%,100%{opacity:.55} 47%{opacity:.44} 52%{opacity:.62} }
+  .holo{animation:flicker 5.5s ease-in-out infinite}
+  .scan g{animation:sweep 4.6s linear infinite}
+
+  .note{
+    position:fixed; left:16px; bottom:16px; z-index:10; max-width:330px;
+    font:500 10.5px/1.55 var(--mono); color:var(--ink-faint); letter-spacing:.01em;
+  }
+  .note b{color:var(--ink-dim); font-weight:700}
+</style>
+</head>
+<body>
+
+<div class="badge"><b>COCKPIT BUILDER</b><span>OBRA 10K</span></div>
+
+<div class="hud">
+  <div class="hud-k">Progresso da obra</div>
+  <div class="hud-n" id="cnt">9<i> / 36 passos</i></div>
+  <div class="bar"><i id="bar"></i></div>
+  <div class="hud-k" id="andares">1 de 4 andares</div>
+  <div class="legend" id="legend"></div>
+</div>
+
+<svg id="stage" viewBox="-340 -350 830 600" preserveAspectRatio="xMidYMid meet" aria-label="Prédio da Obra 10k em construção"></svg>
+
+<div class="dock" id="dock"></div>
+
+<div class="note">
+  <b>Coluna alta = passo 8020.</b> Ela sobe até a laje de cima e sustenta o andar
+  seguinte. Bloco baixo = acabamento: pode pular, o prédio fica menor e continua de pé.
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ===== projeção isométrica =====
+  var WX = 0.866, WY = 0.5;
+  function iso(x,y,z){ return [(x-y)*WX, (x+y)*WY - z]; }
+  function pt(x,y,z){ var a=iso(x,y,z); return a[0].toFixed(2)+','+a[1].toFixed(2); }
+
+  // caixa isométrica: devolve as 3 faces visíveis (topo, direita, esquerda)
+  function box(x0,y0,x1,y1,z0,z1){
+    return {
+      top:  'M'+pt(x0,y0,z1)+' L'+pt(x1,y0,z1)+' L'+pt(x1,y1,z1)+' L'+pt(x0,y1,z1)+' Z',
+      rgt:  'M'+pt(x1,y0,z1)+' L'+pt(x1,y1,z1)+' L'+pt(x1,y1,z0)+' L'+pt(x1,y0,z0)+' Z',
+      lft:  'M'+pt(x1,y1,z1)+' L'+pt(x0,y1,z1)+' L'+pt(x0,y1,z0)+' L'+pt(x1,y1,z0)+' Z'
+    };
+  }
+
+  // ===== medidas =====
+  var FW      = 160;   // lado do pavimento
+  var SLAB_T  = 15;    // espessura da laje
+  var COL_H   = 35;    // altura da coluna 8020 — encosta na laje de cima
+  var BLK_H   = 12;    // altura do bloco de acabamento
+  var PITCH   = SLAB_T + COL_H;
+
+  // ===== os 4 pilares — dados reais do index.html =====
+  var PILARES = [
+    {n:'PILAR 01', fase:'ENTREGA',         cor:'#4e7df6', passos:9,  e8020:5, first:'Estratégia da página'},
+    {n:'PILAR 02', fase:'VALOR PERCEBIDO', cor:'#54c98a', passos:11, e8020:6, first:'Posicionamento'},
+    {n:'PILAR 03', fase:'GESTÃO',          cor:'#33c6d6', passos:8,  e8020:4, first:'Onboarding do cliente'},
+    {n:'PILAR 04', fase:'AMBIENTE',        cor:'#e8a13c', passos:8,  e8020:3, first:'Mudar a mente'}
+  ];
+  var TOTAL = 36;
+
+  var svg = document.getElementById('stage');
+  var NS  = 'http://www.w3.org/2000/svg';
+  function el(tag,attrs){
+    var e = document.createElementNS(NS,tag);
+    for(var k in attrs) if(attrs[k]!=null) e.setAttribute(k,attrs[k]);
+    return e;
+  }
+  function hex(c,a){ // #rrggbb + alpha 0..1 -> rgba()
+    var r=parseInt(c.slice(1,3),16), g=parseInt(c.slice(3,5),16), b=parseInt(c.slice(5,7),16);
+    return 'rgba('+r+','+g+','+b+','+a+')';
+  }
+
+  // grade de posições dos passos sobre a laje
+  function grid(n){
+    var cols = Math.ceil(Math.sqrt(n)), inset = 26;
+    var span = FW - inset*2, cell = span/cols, s = cell*0.56, out = [];
+    for(var i=0;i<n;i++){
+      var c = i%cols, r = Math.floor(i/cols);
+      var cx = inset + cell*(c+0.5), cy = inset + cell*(r+0.5);
+      out.push({x0:cx-s/2, y0:cy-s/2, x1:cx+s/2, y1:cy+s/2, depth:cx+cy});
+    }
+    return out.sort(function(a,b){ return a.depth-b.depth; }); // pintor: fundo primeiro
+  }
+
+  // ===== defs: brilho e gradiente do scanline =====
+  function defs(){
+    var d = el('defs');
+    var f = el('filter',{id:'glow',x:'-60%',y:'-60%',width:'220%',height:'220%'});
+    f.appendChild(el('feGaussianBlur',{stdDeviation:'5',result:'b'}));
+    var m = el('feMerge');
+    m.appendChild(el('feMergeNode',{in:'b'}));
+    m.appendChild(el('feMergeNode',{in:'SourceGraphic'}));
+    f.appendChild(m); d.appendChild(f);
+
+    var lg = el('linearGradient',{id:'scanG',x1:'0',y1:'0',x2:'0',y2:'1'});
+    lg.appendChild(el('stop',{offset:'0',            'stop-color':'#7fb0ff','stop-opacity':'0'}));
+    lg.appendChild(el('stop',{offset:'0.5',          'stop-color':'#7fb0ff','stop-opacity':'.30'}));
+    lg.appendChild(el('stop',{offset:'1',            'stop-color':'#7fb0ff','stop-opacity':'0'}));
+    d.appendChild(lg);
+
+    var sg = el('radialGradient',{id:'shadowG'});
+    sg.appendChild(el('stop',{offset:'0','stop-color':'#4e7df6','stop-opacity':'.22'}));
+    sg.appendChild(el('stop',{offset:'1','stop-color':'#4e7df6','stop-opacity':'0'}));
+    d.appendChild(sg);
+    return d;
+  }
+
+  // ===== um pavimento =====
+  function pavimento(g, i, construido){
+    var P = PILARES[i], z0 = i*PITCH, z1 = z0 + SLAB_T;
+    var b = box(0,0,FW,FW,z0,z1);
+
+    if(construido){
+      // laje sólida, aro na cor do pilar
+      g.appendChild(el('path',{d:b.lft, class:'slab-face', fill:'#141c2b', stroke:hex(P.cor,.55),'stroke-width':1}));
+      g.appendChild(el('path',{d:b.rgt, class:'slab-face', fill:'#182130', stroke:hex(P.cor,.55),'stroke-width':1}));
+      g.appendChild(el('path',{d:b.top, class:'slab-face', fill:'#20283a', stroke:hex(P.cor,.9), 'stroke-width':1.4}));
+    }else{
+      // holograma: só arestas
+      var h = el('g',{class:'holo'});
+      h.appendChild(el('path',{d:b.lft, class:'holo-line', stroke:hex(P.cor,.5)}));
+      h.appendChild(el('path',{d:b.rgt, class:'holo-line', stroke:hex(P.cor,.5)}));
+      h.appendChild(el('path',{d:b.top, class:'holo-line', stroke:hex(P.cor,.8),'stroke-dasharray':'none'}));
+      g.appendChild(h);
+    }
+
+    // os passos em cima da laje
+    var cells = grid(P.passos), zb = z1;
+    for(var k=0;k<cells.length;k++){
+      var c = cells[k];
+      // 8020 = coluna alta (sustenta a laje de cima) · resto = bloco baixo
+      var is8020 = k < P.e8020;
+      var hgt = is8020 ? COL_H : BLK_H;
+      var bb  = box(c.x0,c.y0,c.x1,c.y1,zb,zb+hgt);
+
+      if(construido){
+        var wrap = el('g', is8020 ? {class:'built-glow'} : null);
+        wrap.appendChild(el('path',{d:bb.lft, fill:hex(P.cor,.20), stroke:hex(P.cor,.70),'stroke-width':.9}));
+        wrap.appendChild(el('path',{d:bb.rgt, fill:hex(P.cor,.30), stroke:hex(P.cor,.70),'stroke-width':.9}));
+        wrap.appendChild(el('path',{d:bb.top, fill:hex(P.cor, is8020?.85:.45), stroke:hex(P.cor,1),'stroke-width':1}));
+        g.appendChild(wrap);
+      }else{
+        var hg = el('g',{class:'holo'});
+        hg.appendChild(el('path',{d:bb.lft, class:'holo-line', stroke:hex(P.cor,.34)}));
+        hg.appendChild(el('path',{d:bb.rgt, class:'holo-line', stroke:hex(P.cor,.34)}));
+        hg.appendChild(el('path',{d:bb.top, class:'holo-line', stroke:hex(P.cor, is8020?.75:.42),
+                                  'stroke-dasharray': is8020 ? 'none' : '3 3'}));
+        g.appendChild(hg);
+      }
+    }
+
+    // rótulo do andar, à direita
+    var anchor = iso(FW,0,z1);
+    var lx = anchor[0] + 34, ly = anchor[1] + 6;
+    g.appendChild(el('line',{x1:anchor[0]+6, y1:anchor[1], x2:lx-8, y2:ly-4,
+                             stroke:hex(P.cor, construido?.6:.25),'stroke-width':1,
+                             'stroke-dasharray': construido?'none':'3 3'}));
+    var t1 = el('text',{x:lx, y:ly-5, class:'flabel', fill:construido?P.cor:hex(P.cor,.5)});
+    t1.textContent = P.n + ' · ' + P.fase;
+    g.appendChild(t1);
+    var t2 = el('text',{x:lx, y:ly+9, class:'fsub'});
+    t2.textContent = construido ? ('✓ ' + P.passos + ' passos · ' + P.e8020 + ' são 8020')
+                                : (P.passos + ' passos · projetado');
+    g.appendChild(t2);
+    var t3 = el('text',{x:lx, y:ly+22, class:'fcount', fill:hex(P.cor,.55)});
+    t3.textContent = 'faz primeiro: ' + P.first;
+    g.appendChild(t3);
+  }
+
+  // ===== fundação =====
+  function fundacao(g){
+    var o = 26, b = box(-o,-o,FW+o,FW+o,-20,0);
+    g.appendChild(el('ellipse',{cx:0, cy:FW, rx:250, ry:120, fill:'url(#shadowG)'}));
+    g.appendChild(el('path',{d:b.lft, fill:'#0f1520', stroke:'rgba(255,255,255,.08)','stroke-width':1}));
+    g.appendChild(el('path',{d:b.rgt, fill:'#121a27', stroke:'rgba(255,255,255,.08)','stroke-width':1}));
+    g.appendChild(el('path',{d:b.top, fill:'#161f2e', stroke:'rgba(78,125,246,.35)','stroke-width':1.2}));
+    var c = iso(FW/2, FW/2, 0);
+    var t = el('text',{x:c[0], y:c[1]+4, class:'tag8020', fill:'rgba(235,240,250,.30)',
+                       'text-anchor':'middle','letter-spacing':'.3em'});
+    t.textContent = 'BASE · ONBOARDING';
+    g.appendChild(t);
+  }
+
+  // ===== guindaste (a cabine do Cockpit) =====
+  function guindaste(g){
+    var S = 'rgba(154,167,190,.42)', gg = el('g',{fill:'none', stroke:S,'stroke-width':1.2});
+    // mastro
+    gg.appendChild(el('line',{x1:236,y1:120,x2:236,y2:-292}));
+    gg.appendChild(el('line',{x1:250,y1:126,x2:250,y2:-292}));
+    for(var y=112;y>-292;y-=26){
+      gg.appendChild(el('line',{x1:236,y1:y,x2:250,y2:y-13}));
+      gg.appendChild(el('line',{x1:236,y1:y-13,x2:250,y2:y}));
+    }
+    // lança + contra-lança
+    gg.appendChild(el('line',{x1:60,y1:-300,x2:300,y2:-300}));
+    gg.appendChild(el('line',{x1:60,y1:-288,x2:300,y2:-288}));
+    gg.appendChild(el('line',{x1:60,y1:-300,x2:236,y2:-288}));
+    gg.appendChild(el('line',{x1:300,y1:-300,x2:250,y2:-288}));
+    // cabine
+    gg.appendChild(el('rect',{x:252,y:-286,width:24,height:17,rx:2,
+                              fill:'rgba(78,125,246,.18)', stroke:'rgba(78,125,246,.55)'}));
+    // cabo + gancho
+    gg.appendChild(el('line',{x1:112,y1:-288,x2:112,y2:-150,stroke:'rgba(154,167,190,.30)'}));
+    gg.appendChild(el('path',{d:'M106,-150 L118,-150 L112,-138 Z',
+                              fill:'rgba(154,167,190,.22)', stroke:'rgba(154,167,190,.45)'}));
+    g.appendChild(gg);
+  }
+
+  // ===== scanline do holograma =====
+  function scanline(g, topZ){
+    var wrap = el('g',{class:'scan'});
+    var inner = el('g');
+    inner.appendChild(el('rect',{x:-150,y:0,width:300,height:54,fill:'url(#scanG)'}));
+    wrap.appendChild(inner);
+    g.appendChild(wrap);
+  }
+
+  // ===== render =====
+  var construidos = 1;
+
+  function render(){
+    svg.innerHTML = '';
+    svg.appendChild(defs());
+    var root = el('g');
+
+    fundacao(root);
+    // pintor: de baixo pra cima
+    for(var i=0;i<4;i++) pavimento(root, i, i < construidos);
+    if(construidos < 4) scanline(root);
+    guindaste(root);
+
+    svg.appendChild(root);
+    hud();
+  }
+
+  function hud(){
+    var feitos = 0, i;
+    for(i=0;i<construidos;i++) feitos += PILARES[i].passos;
+    var cor = PILARES[Math.max(0,construidos-1)].cor;
+
+    document.getElementById('cnt').innerHTML = feitos + '<i> / ' + TOTAL + ' passos</i>';
+    var bar = document.getElementById('bar');
+    bar.style.width = (feitos/TOTAL*100) + '%';
+    bar.style.background = cor;
+    document.getElementById('andares').textContent = construidos + ' de 4 andares';
+
+    var L = document.getElementById('legend');
+    L.innerHTML = '';
+    for(i=3;i>=0;i--){ // do topo pra base, como o prédio se lê
+      var P = PILARES[i], on = i < construidos;
+      var row = document.createElement('div');
+      row.className = 'lg' + (on?' on':'');
+      row.innerHTML =
+        '<span class="sw" style="background:'+(on?P.cor:'transparent')+
+          ';border-color:'+hex(P.cor,on?1:.5)+'"></span>'+
+        '<span class="nm">'+P.n.replace('PILAR ','P')+' · '+P.fase+'</span>'+
+        '<span class="st">'+(on?'CONSTRUÍDO':'HOLOGRAMA')+'</span>';
+      L.appendChild(row);
+    }
+  }
+
+  // ===== dock =====
+  (function(){
+    var dock = document.getElementById('dock'), btns = [];
+    [0,1,2,3,4].forEach(function(n){
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = n === 0 ? 'só o projeto' : n + (n===1?' andar':' andares');
+      b.addEventListener('click', function(){
+        construidos = n;
+        btns.forEach(function(x,j){ x.classList.toggle('on', j===n); });
+        render();
+      });
+      btns.push(b); dock.appendChild(b);
+    });
+    var hint = document.createElement('span');
+    hint.className = 'hint';
+    hint.textContent = 'quantos andares o aluno subiu';
+    dock.appendChild(hint);
+    btns[1].classList.add('on');
+  })();
+
+  render();
+})();
+</script>
+</body>
+</html>

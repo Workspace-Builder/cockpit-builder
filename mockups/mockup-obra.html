@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockup · A Obra — Pilar 01 (raio-X)</title>
+<style>
+  :root{
+    /* paleta da direção */
+    --bg:#070B12; --estrutura:#24304A; --ativo:#4F7CFF; --feito:#27D7B0;
+    --acao:#FFAA4A; --txt:#F3F6FC; --txt2:#8793AA;
+    --fio:rgba(255,255,255,.07);
+    --mono:ui-monospace,"SF Mono","JetBrains Mono","Cascadia Mono",Menlo,Consolas,monospace;
+    --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:
+      radial-gradient(1100px 700px at 50% 52%, rgba(79,124,255,.07), transparent 70%),
+      var(--bg);
+    color:var(--txt); font-family:var(--sans); overflow:hidden; height:100%;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* 28 / 50 / 22 — as três áreas NÃO têm o mesmo peso */
+  .tela{height:100%; display:grid; grid-template-columns:28% minmax(0,1fr) 23%; align-items:stretch}
+
+  /* ---------- 1. narrativa ---------- */
+  .narra{padding:44px 0 40px 52px; display:flex; flex-direction:column; min-width:0}
+  .selo{display:inline-flex; align-items:center; gap:8px; font:600 10px/1 var(--mono);
+        letter-spacing:.18em; color:var(--txt2)}
+  .selo i{width:5px;height:5px;border-radius:50%;background:var(--ativo);box-shadow:0 0 9px var(--ativo)}
+  h1{margin:20px 0 0; font:700 40px/1.04 var(--sans); letter-spacing:-.025em}
+  .promessa{margin:18px 0 0; max-width:23ch; font:400 17px/1.5 var(--sans); color:#c9d3e6}
+  .promessa b{color:var(--txt); font-weight:600}
+
+  .prog{margin-top:auto; padding-top:32px}
+  .prog-n{display:flex; align-items:baseline; gap:9px}
+  .prog-n b{font:700 34px/1 var(--mono); color:var(--feito); letter-spacing:-.02em}
+  .prog-n span{font:600 11px/1 var(--mono); letter-spacing:.14em; color:var(--txt2)}
+  .barra{margin-top:13px; height:5px; border-radius:99px; background:#151d2e; overflow:hidden; max-width:270px}
+  .barra i{display:block; height:100%; border-radius:99px; background:var(--feito);
+           box-shadow:0 0 14px rgba(39,215,176,.5); transition:width .7s cubic-bezier(.2,.7,.3,1)}
+  .prog-t{margin-top:11px; font:400 12.5px/1.45 var(--sans); color:var(--txt2); max-width:30ch}
+
+  /* minimapa: este pilar dentro do complexo */
+  .mapa{margin-top:26px; display:flex; align-items:flex-end; gap:8px; max-width:270px}
+  .mapa button{flex:1; cursor:pointer; background:none; border:none; padding:0; text-align:left}
+  .mapa .torre{height:52px; border-radius:3px 3px 0 0; background:#111a2b; position:relative; overflow:hidden;
+               display:block; box-shadow:inset 0 0 0 1px rgba(255,255,255,.04)}
+  .mapa .torre i{position:absolute; inset:auto 0 0 0; background:currentColor; opacity:.7; display:block}
+  .mapa button[aria-current="true"] .torre{background:#1b2740; box-shadow:0 0 0 1px currentColor inset}
+  .mapa button[aria-current="true"] .torre i{opacity:1; box-shadow:0 0 12px currentColor}
+  .mapa em{display:block; margin-top:7px; font:600 8.5px/1 var(--mono); letter-spacing:.1em;
+           color:var(--txt2); font-style:normal}
+  .mapa button[aria-current="true"] em{color:var(--txt)}
+  .mapa-l{margin-top:16px; font:600 8.5px/1 var(--mono); letter-spacing:.18em; color:#4c5кость}
+  .mapa-leg{margin-top:14px; font:600 8.5px/1 var(--mono); letter-spacing:.18em; color:#4c5771}
+
+  /* ---------- 2. a obra ---------- */
+  .obra{position:relative; min-width:0; min-height:0}
+  #cena{width:100%; height:100%; display:block}
+  .hit{cursor:pointer}
+  .f-nome{font:600 13px/1 var(--sans)}
+  .f-num{font:700 10px/1 var(--mono)}
+  .f-tag{font:700 7.5px/1 var(--mono); letter-spacing:.14em}
+  .sign{font:700 9px/1 var(--mono); letter-spacing:.22em}
+  @keyframes pulso{0%,100%{opacity:.85}50%{opacity:.35}}
+  .beacon{animation:pulso 2.6s ease-in-out infinite}
+
+  /* ---------- 3. ação ---------- */
+  .acao{padding:44px 52px 40px 0; display:flex; flex-direction:column; justify-content:center; min-width:0}
+  .cart{border:1px solid var(--fio); border-radius:16px; background:rgba(19,26,42,.72);
+        backdrop-filter:blur(10px); padding:22px}
+  .cart .k{font:700 9.5px/1 var(--mono); letter-spacing:.16em; color:var(--ativo)}
+  .cart h2{margin:12px 0 0; font:700 21px/1.2 var(--sans); letter-spacing:-.02em}
+  .cart .porq{margin:12px 0 0; font:400 14px/1.5 var(--sans); color:#c2cde1}
+  .cart .apoio{margin:10px 0 0; font:400 12.5px/1.5 var(--sans); color:var(--txt2)}
+  .tag8020{display:inline-block; margin-top:14px; padding:5px 9px; border-radius:6px;
+           font:700 8.5px/1 var(--mono); letter-spacing:.14em;
+           color:var(--feito); background:rgba(39,215,176,.12)}
+
+  .cta{margin-top:20px; width:100%; cursor:pointer; border:none; border-radius:12px;
+       background:var(--acao); color:#1a1002; padding:15px 16px; text-align:left;
+       box-shadow:0 12px 30px -10px rgba(255,170,74,.55); transition:transform .16s, box-shadow .16s}
+  .cta:hover{transform:translateY(-1px); box-shadow:0 16px 36px -10px rgba(255,170,74,.7)}
+  .cta b{display:block; font:700 13.5px/1 var(--sans); letter-spacing:-.01em}
+  .cta span{display:block; margin-top:5px; font:500 11px/1 var(--mono); letter-spacing:.06em; opacity:.72}
+  .cta.feito{background:transparent; border:1px solid var(--fio); color:var(--txt2); box-shadow:none}
+
+  .cta2{margin-top:10px; width:100%; cursor:pointer; background:none; border:none;
+        color:var(--txt2); font:600 11.5px/1 var(--sans); padding:9px; border-radius:9px;
+        display:flex; align-items:center; justify-content:space-between}
+  .cta2:hover{background:rgba(255,255,255,.05); color:var(--txt)}
+  .cta2 i{font-style:normal; transition:transform .2s}
+  .cta2[aria-expanded="true"] i{transform:rotate(90deg)}
+
+  /* estrutura do andar: só depois de expandir */
+  .estr{overflow:hidden; max-height:0; transition:max-height .34s cubic-bezier(.2,.7,.3,1)}
+  .estr.on{max-height:340px}
+  .no{display:flex; gap:11px; align-items:center; margin-top:9px; padding:10px;
+      border-radius:11px; border:1px solid var(--fio); text-decoration:none; color:inherit}
+  a.no:hover{background:rgba(255,255,255,.05)}
+  .no.vaga{border-style:dashed; opacity:.55}
+  .no .ic{width:30px;height:30px;border-radius:8px;flex:none;display:grid;place-items:center;font-size:13px;border:1px solid}
+  .no b{display:block; font:700 7.5px/1 var(--mono); letter-spacing:.16em}
+  .no strong{display:block; margin-top:5px; font:500 12px/1.35 var(--sans)}
+
+  .dica{margin-top:18px; font:500 10px/1.6 var(--mono); letter-spacing:.04em; color:#454f66}
+  .dica b{color:#5f6b85}
+
+  @media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+  @media (max-width:1180px){ .tela{grid-template-columns:32% minmax(0,1fr) 27%} h1{font-size:32px} }
+</style>
+</head>
+<body>
+
+<div class="tela">
+  <!-- 1. promessa -->
+  <section class="narra">
+    <span class="selo"><i></i>PILAR 01 · ENTREGA</span>
+    <h1>Entrega de<br>alto valor</h1>
+    <p class="promessa">Construa algo que <b>parece valioso</b> antes mesmo de apresentar o preço.</p>
+
+    <div class="prog">
+      <div class="prog-n"><b id="pn">4</b><span>DE 9 ANDARES ERGUIDOS</span></div>
+      <div class="barra"><i id="pbar" style="width:44%"></i></div>
+      <p class="prog-t" id="ptxt">Faltam 5 andares pra esta torre ficar de pé.</p>
+
+      <div class="mapa" id="mapa"></div>
+      <div class="mapa-leg">O COMPLEXO · 4 TORRES</div>
+    </div>
+  </section>
+
+  <!-- 2. a obra -->
+  <main class="obra"><svg id="cena" preserveAspectRatio="xMidYMid meet" aria-label="Torre do Pilar 01"></svg></main>
+
+  <!-- 3. ação -->
+  <aside class="acao">
+    <div class="cart">
+      <div class="k" id="ck">05 · CÓDIGO E EFEITOS</div>
+      <h2 id="ch">O andar do acabamento</h2>
+      <p class="porq" id="cp"></p>
+      <p class="apoio" id="ca"></p>
+      <span class="tag8020" id="c8" hidden>8020 · ESTE É DE VIGA</span>
+
+      <button class="cta" id="cta">
+        <b id="ctab">Erguer este andar</b>
+        <span id="ctas">a torre sobe um andar</span>
+      </button>
+
+      <button class="cta2" id="cta2" aria-expanded="false">
+        Ver estrutura do andar <i>›</i>
+      </button>
+      <div class="estr" id="estr"></div>
+    </div>
+    <p class="dica"><b>↑ ↓</b> troca de andar · <b>Enter</b> ergue</p>
+  </aside>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ===== dados: os 9 andares do Pilar 01 (mesma fonte do app) ===== */
+var ANDARES=[
+ {no:'01',nome:'Estratégia da página',e8020:1,
+  porq:'O andar que decide se a página vende antes de existir.',
+  apoio:'O que ela precisa ter pra converter — decidido antes de abrir a ferramenta.',
+  nos:[['ia','IA DE APOIO','IA 05 · Estrutura de Sites','#9E7CF8']]},
+ {no:'02',nome:'Copy',e8020:1,
+  porq:'O andar que transforma atenção em decisão.',
+  apoio:'Design faz parecer melhor. Copy faz o cliente entender por que vale a pena.',
+  nos:[['ia','IA DE APOIO','IA 06 · Easy Copy','#9E7CF8']]},
+ {no:'03',nome:'Design',e8020:1,
+  porq:'O andar que faz o preço parecer justo antes de você falar.',
+  apoio:'Direção com intenção: arquétipo, paleta, tipografia. Nunca do zero.',
+  nos:[['aula','AULA','Design Easy','#4F7CFF'],
+       ['ferram','FERRAMENTA · EB','Extensão EB · 1.000+ componentes','#27D7B0'],
+       ['ia','IA DE APOIO','IA 09 · Diretor Criativo','#9E7CF8']]},
+ {no:'04',nome:'Imagem e direção visual',e8020:0,
+  porq:'O andar que carrega metade da percepção de valor.',
+  apoio:'A imagem fala antes do texto — e decide se ele vai ser lido.',
+  nos:[['ia','IA DE APOIO','IA 10 · Easy Image','#9E7CF8']]},
+ {no:'05',nome:'Código e efeitos',e8020:1,
+  porq:'O andar que separa página comum de página cara.',
+  apoio:'O acabamento que o cliente não sabe nomear, mas percebe na hora.',
+  nos:[['ia','IA DE APOIO','IA 11 · Easy Coder','#9E7CF8']]},
+ {no:'06',nome:'Responsividade',e8020:0,
+  porq:'O andar que impede a obra de cair no celular.',
+  apoio:'Perfeita em toda tela — nos componentes do EB já vem pronta.',
+  nos:[['ferram','FERRAMENTA · EB','Automática nos componentes','#27D7B0']]},
+ {no:'07',nome:'Otimização',e8020:0,
+  porq:'O andar que segura o cliente que você já conquistou.',
+  apoio:'Site lento devolve o cliente pro concorrente.',
+  nos:[['aula','AULA','Easy Optimize','#4F7CFF'],
+       ['ferram','FERRAMENTA · EB','Backup otimizado','#27D7B0']]},
+ {no:'08',nome:'Implementação técnica',e8020:1,
+  porq:'O andar que tira a obra do papel e põe no ar.',
+  apoio:'Do ambiente local pro ar, sem drama.',
+  nos:[['ferram','FERRAMENTA · EB','Backup WordPress · 3 cliques','#27D7B0']]},
+ {no:'09',nome:'Qualidade antes de enviar',e8020:1,
+  porq:'O andar que protege seu preço e sua reputação.',
+  apoio:'O gate: a página só sai quando passa.',
+  nos:[['ia','IA DE APOIO','IA 12 · Analisador de Páginas','#9E7CF8']]}
+];
+var PILARES=[
+ {no:'01',nome:'ENTREGA',   cor:'#4F7CFF', alt:1.00},
+ {no:'02',nome:'VALOR',     cor:'#27D7B0', alt:.72},
+ {no:'03',nome:'GESTÃO',    cor:'#38BDF8', alt:.60},
+ {no:'04',nome:'AMBIENTE',  cor:'#FFAA4A', alt:.44}
+];
+var N=ANDARES.length;
+
+/* ===== estado ===== */
+var feito=[1,1,1,1,0,0,0,0,0];      // 4 erguidos
+var sel=4;                           // andar 05 ativo
+var expandido=false;
+var anim=0;                          // 0→1 na entrada
+
+/* ===== iso ===== */
+var WX=.866, WY=.5, W=150, D=150, FH=42, LOB=54;
+function iso(x,y,z){ return [(x-y)*WX,(x+y)*WY-z]; }
+function P(x,y,z){var a=iso(x,y,z);return a[0].toFixed(2)+','+a[1].toFixed(2);}
+function box(x0,y0,x1,y1,z0,z1){return{
+  top:'M'+P(x0,y0,z1)+' L'+P(x1,y0,z1)+' L'+P(x1,y1,z1)+' L'+P(x0,y1,z1)+' Z',
+  rgt:'M'+P(x1,y0,z1)+' L'+P(x1,y1,z1)+' L'+P(x1,y1,z0)+' L'+P(x1,y0,z0)+' Z',
+  lft:'M'+P(x1,y1,z1)+' L'+P(x0,y1,z1)+' L'+P(x0,y1,z0)+' L'+P(x1,y1,z0)+' Z'};}
+function fR(X,a0,a1,z0,z1){return 'M'+P(X,a0,z0)+' L'+P(X,a1,z0)+' L'+P(X,a1,z1)+' L'+P(X,a0,z1)+' Z';}
+function fL(Y,a0,a1,z0,z1){return 'M'+P(a0,Y,z0)+' L'+P(a1,Y,z0)+' L'+P(a1,Y,z1)+' L'+P(a0,Y,z1)+' Z';}
+
+var NS='http://www.w3.org/2000/svg', svg=document.getElementById('cena');
+function el(t,a){var e=document.createElementNS(NS,t);for(var k in a)if(a[k]!=null)e.setAttribute(k,a[k]);return e;}
+function add(p,t,a){var e=el(t,a);p.appendChild(e);return e;}
+function rng(s){return function(){s=(s*1103515245+12345)&0x7fffffff;return s/0x7fffffff;};}
+
+function defs(){
+  var d=el('defs');
+  [['gA',9],['gB',4],['gC',2.2]].forEach(function(o){
+    var f=add(d,'filter',{id:o[0],x:'-90%',y:'-90%',width:'280%',height:'280%'});
+    add(f,'feGaussianBlur',{stdDeviation:o[1],result:'b'});
+    var m=add(f,'feMerge');add(m,'feMergeNode',{'in':'b'});add(m,'feMergeNode',{'in':'SourceGraphic'});
+  });
+  function grad(id,a,ao,b,bo){
+    var g=add(d,'linearGradient',{id:id,x1:'0',y1:'0',x2:'0',y2:'1'});
+    add(g,'stop',{offset:'0','stop-color':a,'stop-opacity':ao});
+    add(g,'stop',{offset:'1','stop-color':b,'stop-opacity':bo});
+  }
+  grad('vFeito','#6FF3D6','.34','#27D7B0','.16');     // concluído: sólido, sereno
+  grad('vAtivo','#BBD0FF','.62','#4F7CFF','.42');     // ativo: aceso por dentro
+  grad('vLob','#3A4A6B','.5','#1A2438','.7');
+  var h=add(d,'radialGradient',{id:'luz'});
+  add(h,'stop',{offset:'0','stop-color':'#4F7CFF','stop-opacity':'.30'});
+  add(h,'stop',{offset:'1','stop-color':'#4F7CFF','stop-opacity':'0'});
+  var s=add(d,'radialGradient',{id:'sombra'});
+  add(s,'stop',{offset:'0','stop-color':'#000','stop-opacity':'.6'});
+  add(s,'stop',{offset:'1','stop-color':'#000','stop-opacity':'0'});
+  return d;
+}
+
+/* ===== silhuetas: as outras 3 torres, só sugestão ===== */
+function complexo(root){
+  /* as outras 3 torres, com a TIPOLOGIA de cada pilar — senão o complexo não é
+     o mesmo dos outros prédios: 02 é largo e atarracado (esquina/vitrine),
+     03 é bloco compacto (casa de máquinas), 04 é pavilhão em terraços. */
+  var g=add(root,'g',{opacity:anim});
+  var T=[
+    {p:1,sx:-350,sy:-120,s:.60,w:1.5,d:.86,n:7,recuo:0},    // 02 vitrine: largo, baixo
+    {p:2,sx:-210,sy:-320,s:.50,w:1.0,d:1.0,n:6,recuo:0},    // 03 bloco: compacto
+    {p:3,sx: 320,sy:-235,s:.52,w:1.3,d:1.3,n:5,recuo:9}     // 04 pavilhão: escalonado
+  ];
+  T.forEach(function(o){
+    var p=PILARES[o.p], s=o.s, w=W*s*o.w, d=D*s*o.d, fh=FH*s*.8;
+    var gg=add(g,'g',{transform:'translate('+o.sx+','+o.sy+')',opacity:.22});
+    for(var k=0;k<o.n;k++){
+      var r=o.recuo*k, z0=k*fh, b=box(0,0,w-r,d-r,z0,z0+fh-2);
+      add(gg,'path',{d:b.lft,fill:'#0A101C'});
+      add(gg,'path',{d:b.rgt,fill:'#0C1421'});
+      add(gg,'path',{d:b.top,fill:'#0D1626',stroke:p.cor,'stroke-width':.9,opacity:.8});
+    }
+  });
+}
+
+/* ===== o terreno ===== */
+function terreno(root){
+  add(root,'ellipse',{cx:0,cy:iso(W/2,D/2,0)[1]+26,rx:290,ry:96,fill:'url(#luz)',opacity:anim});
+  var G=54, b=box(-G,-G,W+G,D+G,-22,-10);
+  add(root,'path',{d:b.lft,fill:'#0A0F1A'});
+  add(root,'path',{d:b.rgt,fill:'#0C111D'});
+  add(root,'path',{d:b.top,fill:'#0D1524',stroke:'rgba(79,124,255,.20)','stroke-width':1});
+  for(var t=-G+20;t<W+G;t+=30)
+    add(root,'line',{x1:iso(t,-G,-10)[0],y1:iso(t,-G,-10)[1],x2:iso(t,D+G,-10)[0],y2:iso(t,D+G,-10)[1],
+      stroke:'rgba(255,255,255,.028)','stroke-width':.7});
+  // 4 setores na fundação: o complexo aparece no chão
+  PILARES.forEach(function(p,i){
+    var q=box(-G+i*((W+2*G)/4)+3,D+G-16,-G+(i+1)*((W+2*G)/4)-3,D+G-4,-10,-8);
+    add(root,'path',{d:q.top,fill:p.cor,opacity:i===0?.75:.20});
+  });
+}
+
+/* ===== térreo ===== */
+function lobby(root){
+  var b=box(0,0,W,D,0,LOB), r=rng(9), i;
+  add(root,'path',{d:b.lft,fill:'#0C1220',stroke:'rgba(255,255,255,.05)','stroke-width':.8});
+  add(root,'path',{d:b.rgt,fill:'#0F1526',stroke:'rgba(255,255,255,.05)','stroke-width':.8});
+  add(root,'path',{d:fR(W,8,D-8,7,LOB-12),fill:'url(#vLob)'});
+  add(root,'path',{d:fL(D,8,W-8,7,LOB-12),fill:'url(#vLob)',opacity:.85});
+  for(i=12;i<D-8;i+=15) add(root,'path',{d:fR(W,i,i+1.6,7,LOB-12),fill:'rgba(6,10,18,.8)'});
+  for(i=12;i<W-8;i+=15) add(root,'path',{d:fL(D,i,i+1.6,7,LOB-12),fill:'rgba(6,10,18,.8)'});
+  var mq=box(-6,-6,W+6,D+6,LOB-11,LOB-5);
+  add(root,'path',{d:mq.lft,fill:'#111A2C'});add(root,'path',{d:mq.rgt,fill:'#142034'});
+  add(root,'path',{d:mq.top,fill:'#18243A',stroke:'rgba(79,124,255,.3)','stroke-width':.8});
+  var s=iso(W+6,D*.5,LOB-17);
+  var tx=add(root,'text',{x:s[0],y:s[1]+3,'class':'sign',fill:'#7E8CA8','text-anchor':'middle'});
+  tx.textContent='OBRA 10K';
+  add(root,'path',{d:b.top,fill:'rgba(79,124,255,.05)',stroke:'rgba(79,124,255,.35)','stroke-width':1.2});
+}
+
+/* ===== um andar =====
+   concluído = sólido · ativo = puxado pra fora e aceso · futuro = wireframe rebaixado */
+function andar(root,i){
+  var A=ANDARES[i], ativo=(i===sel), pronto=!!feito[i];
+  var z0=LOB+i*FH, z1=z0+FH-4;
+  // o andar ativo desliza pra FORA do volume (+x +y = pra frente na iso) e cresce um pouco
+  var puxa = ativo ? 30*anim : 0, esc = ativo ? 1.06 : 1;
+  var w=W*esc, d=D*esc, off=(w-W)/2;
+  var x0=puxa-off, y0=puxa-off, x1=puxa+w-off, y1=puxa+d-off;
+  var b=box(x0,y0,x1,y1,z0,z1), r=rng(41+i*17), k;
+
+  var g=add(root,'g',{'class':'hit'});
+  g.addEventListener('click',function(){ sel=i; expandido=false; pinta(); });
+
+  if(ativo){
+    // sombra projetada: o andar saiu do prumo, então marca no volume
+    add(g,'path',{d:box(0,0,W,D,z0,z0+1).top,fill:'rgba(0,0,0,.5)'});
+    add(g,'ellipse',{cx:iso(x0+w/2,y0+d/2,z0)[0],cy:iso(x0+w/2,y0+d/2,z0)[1],
+      rx:150,ry:64,fill:'url(#luz)'});
+  }
+
+  if(pronto && !ativo){
+    add(g,'path',{d:b.lft,fill:'#101A28',stroke:'rgba(39,215,176,.22)','stroke-width':.8});
+    add(g,'path',{d:b.rgt,fill:'#132131',stroke:'rgba(39,215,176,.22)','stroke-width':.8});
+    add(g,'path',{d:fR(x1,y0+7,y1-7,z0+6,z1-7),fill:'url(#vFeito)'});
+    add(g,'path',{d:fL(y1,x0+7,x1-7,z0+6,z1-7),fill:'url(#vFeito)',opacity:.8});
+    for(k=10;k<d-8;k+=14) add(g,'path',{d:fR(x1,y0+k,y0+k+1.4,z0+6,z1-7),fill:'rgba(6,12,18,.7)'});
+    for(k=10;k<w-8;k+=14) add(g,'path',{d:fL(y1,x0+k,x0+k+1.4,z0+6,z1-7),fill:'rgba(6,12,18,.7)'});
+    add(g,'path',{d:b.top,fill:'#0E1826'});
+    add(g,'path',{d:b.top,fill:'rgba(39,215,176,.07)',stroke:'var(--feito)','stroke-width':1.3});
+
+  }else if(ativo){
+    // RAIO-X: casca de vidro, luz por dentro, laje grossa
+    add(g,'path',{d:b.lft,fill:'#0D1526',stroke:'rgba(79,124,255,.5)','stroke-width':1});
+    add(g,'path',{d:b.rgt,fill:'#101A2E',stroke:'rgba(79,124,255,.5)','stroke-width':1});
+    add(g,'path',{d:fR(x1,y0+6,y1-6,z0+5,z1-6),fill:'url(#vAtivo)'});
+    add(g,'path',{d:fL(y1,x0+6,x1-6,z0+5,z1-6),fill:'url(#vAtivo)',opacity:.88});
+    // miolo aceso — a obra acontecendo agora
+    for(k=0;k<9;k++){
+      var bx=x0+14+r()*(w-40), by=y0+14+r()*(d-40), s=9+r()*11, hh=6+r()*16;
+      var bb=box(bx,by,bx+s,by+s,z0+3,z0+3+hh);
+      add(g,'path',{d:bb.lft,fill:'rgba(79,124,255,.14)',stroke:'rgba(150,185,255,.5)','stroke-width':.6});
+      add(g,'path',{d:bb.rgt,fill:'rgba(79,124,255,.2)', stroke:'rgba(150,185,255,.5)','stroke-width':.6});
+      add(g,'path',{d:bb.top,fill:'rgba(140,180,255,.3)',stroke:'rgba(190,215,255,.7)','stroke-width':.6});
+    }
+    for(k=12;k<d-10;k+=13) add(g,'path',{d:fR(x1,y0+k,y0+k+1.5,z0+5,z1-6),fill:'rgba(8,14,26,.55)'});
+    var lj=box(x0-4,y0-4,x1+4,y1+4,z1-7,z1);
+    add(g,'path',{d:lj.lft,fill:'#16243D'});add(g,'path',{d:lj.rgt,fill:'#1A2B47'});
+    add(g,'path',{d:lj.top,fill:'rgba(79,124,255,.2)',stroke:'#8FB2FF','stroke-width':2.4,filter:'url(#gA)'});
+
+  }else{
+    // futuro: wireframe rebaixado — projeto, não obra
+    var op=A.e8020?.34:.18;
+    add(g,'path',{d:b.lft,fill:'rgba(36,48,74,.10)',stroke:'rgba(36,48,74,'+(op+.5)+')','stroke-width':.9});
+    add(g,'path',{d:b.rgt,fill:'rgba(36,48,74,.16)',stroke:'rgba(36,48,74,'+(op+.5)+')','stroke-width':.9});
+    [[x0,y0],[x1,y0],[x1,y1],[x0,y1]].forEach(function(c){
+      var a=iso(c[0],c[1],z0),e=iso(c[0],c[1],z1);
+      add(g,'line',{x1:a[0],y1:a[1],x2:e[0],y2:e[1],stroke:'rgba(36,48,74,.75)','stroke-width':.8});
+    });
+    add(g,'path',{d:b.top,fill:'none',stroke:'rgba(60,80,120,'+(op+.45)+')','stroke-width':A.e8020?1.5:1});
+  }
+
+  /* etiqueta do andar: espaçamento UNIFORME, não a altura real do andar.
+     Com o andar ativo puxado pra fora, usar a altura real fazia a etiqueta dele
+     descer e colidir com a de baixo. O fio resolve a ligação. */
+  var ESP=Math.max(FH,34), Y0=iso(0,D,LOB+FH*.5)[1];
+  var lx=iso(0,D,0)[0]-30, ly=Y0-i*ESP;
+  var gl=add(root,'g',{'class':'hit',opacity:anim});
+  gl.addEventListener('click',function(){ sel=i; expandido=false; pinta(); });
+  var pa=iso(x0,y1,z0+FH*.5);                      // ponta no andar de verdade
+  add(gl,'line',{x1:lx+12,y1:ly,x2:pa[0]-4,y2:pa[1],
+    stroke: ativo?'rgba(143,178,255,.9)':(pronto?'rgba(39,215,176,.35)':'rgba(36,48,74,.8)'),
+    'stroke-width':ativo?1.4:1});
+  add(gl,'circle',{cx:lx,cy:ly,r:11,
+    fill: ativo?'#4F7CFF':(pronto?'rgba(39,215,176,.14)':'rgba(20,28,44,.9)'),
+    stroke: ativo?'#8FB2FF':(pronto?'#27D7B0':'#24304A'),'stroke-width':1.4,
+    filter: ativo?'url(#gB)':null});
+  var tn=add(gl,'text',{x:lx,y:ly+3.4,'class':'f-num','text-anchor':'middle',
+    fill: ativo?'#fff':(pronto?'#27D7B0':'#5B6884')});
+  tn.textContent= pronto?'✓':A.no;
+  var nm=add(gl,'text',{x:lx-19,y:A.e8020?ly-1:ly+3.6,'class':'f-nome','text-anchor':'end',
+    fill: ativo?'#F3F6FC':(pronto?'#A8B6CC':'#5B6884')});
+  nm.textContent=A.nome;
+  if(A.e8020){
+    var t8=add(gl,'text',{x:lx-19,y:ly+10,'class':'f-tag','text-anchor':'end',
+      fill: ativo?'#27D7B0':(pronto?'rgba(39,215,176,.55)':'#3C4A66')});
+    t8.textContent='8020';
+  }
+
+  /* o nome grande do andar ativo, dentro da obra */
+  if(ativo){
+    var c=iso(x0+w*.5,y1,z0+FH*.42);
+    var big=add(root,'text',{x:c[0],y:c[1],'class':'f-nome','text-anchor':'middle',
+      fill:'rgba(220,232,255,.92)','font-size':'19','font-weight':'700','letter-spacing':'.02em',
+      filter:'url(#gC)',opacity:anim});
+    big.textContent=A.nome.toUpperCase();
+    /* fio até o painel da direita */
+    var p0=iso(x1,y0+d*.45,z0+FH*.5);
+    add(root,'path',{d:'M'+p0[0]+','+p0[1]+' L'+(p0[0]+70)+','+(p0[1]-30)+' L'+(p0[0]+250)+','+(p0[1]-30),
+      fill:'none',stroke:'rgba(79,124,255,.45)','stroke-width':1.2,opacity:anim});
+    add(root,'circle',{cx:p0[0],cy:p0[1],r:3.6,fill:'#8FB2FF',filter:'url(#gB)',opacity:anim});
+  }
+}
+
+function cobertura(root){
+  var zt=LOB+N*FH-4, cheio=feito.every(Boolean);
+  var par=box(-4,-4,W+4,D+4,zt,zt+6);
+  ['lft','rgt','top'].forEach(function(k,i){
+    add(root,'path',{d:par[k],fill:cheio?'#12203A':'none',
+      stroke:cheio?'#27D7B0':'rgba(36,48,74,.9)','stroke-width':i===2?1.2:.9});
+  });
+  var m=iso(40,48,zt+26);
+  add(root,'line',{x1:m[0],y1:m[1],x2:m[0],y2:m[1]-34,stroke:'rgba(36,48,74,.9)','stroke-width':1});
+  add(root,'circle',{cx:m[0],cy:m[1]-37,r:2.6,fill:'#FFAA4A','class':'beacon'});
+}
+
+/* ===== render ===== */
+function cena(){
+  svg.innerHTML='';
+  svg.appendChild(defs());
+  var root=el('g'), i;
+  complexo(root);
+  terreno(root);
+  lobby(root);
+  for(i=0;i<N;i++) andar(root,i);
+  cobertura(root);
+  svg.appendChild(root);
+
+  var zt=LOB+N*FH+70;
+  var x0=iso(0,D,0)[0]-215, x1=iso(W,0,0)[0]+120;
+  var y0=iso(0,0,zt)[1]-20, y1=iso(W,D,-22)[1]+50;
+  var m=Math.max(0,(1-anim)*40);                   // entrada: sobe do chão
+  svg.setAttribute('viewBox',x0+' '+(y0+m)+' '+(x1-x0)+' '+(y1-y0));
+}
+
+/* ===== painel + narrativa ===== */
+var SLOT={aula:'▶',ferram:'⚙',ia:'✦'};
+function pinta(){
+  var A=ANDARES[sel], f=feito.filter(Boolean).length;
+  document.getElementById('pn').textContent=f;
+  document.getElementById('pbar').style.width=(f/N*100)+'%';
+  document.getElementById('ptxt').textContent = f===N
+    ? 'Torre erguida. O Pilar 01 está de pé.'
+    : 'Faltam '+(N-f)+' andares pra esta torre ficar de pé.';
+
+  document.getElementById('ck').textContent=A.no+' · '+A.nome.toUpperCase();
+  document.getElementById('ch').textContent=A.porq;
+  document.getElementById('cp').textContent=A.apoio;
+  document.getElementById('ca').textContent='';
+  document.getElementById('c8').hidden=!A.e8020;
+
+  var b=document.getElementById('cta');
+  b.className='cta'+(feito[sel]?' feito':'');
+  document.getElementById('ctab').textContent=feito[sel]?'Andar erguido':'Erguer este andar';
+  document.getElementById('ctas').textContent=feito[sel]?'clique pra desfazer':'a torre sobe um andar';
+
+  var e=document.getElementById('estr'), h='';
+  A.nos.forEach(function(n){
+    h+='<a class="no" href="#" onclick="return false"><span class="ic" style="color:'+n[3]+
+       ';border-color:'+n[3]+'55;background:'+n[3]+'1a">'+SLOT[n[0]]+'</span>'+
+       '<span><b style="color:'+n[3]+'">'+n[1]+'</b><strong>'+n[2]+'</strong></span></a>';
+  });
+  ['aula','ferram','ia'].forEach(function(k){
+    if(A.nos.some(function(n){return n[0]===k;})) return;
+    h+='<div class="no vaga"><span class="ic" style="border-color:#24304A;color:#5B6884">'+SLOT[k]+
+       '</span><span><b style="color:#5B6884">'+(k==='aula'?'AULA':k==='ferram'?'FERRAMENTA':'IA DE APOIO')+
+       '</b><strong style="color:#5B6884">vaga reservada</strong></span></div>';
+  });
+  e.innerHTML=h;
+  e.className='estr'+(expandido?' on':'');
+  document.getElementById('cta2').setAttribute('aria-expanded',expandido?'true':'false');
+
+  var mp='';
+  PILARES.forEach(function(p,i){
+    mp+='<button aria-current="'+(i===0)+'" style="color:'+p.cor+'">'+
+        '<span class="torre"><i style="height:'+(p.alt*100)+'%"></i></span>'+
+        '<em>'+p.no+'</em></button>';
+  });
+  document.getElementById('mapa').innerHTML=mp;
+
+  cena();
+}
+
+document.getElementById('cta').addEventListener('click',function(){
+  feito[sel]=feito[sel]?0:1; pinta();
+});
+document.getElementById('cta2').addEventListener('click',function(){
+  expandido=!expandido; pinta();
+});
+document.addEventListener('keydown',function(ev){
+  if(ev.key==='ArrowUp'){ sel=Math.min(N-1,sel+1); expandido=false; pinta(); }
+  else if(ev.key==='ArrowDown'){ sel=Math.max(0,sel-1); expandido=false; pinta(); }
+  else if(ev.key==='Enter'){ feito[sel]=feito[sel]?0:1; pinta(); }
+});
+window.addEventListener('resize',cena);
+
+/* entrada: a obra sobe */
+var reduz=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+if(reduz){ anim=1; pinta(); }
+else{
+  var t0=performance.now();
+  (function passo(){
+    var k=Math.min(1,(performance.now()-t0)/700);
+    anim=1-Math.pow(1-k,3);
+    cena();
+    if(k<1) requestAnimationFrame(passo);
+  })();
+  pinta();
+}
+})();
+</script>
+</body>
+</html>

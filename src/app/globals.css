@@ -1,0 +1,949 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Tokens — os mesmos do wireframe-navegacao.html.
+   Tema escuro por natureza: o Cockpit é uma cabine, não um documento.
+   --------------------------------------------------------------------------- */
+:root {
+  --fundo: #0c1018;
+  --painel: #141c2b;
+  --painel-2: #182130;
+  --texto: #eef2fb;
+  --texto-2: #9aa7be;
+  --texto-3: #5d6a83;
+  --fundo-2: #111826;
+  --fio: rgba(255, 255, 255, 0.09);
+  /* contorno de espaço reservado — mais forte, feito pra ser notado */
+  --fio-2: rgba(255, 255, 255, 0.17);
+  /* divisória interna de componente — quase invisível de propósito */
+  --fio-fraco: rgba(255, 255, 255, 0.05);
+  --slab: #20283a;
+  --slab-2: #28324a;
+
+  --azul: #4e7df6;
+  --verde: #54c98a;
+  --ambar: #f5b23f;
+  --vermelho: #e5484d;
+  --roxo: #9e6cf2;
+
+  /* cor por setor do Método 10k — usadas pelos componentes ricos do funil */
+  --c-atracao: #f5b23f;
+  --c-venda: #f26a43;
+  --c-gestao: #33c6d6;
+  --c-execucao: #4e7df6;
+  --c-qualidade: #9e6cf2;
+  --c-posicionamento: #54c98a;
+
+  /* cor por pilar — o andar do prédio (BLUEPRINT-PAGINAS.md §2) */
+  --c-p1: #4e7df6;
+  --c-p2: #54c98a;
+  --c-p3: #33c6d6;
+  --c-p4: #e8a13c;
+
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Mono", Menlo,
+    Consolas, monospace;
+  --sombra: 0 18px 44px -26px rgba(0, 0, 0, 0.85);
+
+  --w-lateral: 288px;
+  --w-direita: 296px;
+  --h-topo: 58px;
+}
+
+@theme inline {
+  --color-fundo: var(--fundo);
+  --color-painel: var(--painel);
+  --color-painel-2: var(--painel-2);
+  --color-texto: var(--texto);
+  --color-texto-2: var(--texto-2);
+  --color-texto-3: var(--texto-3);
+  --color-fio: var(--fio);
+  --color-fio-2: var(--fio-2);
+  --color-azul: var(--azul);
+  --color-verde: var(--verde);
+  --color-ambar: var(--ambar);
+  --color-vermelho: var(--vermelho);
+  --font-sans: var(--sans);
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--fundo);
+  color: var(--texto);
+  font-family: var(--sans);
+  font-size: 14px;
+}
+
+button {
+  font-family: inherit;
+  color: inherit;
+}
+
+/* Etiqueta de seção: monoespaço não, caixa alta sim — igual ao wireframe. */
+.titulinho {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--texto-3);
+}
+
+/* ---------------------------------------------------------------------------
+   FLUXOGRAMA — vocabulário de formas (Figma 1:1)
+   ---------------------------------------------------------------------------
+   Portado do board legado sem mexer em cor nem geometria. As cores foram
+   conferidas por amostragem de pixel nos PNGs exportados do Figma, não a olho
+   (BLUEPRINT.md §3) — mudar aqui é mudar o significado, não o estilo.
+
+   Quem aprende a ler uma vez lê todos os fluxogramas: pílula = terminal,
+   retângulo roxo = ação, rosa = documento, paralelogramo = entrada/registro,
+   losango = decisão, cilindro = repositório, amarelo = trilha paralela.
+   --------------------------------------------------------------------------- */
+.fx {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  box-sizing: border-box;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 12.5px;
+  line-height: 1.25;
+  letter-spacing: -0.005em;
+  padding: 10px 16px;
+  box-shadow: var(--sombra);
+}
+.fx[data-go] {
+  cursor: pointer;
+  transition:
+    filter 0.16s,
+    transform 0.16s;
+}
+.fx[data-go]:hover {
+  filter: brightness(1.09);
+  transform: translateY(-1px);
+}
+/* Vaga sem destino aparece tracejada em vez de sumir: o mapa mostra o
+   próprio buraco (BLUEPRINT-PAGINAS.md §6). */
+.fx.todo {
+  outline: 1px dashed rgba(255, 255, 255, 0.28);
+  outline-offset: 2px;
+}
+
+.fx-term {
+  border-radius: 999px;
+  background: #757575;
+  color: #fff;
+  font-size: 13px;
+}
+.fx-act {
+  border-radius: 9px;
+  background: #9747ff;
+  color: #fff;
+}
+.fx-doc {
+  border-radius: 9px;
+  background: #ffc7c2;
+  color: #1e1e1e;
+}
+.fx-copy {
+  border-radius: 9px;
+  background: #ffcd29;
+  color: #1e1e1e;
+}
+.fx-in {
+  background: #14ae5c;
+  color: #fff;
+  clip-path: polygon(13% 0, 100% 0, 87% 100%, 0 100%);
+  padding: 10px 30px;
+}
+.fx-reg {
+  background: #ffc7c2;
+  color: #1e1e1e;
+  clip-path: polygon(13% 0, 100% 0, 87% 100%, 0 100%);
+  padding: 10px 30px;
+}
+.fx-dec {
+  background: #14ae5c;
+  color: #fff;
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  padding: 10px 22%;
+}
+.fx-db {
+  background: #ffcd29;
+  color: #1e1e1e;
+  border-radius: 50% / 13%;
+  padding-top: 22px;
+}
+.fx-db::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 26%;
+  border-radius: 50%;
+  background: #ffda5c;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.13);
+}
+
+.fx-lane {
+  border-radius: 14px;
+  background: rgba(255, 203, 40, 0.16);
+  border: 1px solid rgba(255, 203, 40, 0.34);
+  box-shadow: none;
+  display: block;
+}
+.fx-lane .ll {
+  position: absolute;
+  top: 11px;
+  left: 16px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: #ffcb28;
+}
+
+/* Corpo de texto rico — o HTML vem do banco e usa estas classes. */
+.fx-h1 {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--texto);
+  line-height: 1.05;
+}
+.fx-h2 {
+  font-weight: 600;
+  color: var(--texto-2);
+  line-height: 1.4;
+}
+.fx-lbl {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--texto);
+}
+.fx-txt {
+  font-size: 13px;
+  color: var(--texto-2);
+  line-height: 1.85;
+}
+.fx-txt b {
+  color: var(--texto);
+  font-weight: 600;
+}
+.fx-cap {
+  font-weight: 800;
+  font-size: 17px;
+  color: var(--texto);
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+.fx-yn {
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--texto);
+}
+
+.fxshot {
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid var(--fio);
+  background: var(--painel);
+  box-shadow: var(--sombra);
+}
+.fxshot img {
+  width: 100%;
+  display: block;
+}
+
+/* O palco: grade sutil + brilho azul no alto, pra dar profundidade sem ruído. */
+/* `.palco-fundo` saiu junto com o espaço reservado: a malha de fundo agora vem
+   do <Background> do React Flow, que anda com o zoom em vez de ficar colada na
+   tela. Grid parado atrás de canvas que se move é o que denunciava a maquete. */
+
+/* ---------------------------------------------------------------------------
+   MÉTODO 10k — componentes ricos do funil
+   ---------------------------------------------------------------------------
+   Portado do board legado (index.html, blocos "NOVOS NÓS" e "FUNIL"), com as
+   variáveis renomeadas pro vocabulário deste app e nada mais mexido. São os
+   cards de Behance, Instagram, busca do Google, link na bio, comentários,
+   carrossel e afins — os 40 nós de texto do Método usam estas classes.
+
+   Não reescrevi: o desenho é o conteúdo. Reescrever CSS de 40 cards à mão é
+   como o defeito entra sem ninguém ver.
+   --------------------------------------------------------------------------- */
+/* ===== NOVOS NÓS: ícone, marco, tela ===== */
+.iconode{display:flex; flex-direction:column; align-items:center; gap:7px; width:112px; padding:4px}
+.iconode .ic{width:58px; height:58px; border-radius:50%; display:grid; place-items:center; box-shadow:var(--sombra); border:1px solid rgba(255,255,255,.16)}
+.iconode .ic span{font-size:26px; color:#fff; outline:none; line-height:1}
+.iconode .lbl,.marconode .lbl{font-family:var(--mono); font-size:11px; color:var(--texto-2); text-align:center; outline:none; min-width:72px}
+.iconode .lbl:focus,.marconode .lbl:focus,.telanode .cap:focus{color:var(--texto)}
+.marconode{display:flex; flex-direction:column; align-items:center; gap:12px; width:112px; padding:9px 4px 4px}
+.marconode .diamond{width:50px; height:50px; border-radius:10px; transform:rotate(45deg); display:grid; place-items:center; box-shadow:var(--sombra); border:1px solid rgba(255,255,255,.16)}
+.marconode .diamond span{transform:rotate(-45deg); font-size:20px; font-weight:800; color:#fff; outline:none}
+.telanode{width:232px; background:var(--painel); border:1px solid var(--fio); border-radius:12px; overflow:hidden; box-shadow:var(--sombra)}
+.telanode .bar{display:flex; gap:5px; padding:8px 10px; background:var(--painel-2); border-bottom:1px solid var(--fio)}
+.telanode .bar i{width:9px; height:9px; border-radius:50%; background:var(--texto-3); opacity:.55}
+.telanode .body{height:132px; display:grid; place-items:center;
+  background:repeating-linear-gradient(45deg, transparent 0 14px, rgba(255,255,255,.035) 14px 28px)}
+.telanode .body span{font-family:var(--mono); font-size:10px; letter-spacing:.14em; color:var(--texto-3); text-transform:uppercase}
+.telanode .cap{font-family:var(--mono); font-size:11px; color:var(--texto-2); padding:8px 11px; outline:none; border-top:1px solid var(--fio-fraco)}
+
+/* ===== FUNIL — componentes ricos ===== */
+.ftitle{font-size:30px; font-weight:800; color:var(--texto); letter-spacing:-.015em; line-height:1.1; max-width:520px; text-wrap:balance}
+.ftitle small{display:block; font-family:var(--mono); font-size:11px; font-weight:400; letter-spacing:.22em; color:var(--texto-2); margin-bottom:8px}
+.fnote{font-family:var(--mono); font-size:10px; color:var(--texto-2); line-height:1.6; background:var(--painel); border:1px dashed var(--fio); border-radius:10px; padding:9px 12px}
+.fzone{border:1.5px dashed; border-radius:26px; position:relative}
+.fzone .zl{position:absolute; top:13px; left:17px; font-family:var(--mono); font-size:10px; letter-spacing:.24em}
+.fn{background:var(--painel); border:1px solid var(--fio); border-radius:14px; box-shadow:var(--sombra); overflow:hidden}
+.fn .fhead{display:flex; align-items:center; gap:8px; padding:9px 11px; border-bottom:1px solid var(--fio-fraco)}
+.fn .fhead .flogo{width:22px; height:22px; border-radius:6px; display:grid; place-items:center; font-weight:800; font-size:11px; color:#fff; flex:none}
+.fn .fhead b{font-size:12px; color:var(--texto); font-weight:700}
+.qlink{margin-left:auto; width:22px; height:22px; display:grid; place-items:center; border-radius:6px; color:var(--texto-2); text-decoration:none; font-size:12px; border:1px solid var(--fio); flex:none}
+.qlink:hover{color:var(--texto); border-color:var(--c-gestao)}
+.fn .fcap{font-family:var(--mono); font-size:9.5px; color:var(--texto-3); padding:8px 11px; line-height:1.5; border-top:1px solid var(--fio-fraco)}
+.bg-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:4px; padding:8px}
+.bg-grid i{display:block; aspect-ratio:1; border-radius:4px}
+.fico{display:flex; flex-direction:column; align-items:center; gap:8px; width:150px}
+.fico .disc{width:66px; height:66px; border-radius:50%; display:grid; place-items:center; box-shadow:var(--sombra); border:1px solid rgba(255,255,255,.14); position:relative; overflow:hidden}
+.fico .lbl{font-size:12px; font-weight:700; color:var(--texto); text-align:center}
+.fico .sub{font-family:var(--mono); font-size:9px; color:var(--texto-3); text-align:center; line-height:1.45}
+.spin-slow{animation:fspin 12s linear infinite; transform-origin:32px 32px}
+@keyframes fspin{to{transform:rotate(360deg)}}
+.tw{position:absolute; font-size:10px; color:#ffe9a8; animation:twink 2.2s ease-in-out infinite}
+@keyframes twink{0%,100%{opacity:.15; transform:scale(.8)}50%{opacity:1; transform:scale(1.2)}}
+.seo{width:254px}
+.seo .stabs{display:flex; gap:4px; padding:8px 10px 0}
+.seo .stabs button{font-family:var(--mono); font-size:10px; padding:4px 11px; border-radius:99px; border:1px solid var(--fio); background:transparent; color:var(--texto-2); cursor:pointer}
+.seo .stabs button.on{background:var(--painel-2); color:var(--texto); border-color:var(--c-gestao)}
+.sbar{display:flex; align-items:center; gap:8px; margin:9px 10px; padding:7px 12px; border-radius:99px; background:var(--painel-2); border:1px solid var(--fio)}
+.sbar .gg{font-weight:800; font-size:13px}
+.sbar>span{font-size:12px; color:var(--texto)}
+.sbar .cur{display:inline-block; width:1.5px; height:12px; background:var(--c-gestao); animation:blink 1s steps(1) infinite; margin-left:1px; vertical-align:-2px}
+@keyframes blink{50%{opacity:0}}
+.sres{padding:0 12px 11px; display:flex; flex-direction:column; gap:8px}
+.srow{display:flex; gap:8px; align-items:flex-start}
+.srow .fav{width:16px; height:16px; border-radius:50%; flex:none; margin-top:1px}
+.srow .tt{font-size:11px; color:#9ec1ff; line-height:1.3}
+.srow .uu{font-family:var(--mono); font-size:8.5px; color:var(--texto-3)}
+.srow.hit .tt{color:#cfe0ff; font-weight:700}
+.igf{width:216px}
+.igf .ihead{display:flex; align-items:center; gap:7px; padding:8px 10px}
+.igf .iav{width:24px; height:24px; border-radius:50%; background:conic-gradient(#f5b23f,#f26a43,#dd2a7b,#9e6cf2,#f5b23f); padding:2px; flex:none}
+.igf .iav i{display:block; width:100%; height:100%; border-radius:50%; background:var(--painel-2)}
+.igf .iun{font-size:11px; font-weight:700; color:var(--texto)}
+.igf .isp{font-family:var(--mono); font-size:8.5px; color:var(--texto-3)}
+.igf .imedia{aspect-ratio:4/5; display:grid; place-items:center; position:relative;
+  background:repeating-linear-gradient(45deg, transparent 0 14px, rgba(255,255,255,.035) 14px 28px)}
+.igf .imedia .ph{font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; color:var(--texto-3); text-transform:uppercase}
+.igf .imedia.admedia{background:linear-gradient(150deg,#241a08,#0c1018 70%); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px}
+.igf .imedia.admedia b{color:#ffd985; font-size:14px; letter-spacing:-.01em}
+.igf .imedia.admedia span{font-family:var(--mono); font-size:8.5px; color:var(--texto-2); letter-spacing:.08em}
+.igf .icta{display:flex; align-items:center; justify-content:space-between; padding:7px 11px; background:#1d4ed8; color:#fff; font-size:11px; font-weight:700}
+a.icta{text-decoration:none}
+.imedia.advid{position:relative; background:#000}
+.imedia.advid video,.imedia.advid .advimg{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
+.imedia.advid .rplay{position:absolute; inset:0; display:grid; place-items:center; text-decoration:none; z-index:1}
+.imedia.advid .rplay span{width:44px; height:44px; border-radius:50%; background:rgba(0,0,0,.45); border:1.5px solid rgba(255,255,255,.6); display:grid; place-items:center; color:#fff; font-size:15px}
+.imedia.advid .rmute{position:absolute; top:8px; right:8px; width:24px; height:24px; border-radius:50%; background:rgba(0,0,0,.5); color:#fff; display:grid; place-items:center; font-size:10px; cursor:pointer; border:1px solid rgba(255,255,255,.25); z-index:2}
+.igf .ifoot{display:flex; gap:11px; padding:7px 11px; font-size:12px; color:var(--texto-2)}
+.cmt{width:264px; padding:11px 13px}
+.cmt .ctx{font-family:var(--mono); font-size:9px; color:var(--texto-3); margin-bottom:9px}
+.cmt .row{display:flex; gap:9px}
+.cmt .cav{width:28px; height:28px; border-radius:50%; background:conic-gradient(#f5b23f,#f26a43,#dd2a7b,#f5b23f); flex:none}
+.cmt .cu{font-size:11px; font-weight:800; color:var(--texto)}
+.cmt .ct{font-size:11.5px; color:var(--texto); opacity:.92; line-height:1.45; margin:2px 0 6px}
+.cmt .cm{font-family:var(--mono); font-size:9px; color:var(--texto-3)}
+.cmt .cm b{color:#ff5b77}
+.igp .phead{display:flex; align-items:center; gap:13px; padding:12px 13px 6px}
+.igp .pav{width:52px; height:52px; border-radius:50%; background:conic-gradient(#f5b23f,#f26a43,#dd2a7b,#9e6cf2,#f5b23f); padding:2.5px; flex:none}
+.igp .pav i{display:block; width:100%; height:100%; border-radius:50%; background:var(--painel-2)}
+.igp .pst{display:flex; flex:1; justify-content:space-around}
+.igp .pst div{text-align:center}
+.igp .pst .sk{width:26px; height:9px; border-radius:3px; background:var(--slab-2); margin:0 auto 3px}
+.igp .pst span{font-family:var(--mono); font-size:8px; color:var(--texto-3)}
+.igp .pbio{padding:2px 13px 6px}
+.igp .pbio .nm{font-size:12px; font-weight:800; color:var(--texto)}
+.igp .pbio .bl{height:7px; border-radius:3px; background:var(--slab-2); margin-top:5px}
+.igp .hl{display:flex; gap:8px; padding:7px 13px 11px}
+.igp .hl i{width:30px; height:30px; border-radius:50%; border:1.5px solid var(--fio); background:var(--painel-2)}
+.igp .pgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:2px}
+.igp .pgrid i{aspect-ratio:1}
+.pcar{position:relative; height:296px; overflow:hidden; background:var(--fundo-2)}
+.pslide{position:absolute; inset:0; opacity:0; transition:opacity .55s; display:flex; flex-direction:column; gap:8px; padding:13px}
+.pslide.on{opacity:1}
+.pslide .blk{border-radius:8px; background:var(--slab)}
+.pdots{display:flex; gap:5px; justify-content:center; padding:9px}
+.pdots i{width:5px; height:5px; border-radius:50%; background:var(--slab-2)}
+.pdots i.on{background:var(--c-gestao)}
+.pnav{position:absolute; top:50%; width:22px; height:22px; margin-top:-11px; border-radius:50%; border:1px solid var(--fio); background:rgba(12,16,24,.72); color:var(--texto-2); display:grid; place-items:center; cursor:pointer; font-size:11px; z-index:2}
+.pnav:hover{color:var(--texto)}
+.reelbody{aspect-ratio:9/16; display:grid; place-items:center; position:relative; background:linear-gradient(165deg,#2a1020,#0c060f 75%)}
+.reelbody .play{width:42px; height:42px; border-radius:50%; background:rgba(255,255,255,.13); border:1px solid rgba(255,255,255,.38); display:grid; place-items:center; color:#fff; font-size:14px}
+.reelbody .rtag{position:absolute; top:9px; left:10px; font-family:var(--mono); font-size:8px; letter-spacing:.16em; color:#fff; opacity:.7}
+.pslide.lb{padding:0; display:block; overflow:hidden; text-decoration:none; cursor:pointer}
+.lbimg{width:100%; display:block}
+.lbimg.roll{animation:lbscroll 16s ease-in-out infinite alternate}
+.pslide.lb:hover .lbimg.roll{animation-play-state:paused}
+@keyframes lbscroll{from{transform:translateY(0)}to{transform:translateY(var(--sh,0px))}}
+.lbtag{position:absolute; left:8px; bottom:8px; font-family:var(--mono); font-size:9px; letter-spacing:.05em; color:#fff; background:rgba(12,16,24,.8); border:1px solid var(--fio); border-radius:7px; padding:4px 8px}
+.pslide.lb:hover .lbtag{border-color:var(--c-gestao)}
+.lbres{display:block; margin:9px 11px 11px; padding:7px 10px; font-family:var(--mono); font-size:9px; letter-spacing:.04em; color:var(--texto-3); border:1px dashed var(--fio); border-radius:8px; text-decoration:none; text-align:center}
+.lbres:hover{color:var(--texto); border-color:var(--c-gestao)}
+
+/* ===== Link Bio: janela de navegador macOS ===== */
+.brow{width:380px; height:585px; display:flex; flex-direction:column; border-radius:13px; overflow:hidden;
+  background:#141821; border:1px solid rgba(255,255,255,.13); box-shadow:var(--sombra)}
+.node-tab.brtop{align-self:stretch; width:100%; height:auto; margin:0; padding:9px 9px 0 11px;
+  background:#0f1219; border:none; border-radius:0; box-shadow:none; display:flex; align-items:flex-end; gap:4px}
+.lights{display:flex; gap:6px; margin:0 9px 10px 0; flex:none; align-self:center}
+.lights i{width:11px; height:11px; border-radius:50%}
+.lights .r{background:#ff5f57}.lights .y{background:#febc2e}.lights .g{background:#28c840}
+.brtab{display:flex; align-items:center; gap:6px; flex:1; min-width:0; font-size:10.5px; color:var(--texto-2);
+  padding:7px 10px; border-radius:8px 8px 0 0; cursor:pointer; text-decoration:none}
+.brtab .tn{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.brtab .fv{width:8px; height:8px; border-radius:50%; flex:none}
+.brtab.on{background:#1d2330; color:var(--texto)}
+.brtab:hover{color:var(--texto)}
+.brtab.ebtab{flex:none; max-width:110px; color:#ffd985}
+.brbar{display:flex; align-items:center; gap:8px; padding:8px 10px; background:#1d2330; border-bottom:1px solid rgba(255,255,255,.07)}
+.brnav{display:flex; gap:2px; flex:none}
+.brnav b{width:22px; height:22px; display:grid; place-items:center; border-radius:6px; color:var(--texto-2); cursor:pointer; font-weight:400; font-size:14px; user-select:none}
+.brnav b:hover{background:rgba(255,255,255,.07); color:var(--texto)}
+.brurl{flex:1; display:flex; align-items:center; gap:7px; font-family:var(--mono); font-size:10.5px; color:var(--texto-2);
+  background:#141821; border:1px solid rgba(255,255,255,.07); border-radius:8px; padding:6px 12px; text-decoration:none;
+  min-width:0; overflow:hidden; white-space:nowrap}
+.brurl:hover{color:var(--texto); border-color:var(--c-gestao)}
+.brurl .lock{font-size:9px; opacity:.65}
+.brbody{flex:1; overflow-y:auto; overflow-x:hidden; background:#0c1018; overscroll-behavior:contain; transform:translateZ(0)}
+.brbody::-webkit-scrollbar{width:7px}
+.brbody::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15); border-radius:99px}
+.brbody a{display:block}
+.brimg{width:100%; display:block; transform:translateZ(0); backface-visibility:hidden}
+.brifr{width:100%; height:100%; border:0; display:block; background:#fff}
+
+/* ===== janelas genéricas minimalistas ===== */
+.winw{border-radius:14px; overflow:hidden; background:#141821; border:1px solid rgba(255,255,255,.13); box-shadow:var(--sombra); display:flex; flex-direction:column}
+.node-tab.wintop{align-self:stretch; width:100%; height:auto; margin:0; padding:8px 10px; background:#0f1219; border:none; border-radius:0; box-shadow:none; display:flex; align-items:center; gap:8px}
+.wintop .rt{font-family:var(--mono); font-size:10px; letter-spacing:.08em; color:var(--texto-2); display:flex; align-items:center; gap:7px; min-width:0; overflow:hidden; white-space:nowrap}
+.wintop .qlink{margin-left:auto}
+.wseg{display:flex; align-items:center; gap:4px; padding:7px 9px; background:#0f1219; border-top:1px solid rgba(255,255,255,.05)}
+.wseg button{font-family:var(--mono); font-size:9.5px; letter-spacing:.04em; color:var(--texto-2); background:transparent; border:1px solid var(--fio); border-radius:99px; padding:4px 9px; cursor:pointer; white-space:nowrap}
+.wseg button.on{background:#1d2330; color:var(--texto); border-color:var(--c-gestao)}
+.wseg .sp{flex:1}
+.igbody{position:relative; height:400px; overflow-y:auto; overflow-x:hidden; background:#000; overscroll-behavior:contain; transform:translateZ(0); scroll-behavior:smooth}
+.igbody::-webkit-scrollbar{width:7px}
+.igbody::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15); border-radius:99px}
+.igbody img{width:100%; display:block; transform:translateZ(0)}
+.igbody a{display:block}
+.igbody .ph-empty{padding:44px 20px; text-align:center; font-family:var(--mono); font-size:10px; color:var(--texto-3); letter-spacing:.12em}
+.wintop .igsb{flex:1; display:flex; align-items:center; gap:7px; background:#1d2330; border:1px solid rgba(255,255,255,.08); border-radius:9px; padding:6px 11px; font-family:var(--mono); font-size:10.5px; color:var(--texto); min-width:0; overflow:hidden; white-space:nowrap}
+.igsb .mg{opacity:.55}
+.igsb .qq{overflow:hidden; text-overflow:ellipsis}
+.igwrap{position:relative}
+.igwrap .pnav{opacity:0; transition:opacity .2s}
+.igwrap:hover .pnav{opacity:1}
+.winw .igf{width:100%}
+.winw .cmt{width:auto}
+
+/* ===== Busca SEO light ===== */
+.seolight{background:#fff}
+.stabs2{display:flex; gap:6px; padding:9px 10px; background:#f1f3f4; border-bottom:1px solid #e0e0e0}
+.stabs2 button{display:flex; align-items:center; gap:6px; font-size:11px; color:#5f6368; background:#fff; border:1px solid #dadce0; border-radius:99px; padding:5px 11px; cursor:pointer; font-family:var(--sans)}
+.stabs2 button.on{border-color:#1a73e8; color:#1a73e8; background:#e8f0fe}
+.stabs2 svg{width:14px; height:14px; flex:none}
+.stabs2 .belogo{width:15px; height:15px; border-radius:4px; background:#1769ff; color:#fff; font-weight:800; font-size:8.5px; display:grid; place-items:center; font-family:var(--sans); flex:none}
+.sview{padding:12px 14px 15px; min-height:172px}
+.gbar2{display:flex; align-items:center; gap:10px; border:1px solid #dfe1e5; border-radius:99px; padding:8px 14px; box-shadow:0 1px 6px rgba(32,33,36,.15); margin-bottom:13px; background:#fff}
+.gbar2 svg{width:16px; height:16px; flex:none}
+.gbar2>span{font-size:13px; color:#202124}
+.gbar2 .cur2{display:inline-block; width:1.5px; height:13px; background:#1a73e8; animation:blink 1s steps(1) infinite; margin-left:1px; vertical-align:-2px}
+.gbar2 .mic{margin-left:auto; font-size:12px; opacity:.7}
+.gres{display:flex; flex-direction:column; gap:11px}
+.gres .gr .gu{font-size:10px; color:#202124; display:flex; align-items:center; gap:6px}
+.gres .gr .gu i{width:16px; height:16px; border-radius:50%; flex:none}
+.gres .gr .gu span{color:#5f6368}
+.gres .gr .gt{font-size:13.5px; color:#1a0dab; font-weight:500; margin:2px 0 1px}
+.gres .gr .gs{font-size:11px; color:#4d5156; line-height:1.45}
+.gres .gr.dim .gt{color:#7a7f87}
+.irow2{display:flex; align-items:center; gap:10px; padding:7px 2px}
+.irow2 .av{width:34px; height:34px; border-radius:50%; flex:none}
+.irow2 b{font-size:12.5px; color:#262626; display:block}
+.irow2 span{font-size:11px; color:#8e8e8e; display:block}
+.bcards{display:grid; grid-template-columns:1fr 1fr; gap:9px}
+.bcard .bimg{aspect-ratio:4/3; border-radius:7px}
+.bcard b{font-size:11px; color:#191919; display:block; margin-top:5px}
+.bcard span{font-size:9.5px; color:#6d6d6d}
+
+/* ===== Conteúdo Atração: janela Reels ===== */
+.reelw{width:250px; border-radius:14px; overflow:hidden; background:#000; border:1px solid rgba(255,255,255,.13); box-shadow:var(--sombra); display:flex; flex-direction:column}
+.node-tab.reeltop{align-self:stretch; width:100%; height:auto; margin:0; padding:8px 10px; background:#0f1219; border:none; border-radius:0; box-shadow:none; display:flex; align-items:center; gap:8px}
+.reeltop .rt{font-family:var(--mono); font-size:10px; letter-spacing:.08em; color:var(--texto-2); display:flex; align-items:center; gap:7px; min-width:0; overflow:hidden; white-space:nowrap}
+.reeltop .qlink{margin-left:auto}
+.reelv{position:relative; aspect-ratio:9/16; background:#000}
+.reelv video,.reelv>img{width:100%; height:100%; object-fit:cover; display:block}
+.reelv .rplay{position:absolute; inset:0; display:grid; place-items:center; text-decoration:none}
+.reelv .rplay span{width:52px; height:52px; border-radius:50%; background:rgba(0,0,0,.45); border:1.5px solid rgba(255,255,255,.6); display:grid; place-items:center; color:#fff; font-size:18px}
+.reelv .rmeta{position:absolute; left:10px; right:50px; bottom:10px; color:#fff; text-shadow:0 1px 6px rgba(0,0,0,.85); pointer-events:none}
+.reelv .rmeta b{font-size:12px; display:block}
+.reelv .rmeta span{font-size:10.5px; opacity:.88; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.reelv .racts{position:absolute; right:10px; bottom:12px; display:flex; flex-direction:column; gap:12px; color:#fff; font-size:15px; text-shadow:0 1px 6px rgba(0,0,0,.85); pointer-events:none}
+.reelv .rmute{position:absolute; top:10px; right:10px; width:26px; height:26px; border-radius:50%; background:rgba(0,0,0,.5); color:#fff; display:grid; place-items:center; font-size:11px; cursor:pointer; border:1px solid rgba(255,255,255,.25)}
+
+/* ===== esquetes ===== */
+.baldecap{font-family:var(--mono); font-size:9px; color:var(--texto-3); padding:8px 12px; border-top:1px solid var(--fio-fraco); line-height:1.55}
+.bstats{display:flex; align-items:center; gap:6px; padding:9px 11px 0}
+.bstats .bs{font-family:var(--mono); font-size:9px; letter-spacing:.05em; color:var(--texto-3); border:1px solid var(--fio); border-radius:99px; padding:4px 10px; white-space:nowrap}
+.bstats .bs b{color:var(--texto); font-weight:700}
+.bstats .bs.warn b{color:#f26a43}
+.bstats .bs.ok b{color:#54c98a}
+.bstats .bs.aqua b{color:#33c6d6}
+.bbar{height:4px; margin:8px 11px 10px; background:#1d2330; border-radius:99px; overflow:hidden}
+.bbar i{display:block; height:100%; background:#33c6d6; border-radius:99px; transition:width .2s linear, background .3s}
+.eskhead{font-family:var(--sans); font-weight:800; font-size:19px; letter-spacing:-.02em; color:var(--texto); padding:16px 18px 6px}
+.eskbtn{margin:2px 16px 14px; align-self:flex-start; font-family:var(--sans); font-size:11.5px; font-weight:600;
+  color:var(--texto-2); background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
+  border-radius:99px; padding:6px 13px; cursor:pointer; transition:all .2s}
+.eskbtn:hover{color:var(--texto); background:rgba(255,255,255,.1)}
+.eskbtn.lit{color:#0c1018; background:#e8ecf6; border-color:transparent}
+.eskrow{display:flex; gap:8px; margin:2px 16px 14px}
+.eskrow .eskbtn{margin:0}
+.bfil{display:flex; align-items:center; gap:10px; padding:10px 12px 0; font-family:var(--mono); font-size:9px; letter-spacing:.1em; color:var(--texto-3)}
+.bfil input{-webkit-appearance:none; appearance:none; flex:1; height:5px; border-radius:99px; outline:none;
+  background:linear-gradient(90deg,#7a725c 0%,#33c6d6 100%)}
+.bfil input::-webkit-slider-thumb{-webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:#fff; border:3px solid var(--fundo); box-shadow:0 2px 8px rgba(0,0,0,.5); cursor:grab}
+.bfil input::-moz-range-thumb{width:14px; height:14px; border-radius:50%; background:#fff; border:3px solid var(--fundo); cursor:grab}
+.bfil b{color:#33c6d6; font-size:10px; min-width:32px; text-align:right; font-variant-numeric:tabular-nums}
+.jogoBtn{margin:10px 11px 0; padding:10px 12px; font-family:var(--mono); font-size:11px; letter-spacing:.04em;
+  color:#0c1018; background:#f5b23f; border:none; border-radius:9px; cursor:pointer; font-weight:700;
+  display:block; width:calc(100% - 22px); transition:background .3s}
+.jogoBtn:hover{filter:brightness(1.08)}
+.jogoBtn.lit{background:#54c98a}
+
+/* ---------------------------------------------------------------------------
+   TIMELINE — o gráfico de faturamento por mês
+   ---------------------------------------------------------------------------
+   Primeira das 7 animações portadas. Markup e comportamento viraram React;
+   este CSS veio do legado com as variáveis renomeadas e nada mais.
+   --------------------------------------------------------------------------- */
+.tl{margin-bottom:clamp(14px,2vw,22px); border:1px solid var(--fio); border-radius:16px;
+  padding:14px clamp(14px,2vw,20px) 12px; background:linear-gradient(180deg,var(--painel),var(--fundo-2)); box-shadow:var(--sombra); --tl-c:#f5b23f}
+.tl-head{display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:6px; flex-wrap:wrap}
+.tl-k{font-family:var(--mono); font-size:10px; letter-spacing:.24em; color:var(--texto-2); text-transform:uppercase}
+.tl-h{margin:.3em 0 0; font-size:clamp(16px,2.2vw,23px); font-weight:800; letter-spacing:-.01em; color:var(--texto); text-wrap:balance}
+.tl-readout{text-align:right; line-height:1.1}
+.tl-readout .r-k{font-family:var(--mono); font-size:9px; letter-spacing:.16em; color:var(--texto-2); display:block; margin-bottom:3px}
+.tl-readout .r-v{font-family:var(--mono); font-weight:800; font-size:clamp(22px,3.4vw,34px); color:var(--tl-c); font-variant-numeric:tabular-nums; display:block}
+.tl-readout .r-m{font-family:var(--mono); font-size:10px; color:var(--texto-3)}
+.tl-chartwrap{position:relative; height:clamp(180px,25vh,232px)}
+#tlcv{width:100%; height:100%; display:block}
+.tl-toasts{position:absolute; left:10px; top:8px; display:flex; flex-direction:column; gap:5px; pointer-events:none}
+.tl-toasts .tt{font-family:var(--mono); font-size:10px; color:var(--c-posicionamento);
+  background:color-mix(in srgb,var(--c-posicionamento) 14%,var(--painel)); border:1px solid color-mix(in srgb,var(--c-posicionamento) 32%,transparent);
+  border-radius:7px; padding:4px 8px; animation:ttin .3s ease}
+@keyframes ttin{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+.tl-controls{display:flex; align-items:center; gap:12px; margin-top:10px; flex-wrap:wrap}
+.tl-scen{display:flex; gap:6px; flex-wrap:wrap}
+.tl-scen button{font-family:var(--mono); font-size:11px; letter-spacing:.03em; color:var(--texto-2); background:transparent;
+  border:1px solid var(--fio); border-radius:8px; padding:6px 13px; cursor:pointer; transition:.18s}
+.tl-scen button:hover{color:var(--texto); border-color:var(--fio)}
+.tl-scen button.on{color:#0c1018; background:var(--tl-c); border-color:transparent; font-weight:700}
+.tl-scen button.ana.on{background:var(--c-execucao); color:#eef2fb}
+.tl-slider{flex:1; min-width:130px; display:flex}
+.tl-slider input{-webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:99px; outline:none;
+  background:linear-gradient(90deg,var(--c-venda) 0 40%,var(--c-atracao) 40% 66%,var(--c-posicionamento) 66% 100%)}
+.tl-slider input::-webkit-slider-thumb{-webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:#fff; border:3px solid var(--fundo); box-shadow:0 2px 8px rgba(0,0,0,.5); cursor:grab}
+.tl-slider input::-moz-range-thumb{width:16px; height:16px; border-radius:50%; background:#fff; border:3px solid var(--fundo); cursor:grab}
+.tl-play{font-family:var(--mono); font-size:12px; color:var(--texto); background:var(--painel-2); border:1px solid var(--fio); border-radius:8px; padding:8px 15px; cursor:pointer}
+.tl-play:hover{border-color:color-mix(in srgb,var(--c-posicionamento) 50%,var(--fio))}
+.tl-play:focus-visible, .tl-scen button:focus-visible, .tl-slider input:focus-visible{outline:2px solid var(--c-gestao); outline-offset:3px}
+
+/* ---------------------------------------------------------------------------
+   MÉTODO 10k — os 4 pilares e o funil parte 2
+   ---------------------------------------------------------------------------
+   O index.html tem CINCO blocos <style>, não um. Estes dois estavam soltos no
+   meio do arquivo (junto do código que monta as seções, não junto do resto do
+   CSS) e ficaram de fora do primeiro port — daí metade do Método aparecer sem
+   estilo. É o mesmo defeito que a refatoração existe pra matar: coisa que
+   deveria ser declarada num lugar só, espalhada por onde deu.
+   --------------------------------------------------------------------------- */
+
+/* ===== O PLANO [10K26/27] ===== */
+.pkw{width:560px; background:var(--painel); border:1px solid var(--fio); border-radius:16px; box-shadow:var(--sombra); overflow:hidden}
+.pkw .pk-h{padding:15px 17px 12px; border-bottom:1px solid var(--fio-fraco); position:relative}
+.pkw .pk-h::before{content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--wk)}
+.pk-k{font-family:var(--mono); font-size:10px; letter-spacing:.22em; color:var(--wk)}
+.pk-f{font-size:20px; font-weight:800; color:var(--texto); letter-spacing:-.015em; margin:3px 0 4px; line-height:1.1}
+.pk-t{font-size:11.5px; color:var(--texto-2); line-height:1.5}
+.pk-vist{margin:11px 15px 4px; padding:9px 12px; border:1px dashed color-mix(in srgb,var(--wk) 50%,transparent); border-radius:10px; background:color-mix(in srgb,var(--wk) 5%,transparent)}
+.pk-vist b{display:block; font-family:var(--mono); font-size:8.5px; letter-spacing:.2em; color:var(--wk); margin-bottom:4px}
+.pk-vist div{font-size:11px; color:var(--texto); opacity:.92; line-height:1.6}
+.pk-rows{padding:4px 9px 12px; display:flex; flex-direction:column}
+.pk-row{display:flex; gap:11px; padding:11px 8px; border-top:1px solid var(--fio-fraco)}
+.pk-row:first-child{border-top:none}
+.pk-n{width:23px; height:23px; border-radius:7px; background:color-mix(in srgb,var(--wk) 16%,transparent); color:var(--wk); font-family:var(--mono); font-weight:700; font-size:11px; display:grid; place-items:center; flex:none; margin-top:1px}
+.pk-bd{flex:1; min-width:0}
+.pk-s{font-size:12.5px; font-weight:700; color:var(--texto); line-height:1.3}
+.pk-first{display:inline-block; font-family:var(--mono); font-size:8px; font-weight:700; letter-spacing:.14em; color:#0c1018; background:var(--wk); border-radius:5px; padding:2px 7px; margin-left:8px; vertical-align:1.5px}
+.pk-sub{font-size:11px; color:var(--texto-2); line-height:1.55; margin-top:3px}
+.pk-chips{display:flex; flex-wrap:wrap; gap:5px; margin-top:8px}
+.pk-chip{display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:9.5px; color:var(--texto-2); border:1px solid var(--fio); border-radius:99px; padding:3.5px 10px; text-decoration:none; background:var(--painel-2)}
+.pk-chip:hover{color:var(--texto); border-color:var(--wk)}
+.pk-chip i{font-style:normal; font-size:10px; flex:none}
+.pk-chip .x{opacity:.5; font-size:9px; margin-left:1px}
+/* calculadora */
+.pkcalc{width:560px; background:var(--painel); border:1px solid var(--fio); border-radius:16px; box-shadow:var(--sombra); overflow:hidden}
+.pkcalc .pk-h{padding:15px 17px 12px; border-bottom:1px solid var(--fio-fraco); position:relative}
+.pkcalc .pk-h::before{content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:#f5b23f}
+.pkc-row{display:flex; align-items:center; gap:12px; padding:9px 17px 0}
+.pkc-row label{font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; color:var(--texto-2); width:118px; flex:none}
+.pkc-row input[type=range]{flex:1; accent-color:#f5b23f}
+.pkc-row b{font-family:var(--mono); font-size:12px; color:var(--texto); width:84px; text-align:right; flex:none}
+.pkc-read{display:flex; align-items:baseline; gap:12px; padding:14px 17px 0}
+.pkc-v{font-size:36px; font-weight:800; letter-spacing:-.02em; color:var(--texto)}
+.pkc-st{font-family:var(--mono); font-size:9.5px; color:var(--texto-2); letter-spacing:.06em}
+.pkc-bar{height:10px; margin:12px 17px 6px; border-radius:99px; background:var(--slab); overflow:visible; position:relative}
+.pkc-bar i{display:block; height:100%; width:0%; border-radius:99px; background:#33c6d6; transition:width .25s,background .25s}
+.pkc-goal{position:absolute; left:83.33%; top:-4px; bottom:-4px; width:2px; background:#f5b23f}
+.pkc-goal::after{content:"10K"; position:absolute; top:-15px; left:-9px; font-family:var(--mono); font-size:8px; letter-spacing:.1em; color:#f5b23f}
+.pkc-hint{font-family:var(--mono); font-size:9px; color:var(--texto-3); padding:8px 17px 13px; line-height:1.6; border-top:1px solid var(--fio-fraco); margin-top:10px}
+/* ===== FUNIL ANTIPROSPECÇÃO — PARTE 2 ===== */
+.wintop .lights{margin:0; align-self:center}
+.fdia{display:flex; flex-direction:column; align-items:center; gap:2px; width:180px}
+.fdia .dmd{width:56px; height:56px; margin:14px; transform:rotate(45deg); border-radius:15px; display:grid; place-items:center; box-shadow:var(--sombra); border:1px solid rgba(255,255,255,.18)}
+.fdia .dmd span{transform:rotate(-45deg); font-size:21px; line-height:1}
+.fdia .lbl{font-size:12px; font-weight:700; color:var(--texto); text-align:center}
+.fdia .sub{font-family:var(--mono); font-size:9px; color:var(--texto-3); text-align:center; line-height:1.45; margin-top:4px}
+.wabody{position:relative; height:620px; overflow-y:auto; overflow-x:hidden; background:#000; overscroll-behavior:contain; transform:translateZ(0)}
+.wabody::-webkit-scrollbar{width:7px}
+.wabody::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15); border-radius:99px}
+.wabody img{width:100%; display:block; transform:translateZ(0)}
+.wcap{font-family:var(--mono); font-size:9px; color:var(--texto-3); padding:8px 11px; line-height:1.5; border-top:1px solid var(--fio-fraco); background:#0f1219}
+/* página de vendas */
+.pvp{background:#07080c; padding:15px 15px 17px}
+.pvp .nv{display:flex; align-items:center; justify-content:space-between; margin-bottom:15px}
+.pvp .nv b{font-family:var(--mono); font-size:9px; letter-spacing:.26em; color:#ffd985}
+.pvp .nv span{display:flex; gap:4px}
+.pvp .nv span i{width:14px; height:3px; border-radius:2px; background:rgba(255,255,255,.18)}
+.pvp h5{font-size:19px; font-weight:800; color:#fff; letter-spacing:-.02em; line-height:1.15; margin:0 0 6px}
+.pvp .sb2{font-size:10.5px; color:#9aa7be; line-height:1.5; margin-bottom:12px}
+.pvp .cta{display:inline-block; font-size:11px; font-weight:800; color:#0c1018; background:linear-gradient(120deg,#ffd06e,#f5b23f); border-radius:9px; padding:8px 14px; margin-bottom:14px}
+.pvp .pg{display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-bottom:12px}
+.pvp .pg i{display:block; aspect-ratio:4/3; border-radius:8px}
+.pvp .qt{font-size:10px; color:#cfd6e4; font-style:italic; line-height:1.5; border-left:2px solid #f5b23f; padding-left:9px}
+.pvp .qt span{display:block; font-family:var(--mono); font-size:8.5px; color:#5d6a83; font-style:normal; margin-top:3px}
+/* call de reunião */
+.callg{display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:10px; background:#0b0d13}
+.callt{position:relative; aspect-ratio:4/3.4; border-radius:9px; display:grid; place-items:center; overflow:hidden}
+.callt .cav2{width:44px; height:44px; border-radius:50%; display:grid; place-items:center; font-weight:800; font-size:16px; color:#fff}
+.callt .nm2{position:absolute; left:7px; bottom:6px; font-family:var(--mono); font-size:8px; color:#e8ecf6; background:rgba(0,0,0,.55); border-radius:5px; padding:2px 6px}
+.callt.speak{outline:2px solid #54c98a; outline-offset:-2px}
+.callt .mic2{position:absolute; right:7px; bottom:6px; font-size:9px}
+.callbar{display:flex; align-items:center; justify-content:center; gap:8px; padding:9px 10px 12px; background:#0b0d13}
+.callbar span{width:30px; height:30px; border-radius:50%; background:#1d2330; border:1px solid rgba(255,255,255,.1); display:grid; place-items:center; font-size:12px}
+.callbar .hang{width:44px; background:#e23d3d; border-color:transparent}
+/* proposta pdf */
+.pdoc{background:#fbfbfd; padding:15px 16px 16px; color:#1d2330}
+.pdoc .ey{font-family:var(--mono); font-size:8.5px; letter-spacing:.24em; color:#8090a8; margin-bottom:4px}
+.pdoc h5{font-size:15px; font-weight:800; letter-spacing:-.01em; color:#141b28; margin:0 0 11px; line-height:1.25}
+.pdoc .it{display:flex; justify-content:space-between; gap:10px; font-size:11px; color:#38445c; padding:6px 0; border-bottom:1px dashed #dfe4ee}
+.pdoc .it b{font-variant-numeric:tabular-nums; font-weight:700; color:#141b28; flex:none}
+.pdoc .tot{display:flex; justify-content:space-between; align-items:baseline; padding:10px 0 2px}
+.pdoc .tot span{font-family:var(--mono); font-size:9px; letter-spacing:.18em; color:#8090a8}
+.pdoc .tot b{font-size:19px; font-weight:800; color:#141b28}
+.pdoc .pz{font-family:var(--mono); font-size:8.5px; color:#8090a8; margin-bottom:11px}
+.pdoc .ok{display:block; text-align:center; font-size:11px; font-weight:800; color:#fff; background:#1fa463; border-radius:8px; padding:9px}
+/* chat whatsapp */
+.wchat{background:#0b141a; padding:13px 11px 15px; display:flex; flex-direction:column; gap:7px;
+  background-image:radial-gradient(rgba(255,255,255,.025) 1px, transparent 1.4px); background-size:16px 16px}
+.wb{max-width:82%; border-radius:9px; padding:7px 9px 5px; font-size:10.5px; line-height:1.45; color:#e6edf3; position:relative}
+.wb .wt{display:block; text-align:right; font-size:8px; color:rgba(255,255,255,.45); margin-top:2px}
+.wb .wt .ck{color:#53bdeb}
+.wb.in{background:#202c33; align-self:flex-start; border-top-left-radius:3px}
+.wb.out{background:#005c4b; align-self:flex-end; border-top-right-radius:3px}
+.wb.aud{display:flex; align-items:center; gap:8px; min-width:158px}
+.wb.aud .pl{width:26px; height:26px; border-radius:50%; background:rgba(255,255,255,.12); display:grid; place-items:center; font-size:10px; flex:none}
+.wb.aud .wv{display:flex; align-items:center; gap:1.5px; flex:1; height:20px}
+.wb.aud .wv i{width:2.5px; border-radius:2px; background:rgba(255,255,255,.55)}
+.wb.aud .dur{font-family:var(--mono); font-size:8px; color:rgba(255,255,255,.55); flex:none; align-self:flex-end}
+/* posts do perfil (aba 2) */
+.igposts{height:560px; overflow-y:auto; overflow-x:hidden; background:#000; overscroll-behavior:contain}
+.igposts::-webkit-scrollbar{width:7px}
+.igposts::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15); border-radius:99px}
+.igposts .pgrid3{display:grid; grid-template-columns:repeat(3,1fr); gap:2px; margin-bottom:2px}
+.igposts .pgrid3 img{width:100%; aspect-ratio:1; object-fit:cover; display:block; cursor:pointer; opacity:.8; transition:opacity .15s}
+.igposts .pgrid3 img:hover{opacity:1}
+.igposts .pgrid3 img.on{opacity:1; outline:2px solid var(--c-gestao); outline-offset:-2px}
+.igposts .igf{width:100%}
+.igposts .fim{width:100%; display:block}
+.igposts .plikes{padding:0 11px; font-size:11px; font-weight:700; color:#fff}
+.igposts .pcap{padding:3px 11px 16px; font-size:10.5px; color:#d7dbe2; line-height:1.45}
+.igposts .pcap b{color:#fff}
+/* looping */
+.lpspin{display:inline-block; animation:lprot 7s linear infinite}
+@keyframes lprot{to{transform:rotate(360deg)}}
+/* gates de qualidade */
+.fgate{position:relative; width:224px; background:#0f1219; border:1px solid rgba(255,255,255,.13); border-radius:14px; box-shadow:var(--sombra); overflow:hidden}
+.fgate::before{content:''; position:absolute; inset:0; border-radius:14px; pointer-events:none; border:1.5px solid var(--gc); animation:gateglow 2.6s ease-in-out infinite}
+@keyframes gateglow{0%,100%{opacity:.2}50%{opacity:.75}}
+.fgate .gtop{display:flex; align-items:center; gap:8px; padding:8px 12px; background:#141821; border-bottom:1px solid rgba(255,255,255,.07)}
+.fgate .gtop .gk{font-family:var(--mono); font-size:9px; letter-spacing:.2em; color:var(--gc)}
+.fgate .gtop .gt2{margin-left:auto; font-family:var(--mono); font-size:8px; color:var(--texto-3); letter-spacing:.1em}
+.fgate .gbody{display:flex; align-items:center; gap:12px; padding:12px 13px 8px}
+.fgate .gshield{width:46px; height:46px; flex:none; border-radius:12px; display:grid; place-items:center; font-size:19px; background:var(--gc); box-shadow:0 0 20px -5px var(--gc)}
+.fgate .gchk{display:flex; flex-direction:column; gap:5px; min-width:0}
+.fgate .gchk span{font-family:var(--mono); font-size:9px; color:var(--texto-2); display:flex; gap:6px; align-items:center}
+.fgate .gchk span i{font-style:normal; color:#54c98a; font-size:9px; flex:none}
+.fgate .gname{font-size:13.5px; font-weight:800; color:var(--texto); padding:0 13px 3px}
+.fgate .gfoot{display:flex; flex-wrap:wrap; gap:5px; padding:8px 12px 12px}
+.fgate .gfoot span{font-family:var(--mono); font-size:8.5px; letter-spacing:.04em; border-radius:99px; padding:4px 9px; border:1px solid}
+.fgate .gfoot .gp{color:#7ee6ae; border-color:rgba(84,201,138,.45); background:rgba(84,201,138,.08)}
+.fgate .gfoot .gf{color:#ff8f8f; border-color:rgba(226,61,61,.4); background:rgba(226,61,61,.07)}
+/* cliente satisfeito — hero da retroalimentação */
+.fsat{display:flex; flex-direction:column; align-items:center; width:260px}
+.fsat .sdmd{width:78px; height:78px; margin:24px; transform:rotate(45deg); border-radius:20px; display:grid; place-items:center; background:linear-gradient(160deg,#54c98a,#2e8a55); border:1px solid rgba(255,255,255,.3); animation:satpulse 2.1s ease-out infinite}
+.fsat .sdmd span{transform:rotate(-45deg); font-size:31px; line-height:1}
+@keyframes satpulse{0%{box-shadow:0 0 0 0 rgba(84,201,138,.5),0 24px 60px -24px rgba(0,0,0,.75)}75%{box-shadow:0 0 0 32px rgba(84,201,138,0),0 24px 60px -24px rgba(0,0,0,.75)}100%{box-shadow:0 0 0 0 rgba(84,201,138,0),0 24px 60px -24px rgba(0,0,0,.75)}}
+.fsat .slbl{font-size:16px; font-weight:800; color:var(--texto); letter-spacing:-.01em}
+.fsat .sbdg{margin-top:10px; display:flex; align-items:center; gap:7px; font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; color:#7ee6ae; background:rgba(84,201,138,.1); border:1px solid rgba(84,201,138,.55); border-radius:99px; padding:6px 13px; animation:bdgglow 2.1s ease-in-out infinite}
+.fsat .sbdg .lpspin{font-size:12px}
+@keyframes bdgglow{0%,100%{box-shadow:0 0 6px -2px rgba(84,201,138,.35)}50%{box-shadow:0 0 20px -2px rgba(84,201,138,.85)}}
+.fsat .ssub{font-family:var(--mono); font-size:9px; color:var(--texto-3); text-align:center; line-height:1.55; margin-top:8px}
+/* conectores com energia (retroalimentação automática) */
+#edgeLayer path.epulse{stroke:#54c98a !important; stroke-width:2.4 !important; stroke-dasharray:7 9 !important; stroke-opacity:.9; filter:drop-shadow(0 0 3.5px rgba(84,201,138,.85)); animation:eflow 1s linear infinite}
+@keyframes eflow{to{stroke-dashoffset:-32}}
+#edgeLayer path.efail{stroke:rgba(226,61,61,.6) !important}
+
+/* ---------------------------------------------------------------------------
+   MÉTODO 10k — o motor de tijolos (a roda)
+   ---------------------------------------------------------------------------
+   Era a página original do 10k, inteira: por isso as classes têm nome
+   genérico (.app, .top, .title, .stage, .btn). Virou UM nó do board, então
+   o 100vh saiu — dentro do canvas ele tentaria ocupar a viewport toda.
+   --------------------------------------------------------------------------- */
+.app{
+   color:var(--texto); font-family:var(--sans);
+  background:
+    radial-gradient(1200px 700px at 50% -8%, color-mix(in srgb,var(--c-execucao) 12%, transparent), transparent 60%),
+    radial-gradient(900px 600px at 50% 118%, color-mix(in srgb,var(--c-atracao) 8%, transparent), transparent 60%),
+    linear-gradient(180deg,var(--fundo),var(--fundo-2));
+  padding:clamp(18px,3vw,40px);
+  display:flex; flex-direction:column; gap:clamp(14px,2vw,26px);
+  overflow-x:hidden;
+}
+.app::before{
+  content:""; position:fixed; inset:0; pointer-events:none; opacity:.5; z-index:0;
+  background-image:
+    linear-gradient(var(--fio-fraco) 1px,transparent 1px),
+    linear-gradient(90deg,var(--fio-fraco) 1px,transparent 1px);
+  background-size:46px 46px; mask-image:radial-gradient(circle at 50% 42%,#000,transparent 78%);
+}
+.app>*{position:relative; z-index:1}
+
+.top{display:flex; align-items:flex-start; justify-content:space-between; gap:24px; flex-wrap:wrap}
+.kicker{font-family:var(--mono); font-size:11px; letter-spacing:.28em; color:var(--texto-2); text-transform:uppercase}
+.title{
+  margin:.28em 0 .18em; font-size:clamp(28px,4.6vw,52px); font-weight:800;
+  letter-spacing:-.02em; line-height:.98; text-wrap:balance;
+  background:linear-gradient(92deg,var(--texto),color-mix(in srgb,var(--c-atracao) 45%,var(--texto)));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.lede{margin:0; max-width:60ch; color:var(--texto-2); font-size:clamp(13px,1.3vw,15px); line-height:1.5}
+.controls{display:flex; gap:10px}
+.btn{
+  display:inline-flex; align-items:center; gap:8px; cursor:pointer;
+  font-family:var(--mono); font-size:12px; letter-spacing:.04em; color:var(--texto);
+  background:var(--painel); border:1px solid var(--fio); border-radius:999px;
+  padding:9px 15px; transition:border-color .2s, background .2s;
+}
+.btn:hover{border-color:color-mix(in srgb,var(--c-execucao) 50%,var(--fio))}
+.btn .dot{width:8px; height:8px; border-radius:50%; background:var(--c-gestao); box-shadow:0 0 10px var(--c-gestao)}
+.btn[aria-pressed="false"] .dot{background:var(--texto-3); box-shadow:none}
+.btn:focus-visible, .sector:focus-visible, .rail-close:focus-visible{outline:2px solid var(--c-gestao); outline-offset:3px}
+
+.stage{position:relative; display:flex; justify-content:center; align-items:center; min-height:0}
+.wheelBox{
+  position:relative; width:min(88vw, 62vh, 680px); aspect-ratio:1/1; margin:0 auto;
+  filter:drop-shadow(var(--sombra));
+}
+#wheel{width:100%; height:100%; display:block; overflow:visible}
+
+.hub{
+  position:absolute; inset:0; margin:auto; width:44%; height:44%;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; pointer-events:none; gap:.5em;
+}
+.hub-eyebrow{font-family:var(--mono); font-size:clamp(8px,1vw,10px); letter-spacing:.36em; color:var(--texto-3)}
+.hub-thesis{font-size:clamp(14px,2.1vw,23px); font-weight:500; line-height:1.16; letter-spacing:-.01em; color:var(--texto)}
+.hub-thesis b{font-weight:800; background:linear-gradient(92deg,var(--c-atracao),var(--c-posicionamento)); -webkit-background-clip:text; background-clip:text; color:transparent}
+.hub-sub{font-family:var(--mono); font-size:clamp(8px,1vw,10px); letter-spacing:.06em; color:var(--texto-2); font-variant-numeric:tabular-nums}
+
+.loopTag{
+  position:absolute; top:-6px; left:50%; transform:translateX(-50%);
+  font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--fundo);
+  background:linear-gradient(92deg,var(--c-posicionamento),var(--c-atracao));
+  padding:5px 12px; border-radius:999px; white-space:nowrap;
+  box-shadow:0 6px 20px -6px color-mix(in srgb,var(--c-atracao) 70%,transparent);
+  font-weight:700;
+}
+
+/* SVG element styling */
+.sector{cursor:pointer}
+.sfill{transition:opacity .28s ease, filter .28s ease}
+.sector .sfill{opacity:.78}
+.sector:hover .sfill, .sector.active .sfill, .sector.pulsing .sfill{opacity:1}
+.sector.active .sedge{stroke-width:3}
+.sedge{transition:stroke-width .2s}
+.slabel{font-family:var(--sans); font-weight:800; letter-spacing:.03em; fill:var(--texto)}
+.sindex{font-family:var(--mono); font-weight:700; letter-spacing:.02em}
+.scount{font-family:var(--mono); fill:var(--texto); opacity:.7}
+.course{stroke-linecap:round; fill:none}
+.chev{fill:none; stroke-linecap:round; stroke-linejoin:round}
+
+/* rail */
+.rail{
+  position:absolute; top:0; right:0; height:100%; width:min(360px,86vw);
+  background:linear-gradient(180deg,var(--painel),var(--painel-2));
+  border:1px solid var(--fio); border-radius:18px; padding:20px;
+  box-shadow:var(--sombra); transform:translateX(112%); opacity:0;
+  transition:transform .42s cubic-bezier(.22,1,.36,1), opacity .3s;
+  display:flex; flex-direction:column; gap:14px; overflow:hidden;
+}
+.rail.open{transform:translateX(0); opacity:1}
+.rail-close{
+  position:absolute; top:14px; right:14px; width:30px; height:30px; cursor:pointer;
+  background:var(--painel-2); border:1px solid var(--fio); border-radius:8px; color:var(--texto-2); font-size:13px;
+}
+.rail-close:hover{color:var(--texto)}
+.rail-head{display:flex; align-items:center; gap:14px; padding-right:34px}
+.rail-index{
+  font-family:var(--mono); font-weight:800; font-size:22px; width:52px; height:52px; flex:none;
+  display:grid; place-items:center; border-radius:12px; color:var(--fundo);
+  background:var(--railc); box-shadow:0 8px 22px -8px var(--railc);
+}
+:root[data-theme="light"] .rail-index, .rail-index{color:#0c1018}
+.rail-name{margin:0; font-size:20px; font-weight:800; letter-spacing:-.01em; color:var(--texto)}
+.rail-count{font-family:var(--mono); font-size:11px; color:var(--railc); letter-spacing:.06em}
+.rail-role{margin:0; font-size:13px; line-height:1.5; color:var(--texto-2)}
+.rail-list{display:flex; flex-direction:column; gap:7px; overflow-y:auto; padding-right:4px; margin:0 -4px 0 0}
+.rail-list::-webkit-scrollbar{width:7px}
+.rail-list::-webkit-scrollbar-thumb{background:var(--fio); border-radius:99px}
+.brick{
+  display:flex; align-items:center; gap:11px; padding:9px 11px; border-radius:9px;
+  background:color-mix(in srgb,var(--railc) 9%, var(--painel));
+  border:1px solid color-mix(in srgb,var(--railc) 22%, transparent);
+  border-left:3px solid var(--railc);
+  position:relative;
+}
+.brick .ico{width:18px; height:18px; flex:none; color:var(--railc)}
+.brick .ico svg{width:100%; height:100%; stroke:currentColor; stroke-width:1.7; fill:none}
+.brick .bn{font-size:12.5px; line-height:1.25; color:var(--texto); font-weight:500}
+.brick .bt{font-family:var(--mono); font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--texto-3); margin-top:2px; display:block}
+.brick .loop{margin-left:auto; font-family:var(--mono); font-size:9px; color:var(--c-posicionamento); white-space:nowrap; letter-spacing:.04em}
+
+/* foundation */
+.foundation{
+  background:
+    repeating-linear-gradient(90deg,transparent 0 92px, var(--fio-fraco) 92px 93px),
+    repeating-linear-gradient(0deg,transparent 0 30px, var(--fio-fraco) 30px 31px),
+    linear-gradient(180deg,var(--slab),var(--slab-2));
+  border:1px solid var(--fio); border-radius:16px; padding:16px clamp(16px,2.4vw,26px) 18px;
+  margin-top:-6px;
+}
+.found-head{display:flex; align-items:baseline; gap:12px; margin-bottom:13px; flex-wrap:wrap}
+.found-label{font-family:var(--mono); font-weight:800; letter-spacing:.24em; font-size:12px; color:var(--texto)}
+.found-sub{font-size:12px; color:var(--texto-2)}
+.found-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(184px,1fr)); gap:11px}
+.fcard{background:color-mix(in srgb,var(--c-found) 8%,var(--painel)); border:1px solid var(--fio); border-radius:11px; padding:12px 13px}
+.fcard .fh{display:flex; align-items:center; gap:9px; margin-bottom:8px}
+.fcard .fh .ico{width:17px; height:17px; color:var(--c-found)}
+.fcard .fh .ico svg{width:100%; height:100%; stroke:currentColor; stroke-width:1.7; fill:none}
+.fcard .fh b{font-size:13px; letter-spacing:.01em}
+.fcard .fitems{display:flex; flex-wrap:wrap; gap:5px}
+.chip{font-family:var(--mono); font-size:10px; letter-spacing:.02em; color:var(--texto-2); background:var(--painel-2); border:1px solid var(--fio); border-radius:6px; padding:3px 7px}
+
+/* foot */
+.foot{display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap}
+.legend{display:flex; flex-wrap:wrap; gap:7px 14px}
+.leg{display:flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10px; letter-spacing:.04em; color:var(--texto-2); text-transform:uppercase}
+.leg .ico{width:15px; height:15px; color:var(--texto-2)}
+.leg .ico svg{width:100%; height:100%; stroke:currentColor; stroke-width:1.7; fill:none}
+.caption{margin:0; font-size:12.5px; color:var(--texto-2); max-width:56ch; line-height:1.5}
+.caption b{color:var(--texto); font-weight:700}
+
+
+/* Área rolável dentro de um nó. No legado .scrollable era só marcador pro
+   motor não roubar o gesto; aqui precisa dizer o que faz. */
+.scrollable { overflow: auto; }
+
+
+/* Fecha o que faltava: a seta ↗ do nó com link, o olho que alterna print ⇄
+   documento vivo e o escudo do iframe. O escudo existe porque iframe engole a
+   roda do mouse — sem ele, Ctrl+roda vira zoom do navegador em vez de zoom do
+   canvas (BLUEPRINT.md §4.4). */
+.fx .go{position:absolute; top:7px; right:9px; font-size:10px; opacity:0; transition:opacity .16s}
+.fx[data-go]:hover .go{opacity:.8}
+.fxifr{width:100%; height:100%; border:0; display:block; background:#fff}
+.fxifr{position:absolute; top:0; left:0}
+.fxeye{margin-left:auto; width:22px; height:22px; flex:none; display:grid; place-items:center; border-radius:6px; border:1px solid var(--fio); background:transparent; color:var(--texto-2); font-size:12px; line-height:1; cursor:pointer; transition:color .15s, border-color .15s, background .15s}
+.fxeye:hover{color:var(--texto); border-color:var(--c-gestao)}
+.fxeye.on{background:var(--c-gestao); border-color:transparent; color:#0c1018}
+.ifr-guard{position:absolute; inset:0; z-index:3; cursor:pointer; background:transparent}
+.ifr-guard::after{content:'clique para interagir'; position:absolute; left:50%; bottom:11px; transform:translateX(-50%); font-family:var(--mono); font-size:9px; letter-spacing:.1em; color:var(--texto); background:rgba(10,14,24,.88); border:1px solid rgba(255,255,255,.16); border-radius:99px; padding:5px 12px; white-space:nowrap; pointer-events:none; opacity:0; transition:opacity .16s}
+.ifr-guard:hover::after{opacity:1}
+.ifr-vivo{outline:2px solid var(--c-gestao); outline-offset:-2px}
+.fxshot .body{display:block; background:#0c1018; line-height:0}
+.fxshot .body{position:relative}
+.fxshot .body .fxifr{position:absolute; top:0; left:0}
+.fxshot .cap{font-family:var(--mono); font-size:9px; color:var(--texto-3); padding:7px 10px; border-top:1px solid var(--fio-fraco); line-height:1.5}
+.brow-min .brtab{flex:none; width:32px; padding:7px 0; justify-content:center; gap:0; transition:width .18s cubic-bezier(.22,1,.36,1)}
+.brow-min .brtab .tn{display:none}
+.brow-min .brtab.on{flex:1; width:auto; min-width:0; padding:7px 10px; gap:6px; justify-content:flex-start}
+.brow-min .brtab.on .tn{display:block}
+
+/* O anel de momentum gira devagar (90s por volta) — é o "nunca para" da tese.
+   No legado a regra era injetada por JS num <style> criado na hora; aqui é
+   CSS de verdade, e o botão Parar/Girar só tira a classe. */
+.momentum { transform-origin: 500px 500px; }
+.momentum.girando { animation: fw-girar 90s linear infinite; }
+@keyframes fw-girar { to { transform: rotate(360deg); } }
+
+/* O SVG da roda é `.wheel` (o legado usava #wheel; id único num nó só). */
+.wheel { width: 100%; height: 100%; display: block; overflow: visible; }
+
+/* ---------------------------------------------------------------------------
+   O Flywheel dentro de um nó
+   ---------------------------------------------------------------------------
+   No legado a roda era a PÁGINA: o CSS mede em vw/vh e não tem teto de
+   largura. Dentro de um nó do canvas (1000×721 fixos) essas unidades passam a
+   apontar pra viewport — a roda estourava o nó e atravessava a tela inteira.
+   Este escopo prende tudo ao tamanho do nó. Nada aqui muda o desenho; muda de
+   que régua ele se mede.
+   --------------------------------------------------------------------------- */
+.fw-no {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 22px;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid var(--fio);
+  background:
+    radial-gradient(700px 420px at 50% -8%, rgba(78, 125, 246, 0.1), transparent 60%),
+    linear-gradient(180deg, var(--fundo), var(--fundo-2));
+}
+/* O trilho fechado fica em translateX(112%) — fora da caixa. Sem overflow
+   escondido aqui, esse deslocamento vira 348px de rolagem lateral. */
+.fw-no .stage { flex: 1; min-height: 0; overflow: hidden; }
+/* Antes: min(88vw, 62vh, 680px) — a viewport não tem nada a ver com o nó. */
+.fw-no .wheelBox { width: min(100%, 62cqmin, 560px); }
+.fw-no .title { font-size: 26px; }
+.fw-no .lede { font-size: 13px; max-width: 52ch; }
+.fw-no .hub-eyebrow, .fw-no .hub-sub { font-size: 9px; }
+.fw-no .hub-thesis { font-size: 19px; }
+.fw-no .rail { width: min(330px, 62%); }

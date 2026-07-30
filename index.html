@@ -120,7 +120,7 @@
     <button class="tb" id="fitBtn" type="button">⤢ Ajustar</button>
     <button class="tb" id="resetBtn" type="button" title="Limpar alterações salvas e recarregar">⟲</button>
   </div>
-  <span class="tb-hint">fundo arrasta · ⇧+arrasto seleciona grupo · ● liga nós (Alt=tracejada) · ◿ redimensiona · ⌘Z desfaz · Delete apaga · salva sozinho</span>
+  <span class="tb-hint">fundo arrasta · ⇧+roda anda de lado · ⇧+arrasto seleciona grupo · ● liga nós (Alt=tracejada) · ◿ redimensiona · ⌘Z desfaz · Delete apaga · salva sozinho</span>
 </div>
 
 <style>
@@ -671,6 +671,132 @@
   .rsz::after{content:''; position:absolute; right:3px; bottom:3px; width:5px; height:5px; border-right:1.5px solid var(--ink-dim); border-bottom:1.5px solid var(--ink-dim)}
 </style>
 
+<style>
+  /* ===== SIDEBAR DE DOCUMENTOS ===== */
+  :root{--sbw:0px}
+
+  #viewport{left:var(--sbw); transition:left .28s cubic-bezier(.22,1,.36,1)}
+  .toolbar{left:calc(var(--sbw) + 58px); transition:left .28s cubic-bezier(.22,1,.36,1)}
+  .viewdock{left:calc(50% + var(--sbw)/2) !important; transition:left .28s cubic-bezier(.22,1,.36,1)}
+  .cockpit-badge{left:calc(var(--sbw) + 58px) !important; transition:left .28s cubic-bezier(.22,1,.36,1)}
+
+  .sb{position:fixed; left:0; top:0; bottom:0; width:264px; z-index:1200;
+    background:linear-gradient(180deg,var(--panel),var(--ground-2));
+    border-right:1px solid var(--hair); box-shadow:14px 0 40px -22px rgba(0,0,0,.8);
+    display:flex; flex-direction:column; transform:translateX(-100%);
+    transition:transform .28s cubic-bezier(.22,1,.36,1)}
+  .sb.open{transform:none}
+  .sb-brand{display:flex; align-items:baseline; gap:8px; padding:18px 16px 14px; border-bottom:1px solid var(--hair-2)}
+  .sb-brand b{font-family:var(--sans); font-weight:800; font-size:12px; letter-spacing:.14em; color:var(--ink)}
+  .sb-brand span{font-family:var(--mono); font-size:9px; letter-spacing:.1em; color:var(--ink-faint)}
+  .sb-list{flex:1; overflow-y:auto; padding:10px 10px 18px}
+  .sb-list::-webkit-scrollbar{width:7px}
+  .sb-list::-webkit-scrollbar-thumb{background:var(--hair); border-radius:99px}
+  .sb-g{margin-bottom:4px}
+  .sb-gh{display:flex; align-items:center; gap:7px; width:100%; padding:9px 8px; cursor:pointer;
+    background:none; border:none; text-align:left;
+    font-family:var(--mono); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-faint)}
+  .sb-gh:hover{color:var(--ink-dim)}
+  .sb-gh .car{display:inline-block; transition:transform .2s; font-size:8px; opacity:.8}
+  .sb-g.closed .car{transform:rotate(-90deg)}
+  .sb-g.closed .sb-items{display:none}
+  .sb-items{display:flex; flex-direction:column; gap:2px}
+  .sb-i{display:flex; align-items:center; gap:9px; padding:9px 11px; border-radius:9px; cursor:pointer;
+    background:none; border:none; text-align:left; width:100%;
+    font-family:var(--sans); font-size:12.5px; font-weight:500; color:var(--ink-dim); transition:background .15s,color .15s}
+  .sb-i:hover{background:var(--panel-2); color:var(--ink)}
+  .sb-i.on{background:color-mix(in srgb,var(--c-execucao) 20%,var(--panel-2)); color:var(--ink); font-weight:600}
+  .sb-i .ic{width:15px; text-align:center; flex:none; opacity:.85}
+  .sb-i .cnt{margin-left:auto; font-family:var(--mono); font-size:9px; color:var(--ink-faint)}
+  .sb-foot{padding:12px 16px; border-top:1px solid var(--hair-2); font-family:var(--mono); font-size:9px; color:var(--ink-faint); line-height:1.6}
+  .sb-tog{position:fixed; top:14px; left:calc(var(--sbw) + 14px); z-index:1201; width:34px; height:34px;
+    display:grid; place-items:center; cursor:pointer; font-size:14px; color:var(--ink-dim);
+    background:rgba(10,14,24,.88); border:1px solid rgba(255,255,255,.12); border-radius:10px;
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); box-shadow:0 8px 30px rgba(0,0,0,.45);
+    transition:left .28s cubic-bezier(.22,1,.36,1), color .15s}
+  .sb-tog:hover{color:var(--ink)}
+  @media (max-width:720px){
+    .sb{width:min(84vw,264px)}
+    :root{--sbw:0px !important}
+    #viewport{left:0}
+  }
+
+  /* ===== FLUXOGRAMA — vocabulário de formas (Figma 1:1) ===== */
+  .fx{position:relative; display:grid; place-items:center; text-align:center; box-sizing:border-box;
+    font-family:var(--sans); font-weight:600; font-size:12.5px; line-height:1.25; letter-spacing:-.005em;
+    padding:10px 16px; box-shadow:var(--shadow)}
+  .fx[data-go]{cursor:pointer; transition:filter .16s, transform .16s}
+  .fx[data-go]:hover{filter:brightness(1.09); transform:translateY(-1px)}
+  .fx .go{position:absolute; top:7px; right:9px; font-size:10px; opacity:0; transition:opacity .16s}
+  .fx[data-go]:hover .go{opacity:.8}
+  .fx.todo{outline:1px dashed rgba(255,255,255,.28); outline-offset:2px}
+
+  .fx-term{border-radius:999px; background:#757575; color:#fff; font-weight:600; font-size:13px}
+  .fx-act{border-radius:9px;  background:#9747FF; color:#fff}
+  .fx-doc{border-radius:9px;  background:#FFC7C2; color:#1E1E1E}
+  .fx-copy{border-radius:9px; background:#FFCD29; color:#1E1E1E}
+  .fx-in{background:#14AE5C; color:#fff;    clip-path:polygon(13% 0,100% 0,87% 100%,0 100%); padding:10px 30px}
+  .fx-reg{background:#FFC7C2; color:#1E1E1E; clip-path:polygon(13% 0,100% 0,87% 100%,0 100%); padding:10px 30px}
+  .fx-dec{background:#14AE5C; color:#fff; clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%); padding:10px 22%}
+  .fx-db{background:#FFCD29; color:#1E1E1E; border-radius:50%/13%; padding-top:22px}
+  .fx-db::before{content:''; position:absolute; left:0; right:0; top:0; height:26%;
+    border-radius:50%; background:#FFDA5C; border-bottom:1px solid rgba(0,0,0,.13)}
+  .fx-db u{position:relative; text-decoration:underline; text-underline-offset:2px}
+
+  .fx-lane{border-radius:14px; background:rgba(255,203,40,.16); border:1px solid rgba(255,203,40,.34);
+    box-shadow:none; display:block}
+  .fx-lane .ll{position:absolute; top:11px; left:16px; font-family:var(--mono); font-size:10px;
+    letter-spacing:.22em; color:#FFCB28}
+  .fx-yn{font-family:var(--sans); font-weight:700; font-size:17px; color:var(--ink); padding:2px 6px}
+  .fx-h1{font-family:var(--sans); font-weight:800; letter-spacing:-.02em; color:var(--ink); line-height:1.05}
+  .fx-h2{font-family:var(--sans); font-weight:600; color:var(--ink-dim); line-height:1.4; text-align:center}
+  .fx-lbl{font-family:var(--sans); font-weight:700; font-size:15px; color:var(--ink)}
+  .fx-txt{font-family:var(--sans); font-size:13px; color:var(--ink-dim); line-height:1.85}
+  .fx-txt b{color:var(--ink); font-weight:600}
+  .fx-cap{font-family:var(--sans); font-weight:800; font-size:17px; color:var(--ink); letter-spacing:-.01em; line-height:1.25; text-align:center}
+
+  .fxshot{overflow:hidden}
+  .fxshot .body{display:block; background:#0c1018; line-height:0}
+  .fxshot img{width:100%; display:block}
+  .fxshot .cap{font-family:var(--mono); font-size:9px; color:var(--ink-faint); padding:7px 10px;
+    border-top:1px solid var(--hair-2); line-height:1.5}
+  .fxifr{width:100%; height:100%; border:0; display:block; background:#fff}
+
+  /* Escudo do iframe: enquanto não clicado, a roda pertence ao board.
+     Sem isso o iframe engole o evento e o Ctrl+roda vira zoom do navegador. */
+  .ifr-guard{position:absolute; inset:0; z-index:3; cursor:pointer; background:transparent}
+  .ifr-guard::after{content:'clique para interagir'; position:absolute; left:50%; bottom:11px;
+    transform:translateX(-50%); font-family:var(--mono); font-size:9px; letter-spacing:.1em;
+    color:var(--ink); background:rgba(10,14,24,.88); border:1px solid rgba(255,255,255,.16);
+    border-radius:99px; padding:5px 12px; white-space:nowrap; pointer-events:none;
+    opacity:0; transition:opacity .16s}
+  .ifr-guard:hover::after{opacity:1}
+  .ifr-vivo{outline:2px solid var(--c-gestao); outline-offset:-2px}
+
+  /* 7 abas em 430px não cabem com rótulo. Padrão de navegador: inativa mostra
+     só o ícone, a ativa se expande e mostra o nome. */
+  .brow-min .brtab{flex:none; width:32px; padding:7px 0; justify-content:center; gap:0;
+    transition:width .18s cubic-bezier(.22,1,.36,1)}
+  .brow-min .brtab .tn{display:none}
+  .brow-min .brtab .fv{margin:0}
+  .brow-min .brtab.on{flex:1; width:auto; min-width:0; padding:7px 10px; gap:6px; justify-content:flex-start}
+  .brow-min .brtab.on .tn{display:block}
+
+  /* iframe desenhado em tamanho real e reduzido por transform — sem corte lateral */
+  .fxshot .body{position:relative}
+  .fxshot .body .fxifr{position:absolute; top:0; left:0}
+  .fxeye{margin-left:auto; width:22px; height:22px; flex:none; display:grid; place-items:center;
+    border-radius:6px; border:1px solid var(--hair); background:transparent; color:var(--ink-dim);
+    font-size:12px; line-height:1; cursor:pointer; transition:color .15s, border-color .15s, background .15s}
+  .fxeye:hover{color:var(--ink); border-color:var(--c-gestao)}
+  .fxeye.on{background:var(--c-gestao); border-color:transparent; color:#0c1018}
+  .wintop .fxeye + .qlink{margin-left:5px}
+
+  /* conector de fluxograma precisa ler melhor que o do board — regra CSS vence o atributo */
+  #edgeLayer path.edge[data-doc="onboarding"]{stroke:var(--ink-faint); stroke-width:2.4}
+  #edgeLayer path.efail2[data-doc="onboarding"]{stroke:rgba(226,61,61,.7)}
+</style>
+
 <script>
 (function(){
   "use strict";
@@ -1104,7 +1230,8 @@
   }
   function scrollable(t){while(t&&t!==vp){if(t.classList&&t.classList.contains('scrollable')&&t.scrollHeight>t.clientHeight+2)return t;t=t.parentNode;}return null;}
 
-  // wheel: two-finger pan / pinch or cmd+scroll zoom / scroll manual em áreas .scrollable (evita flicker)
+  // wheel: two-finger pan / pinch ou cmd+scroll = zoom / ⇧+roda = horizontal
+  // scroll manual em áreas .scrollable (evita flicker)
   vp.addEventListener('wheel',function(e){
     e.preventDefault();
     if(e.ctrlKey||e.metaKey){
@@ -1112,6 +1239,10 @@
       var wx=(mx-tx)/z, wy=(my-ty)/z;
       z=clamp(z*Math.exp(-e.deltaY*0.0016*6.25),0.18,2.6);
       tx=mx-wx*z; ty=my-wy*z; apply();
+    }else if(e.shiftKey){
+      // roda de mouse só produz deltaY — com ⇧ ela vira movimento horizontal.
+      // (alguns navegadores já convertem sozinhos e mandam deltaX: aceita os dois)
+      tx-=(e.deltaX||e.deltaY); apply();
     }else{
       var sc=scrollable(e.target);
       if(sc){ sc.scrollTop+=e.deltaY; }
@@ -1123,8 +1254,18 @@
   var pan=null, drag=null, marq=null;
   var marqEl=document.createElement('div'); marqEl.className='marq'; marqEl.style.display='none'; document.body.appendChild(marqEl);
   var selN=new Set();
-  function clearSel(){selN.forEach(function(n){n.classList.remove('sel');});selN.clear();}
-  function addSel(n){selN.add(n);n.classList.add('sel');}
+  // avisa quem está ouvindo a seleção (inspetor, camadas). Agrupa num microtask
+  // porque o laço chama addSel em loop — senão dispara uma vez por nó.
+  var selCbs=[], selPend=false;
+  function notifySel(){
+    if(selPend)return; selPend=true;
+    Promise.resolve().then(function(){
+      selPend=false; var arr=Array.from(selN);
+      selCbs.forEach(function(f){try{f(arr);}catch(err){}});
+    });
+  }
+  function clearSel(){selN.forEach(function(n){n.classList.remove('sel');});selN.clear();notifySel();}
+  function addSel(n){selN.add(n);n.classList.add('sel');notifySel();}
   function setMarq(e){var x=Math.min(marq.x,e.clientX),y=Math.min(marq.y,e.clientY),w=Math.abs(e.clientX-marq.x),h=Math.abs(e.clientY-marq.y);
     marqEl.style.cssText='display:block;left:'+x+'px;top:'+y+'px;width:'+w+'px;height:'+h+'px';marq.r={x:x,y:y,w:w,h:h};}
   var selMode=false, selBtn=document.getElementById('selBtn');
@@ -1144,7 +1285,7 @@
       if(e.target.closest('button,a,input,select,textarea,canvas,video,iframe,.port,.rsz,.pnav,.scrollable,[contenteditable="true"]'))return;
       node=e.target.closest('.node'); if(!node) return;
     }
-    if(e.shiftKey){ if(selN.has(node)){selN.delete(node);node.classList.remove('sel');} else addSel(node); e.stopPropagation(); return; }
+    if(e.shiftKey){ if(selN.has(node)){selN.delete(node);node.classList.remove('sel');notifySel();} else addSel(node); e.stopPropagation(); return; }
     if(!selN.has(node)) clearSel();
     var set=selN.has(node)?Array.from(selN):[node];
     drag={sx:e.clientX,sy:e.clientY,items:set.map(function(n){return{n:n,ox:parseFloat(n.style.left)||0,oy:parseFloat(n.style.top)||0};})};
@@ -1166,9 +1307,11 @@
                              r:function(){moved.forEach(function(it){it.n.style.left=it.x1+'px';it.n.style.top=it.y1+'px';});}});}
       drag=null;}
     if(marq){
-      if(marq.r&&(marq.r.w>6||marq.r.h>6)){var r=marq.r;clearSel();
-        document.querySelectorAll('#world > .node').forEach(function(n){var b=cbox(n);
-          var sx=b.x*z+tx, sy=b.y*z+ty, sw=b.w*z, sh=b.h*z;
+      if(marq.r&&(marq.r.w>6||marq.r.h>6)){var r=marq.r,vr=vp.getBoundingClientRect();clearSel();
+        document.querySelectorAll('#world > .node').forEach(function(n){
+          if(n.style.display==='none')return;
+          var b=cbox(n);
+          var sx=b.x*z+tx+vr.left, sy=b.y*z+ty+vr.top, sw=b.w*z, sh=b.h*z;
           if(sx<r.x+r.w && sx+sw>r.x && sy<r.y+r.h && sy+sh>r.y)addSel(n);});}
       marqEl.style.display='none';marq=null;}
     pan=null; vp.classList.remove('grabbing');
@@ -1195,14 +1338,24 @@
     return dy>0?{x:b.cx,y:b.y+b.h,nx:0,ny:1}:{x:b.cx,y:b.y,nx:0,ny:-1};}
   function pathD(a,b){var d=Math.min(170,Math.max(46,Math.hypot(b.x-a.x,b.y-a.y)*0.38));
     return 'M'+a.x+' '+a.y+' C '+(a.x+a.nx*d)+' '+(a.y+a.ny*d)+', '+(b.x+b.nx*d)+' '+(b.y+b.ny*d)+', '+b.x+' '+b.y;}
-  function updateEdges(){edges.forEach(function(ed){var A=cbox(ed.from),B=cbox(ed.to);ed.el.setAttribute('d',pathD(anchor(A,B.cx,B.cy),anchor(B,A.cx,A.cy)));});}
+  function sideAnchor(b,s){
+    if(s==='t')return{x:b.cx,y:b.y,nx:0,ny:-1};
+    if(s==='b')return{x:b.cx,y:b.y+b.h,nx:0,ny:1};
+    if(s==='l')return{x:b.x,y:b.cy,nx:-1,ny:0};
+    if(s==='r')return{x:b.x+b.w,y:b.cy,nx:1,ny:0};
+    return null;}
+  function updateEdges(){edges.forEach(function(ed){var A=cbox(ed.from),B=cbox(ed.to);
+    var pa=(ed.sides&&sideAnchor(A,ed.sides[0]))||anchor(A,B.cx,B.cy);
+    var pb=(ed.sides&&sideAnchor(B,ed.sides[1]))||anchor(B,A.cx,A.cy);
+    ed.el.setAttribute('d',pathD(pa,pb));});}
   function styleEdge(ed){var sel=ed===selEdge;
     ed.el.setAttribute('stroke',sel?'#33c6d6':'rgba(154,167,190,.38)');
     ed.el.setAttribute('marker-end',sel?'url(#arrSel)':'url(#arr)');
     ed.el.setAttribute('stroke-dasharray',ed.dashed?'7 6':'');
     ed.el.setAttribute('stroke-width',sel?3:2.2);}
-  function addEdge(from,to,dashed){var p=document.createElementNS(SVGNS,'path');p.setAttribute('class','edge');
-    var ed={from:from,to:to,dashed:!!dashed,el:p};
+  function addEdge(from,to,dashed,sides){var p=document.createElementNS(SVGNS,'path');p.setAttribute('class','edge');
+    if(from.dataset&&from.dataset.doc)p.dataset.doc=from.dataset.doc;
+    var ed={from:from,to:to,dashed:!!dashed,sides:sides||null,el:p};
     p.addEventListener('click',function(e){e.stopPropagation();selEdge=(selEdge===ed)?null:ed;edges.forEach(styleEdge);});
     p.addEventListener('dblclick',function(e){e.stopPropagation();ed.dashed=!ed.dashed;styleEdge(ed);});
     edgeLayer.appendChild(p);edges.push(ed);styleEdge(ed);updateEdges();return ed;}
@@ -1261,9 +1414,11 @@
   document.getElementById('fitBtn').addEventListener('click',fit);
   function fit(){
     var nodes=world.querySelectorAll('.node'); if(!nodes.length)return;
-    var minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9;
-    nodes.forEach(function(n){var x=parseFloat(n.style.left)||0,y=parseFloat(n.style.top)||0,s=parseFloat(n.dataset.scale)||1,w=n.offsetWidth*s,h=n.offsetHeight*s;
+    var minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9,hit=0;
+    nodes.forEach(function(n){if(n.style.display==='none')return;hit++;
+      var x=parseFloat(n.style.left)||0,y=parseFloat(n.style.top)||0,s=parseFloat(n.dataset.scale)||1,w=n.offsetWidth*s,h=n.offsetHeight*s;
       if(x<minx)minx=x; if(y<miny)miny=y; if(x+w>maxx)maxx=x+w; if(y+h>maxy)maxy=y+h;});
+    if(!hit)return;
     var r=vp.getBoundingClientRect(),pd=90, cw=maxx-minx, ch=maxy-miny;
     z=clamp(Math.min((r.width-pd*2)/cw,(r.height-pd*2)/ch),0.18,1.3);
     tx=(r.width-cw*z)/2 - minx*z; ty=(r.height-ch*z)/2 - miny*z; apply();
@@ -1272,6 +1427,7 @@
   // ===== views: enquadramento animado =====
   function bboxOf(pred){var minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9,hit=0;
     world.querySelectorAll('.node').forEach(function(n){
+      if(n.style.display==='none')return;
       if(pred&&!pred(nid(n)||'',n))return;hit++;
       var x=parseFloat(n.style.left)||0,y=parseFloat(n.style.top)||0,s=parseFloat(n.dataset.scale)||1,w=n.offsetWidth*s,h=n.offsetHeight*s;
       if(x<minx)minx=x;if(y<miny)miny=y;if(x+w>maxx)maxx=x+w;if(y+h>maxy)maxy=y+h;});
@@ -1348,6 +1504,7 @@
   function makeNode(title,el,x,y,id){
     var n=document.createElement('div'); n.className='node'; n.style.left=x+'px'; n.style.top=y+'px'; n.style.zIndex=(++zTop);
     n.dataset.nid=id||slugId(title); n.dataset.title=title;
+    n.dataset.doc=window.__DOC||'metodo-10k';
     var tab=document.createElement('div'); tab.className='node-tab'; tab.setAttribute('data-drag','');
     var ts=document.createElement('span'); ts.className='nt-title'; ts.textContent=title; tab.appendChild(ts);
     var x0=document.createElement('button'); x0.className='nt-x'; x0.type='button'; x0.title='remover'; x0.textContent='✕'; tab.appendChild(x0);
@@ -1405,12 +1562,31 @@
   }
   document.querySelectorAll('[data-add]').forEach(function(b){b.addEventListener('click',function(){addNode(b.dataset.add);});});
 
+  // ===== docs: cada nó pertence a um documento; trocar de doc mostra/esconde =====
+  var curDoc=null;
+  function syncEdgeVis(){edges.forEach(function(ed){
+    var on=ed.from.style.display!=='none'&&ed.to.style.display!=='none';
+    ed.el.style.display=on?'':'none';});}
+  function showDoc(id,ms){
+    curDoc=id;
+    world.querySelectorAll('.node').forEach(function(n){
+      n.style.display=(!id||(n.dataset.doc||'metodo-10k')===id)?'':'none';});
+    syncEdgeVis();updateEdges();
+    if(ms!==0)framePred(null,ms==null?520:ms);
+  }
+  function docOf(){return curDoc;}
+
   window.CanvasAPI={makeNode:makeNode,addEdge:addEdge,fit:fit,deleteNode:deleteNode,
     frameIds:frameIds,framePred:framePred,frameNode:frameNode,frameAll:function(ms){framePred(null,ms==null?650:ms);},
-    getView:getView,setView:setView};
+    getView:getView,setView:setView,showDoc:showDoc,docOf:docOf,syncEdgeVis:syncEdgeVis,
+    updateEdges:updateEdges,
+    onSel:function(f){selCbs.push(f);}, getSel:function(){return Array.from(selN);},
+    selecionar:function(n){clearSel();if(n)addSel(n);},
+    worldCenter:worldCenter, zTop:function(){return ++zTop;}};
   apply();
   document.querySelectorAll('#world > .node').forEach(function(n){
     if(!n.dataset.nid)n.dataset.nid=n.id||('n'+(nauto++));
+    if(!n.dataset.doc)n.dataset.doc='metodo-10k';
     addPorts(n);});
   window.addEventListener('load',function(){
     document.querySelectorAll('#world > .node').forEach(function(n){var id=nid(n);if(id&&id.charAt(0)!=='u')bootNodeIds.push(id);});
@@ -3434,6 +3610,321 @@ window.P2={
 
 <script>
 (function(){
+  "use strict";
+  // ===== DOC: ONBOARDING DO CLIENTE — fluxograma (fiel ao Figma dy5OTiV0GoLWQUJsAVF5lt / 443:113) =====
+  var A=window.CanvasAPI; if(!A) return;
+  window.__DOC='onboarding';
+
+  // >>> LINKS REAIS — os vazios aparecem com contorno tracejado no board <<<
+  var GO={
+    // dois endereços do mesmo doc: /edit pra abrir fora, /preview pra embutir
+    // (o /edit dentro de iframe arrasta a interface do Google junto — não serve)
+    contrato :'https://docs.google.com/document/d/17UN1_UhV0bS2Fqa_9hWhVJGdzpKSr3zi/edit?usp=sharing',
+    contratoIfr:'https://docs.google.com/document/d/17UN1_UhV0bS2Fqa_9hWhVJGdzpKSr3zi/preview',
+    briefing :'',   // TROCAR: formulário de briefing
+    pagamento:'',   // TROCAR: cobrança / gateway
+    nf       :'',   // TROCAR: emissor de nota fiscal
+    clickup  :'',   // TROCAR: template da tarefa no ClickUp
+    planilha :'https://app.easybuilder.com.br/index-v2/paginas?tipo=links',
+    grupo    :'',   // TROCAR: modelo de grupo WhatsApp
+    drive    :'',   // TROCAR: pasta modelo no Google Drive
+    checklist:'',   // TROCAR: checklist de onboarding
+    estrutura:'https://app.easybuilder.com.br/',   // IA 05 Estrutura de Sites
+    easycopy :'https://app.easybuilder.com.br/',   // IA 06 Easy Copy
+    aprovacao:''    // TROCAR: fluxo de aprovação
+  };
+
+  // --- Figma → mundo do canvas. Origem e escala do frame 443:113.
+  var S=0.5, OX=12000, OY=0, F0X=536.079, F0Y=116.446;
+  function px(v){return Math.round(OX+(v-F0X)*S);}
+  function py(v){return Math.round(OY+(v-F0Y)*S);}
+  function sz(v){return Math.round(v*S);}
+
+  function h(tag,cls,html){var e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e;}
+  function hideTab(n){var t=n.querySelector('.node-tab');if(t)t.style.display='none';return n;}
+  function qlink(url){var a=h('a','qlink','↗');a.href=url;a.target='_blank';a.rel='noopener';
+    a.addEventListener('pointerdown',function(e){e.stopPropagation();});return a;}
+
+  // --- clique que não dispara ao arrastar
+  function linkify(el,url){
+    if(!url){el.classList.add('todo');el.title='link ainda não mapeado';return el;}
+    el.dataset.go='1'; el.title=url;
+    el.appendChild(h('span','go','↗'));
+    var d=null;
+    el.addEventListener('pointerdown',function(e){d={x:e.clientX,y:e.clientY};});
+    el.addEventListener('click',function(e){
+      // consome o pointerdown: se ficar guardado, contamina o próximo clique
+      var arrastou=d&&Math.hypot(e.clientX-d.x,e.clientY-d.y)>5; d=null;
+      if(arrastou)return;
+      e.stopPropagation();window.open(url,'_blank','noopener');});
+    return el;
+  }
+
+  // --- fábrica de formas: kind = term|act|doc|copy|in|reg|dec|db
+  var N={};
+  function shape(id,titulo,kind,label,fx,fy,fw,fh,url){
+    var e=h('div','fx fx-'+kind,'<span>'+label+'</span>');
+    e.style.width=sz(fw)+'px';
+    if(kind==='dec'||kind==='db')e.style.height=sz(fh)+'px'; else e.style.minHeight=sz(fh)+'px';
+    if(url!==undefined)linkify(e,url);
+    var n=hideTab(A.makeNode(titulo,e,px(fx),py(fy),id));
+    N[id]=n; return n;
+  }
+  function lane(id,label,fx,fy,fw,fh){
+    var e=h('div','fx fx-lane','<span class="ll">'+label+'</span>');
+    e.style.width=sz(fw)+'px'; e.style.height=sz(fh)+'px';
+    var n=A.makeNode('Zona',e,px(fx),py(fy),id);
+    n.style.pointerEvents='none'; n.style.zIndex=0;
+    n.querySelectorAll('.node-tab,.port,.rsz').forEach(function(p){p.style.pointerEvents='auto';});
+    N[id]=n; return n;
+  }
+  function txt(id,cls,html,fx,fy,fw){
+    var e=h('div',cls,html); if(fw)e.style.width=sz(fw)+'px';
+    var n=hideTab(A.makeNode('Texto',e,px(fx),py(fy),id)); N[id]=n; return n;
+  }
+  // A janela tem barra de título (~28px) que o Figma não tem — sobe o nó pra imagem
+  // cair na mesma altura do original.
+  // Documento renderiza na largura natural (~816px). Em vez de espremer o iframe
+  // — o que corta a página — desenho no tamanho real e reduzo por transform.
+  // Página inteira, sem corte, sem barra horizontal; pra ler, dá zoom no board.
+  // PAG = largura lógica do render. 816 = página A4 do Docs.
+  // 1280 = viewport de desktop: força o site a servir o layout desktop, não o mobile.
+  var PAG=816, DESKTOP=1280;
+  function ifrEscalado(url,titulo,W,H,logico){
+    var LG=logico||PAG, k=W/LG;
+    var ifr=document.createElement('iframe');
+    ifr.className='fxifr'; ifr.setAttribute('title',titulo); ifr.setAttribute('loading','lazy');
+    ifr.style.width=LG+'px';
+    ifr.style.height=Math.round(H/k)+'px';
+    ifr.style.transformOrigin='0 0';
+    ifr.style.transform='scale('+k.toFixed(4)+')';
+    ifr.style.position='absolute'; ifr.style.top='0'; ifr.style.left='0';
+    ifr.src=url;
+    return ifr;
+  }
+
+  var CHROME=28;
+  // opts.live = URL embutível → ganha o olho que alterna print ⇄ documento ao vivo
+  // opts.w    = largura em px (sobrepõe a do Figma)
+  // opts.fh   = altura do retângulo no Figma — só necessária junto com opts.w
+  function shot(id,titulo,arq,fx,fy,fw,cap,url,opts){
+    opts=opts||{};
+    var e=h('div','winw fxshot'); e.style.width=(opts.w||sz(fw))+'px';
+    var top=h('div','node-tab wintop'); top.setAttribute('data-drag','');
+    top.appendChild(h('span','rt','<span>'+titulo+'</span>'));
+    var b=h('div','body');
+    var img=document.createElement('img'); img.src='assets/onboarding/'+arq;
+    img.alt=titulo; img.setAttribute('loading','lazy');
+    // reserva a proporção antes de baixar: a altura do card já nasce certa
+    if(opts.fh)img.style.aspectRatio=fw+' / '+opts.fh;
+    b.appendChild(img);
+
+    if(opts.live){
+      // altura do corpo travada na proporção do print: alternar não mexe no layout
+      var BW=opts.w||sz(fw), BH=Math.round(BW*(opts.fh||fw)/fw);
+      b.style.height=BH+'px'; b.style.overflow='hidden';
+      var eye=h('button','fxeye','◎'); eye.type='button';
+      eye.title='ver o documento ao vivo'; eye.setAttribute('aria-pressed','false');
+      var ifr=null, ao=false, d=null;
+      eye.addEventListener('pointerdown',function(ev){ev.stopPropagation();d={x:ev.clientX,y:ev.clientY};});
+      eye.addEventListener('click',function(ev){
+        // consome o pointerdown: se ficar guardado, contamina o próximo clique
+        var arrastou=d&&Math.hypot(ev.clientX-d.x,ev.clientY-d.y)>5; d=null;
+        if(arrastou)return;
+        ev.stopPropagation(); ao=!ao;
+        if(ao){
+          if(!ifr){ ifr=ifrEscalado(opts.live,titulo,BW,BH); b.appendChild(ifr); }
+          img.style.display='none'; ifr.style.display='';
+        }else{
+          img.style.display=''; if(ifr)ifr.style.display='none';
+        }
+        eye.classList.toggle('on',ao);
+        eye.textContent=ao?'◉':'◎';
+        eye.title=ao?'voltar pro print':'ver o documento ao vivo';
+        eye.setAttribute('aria-pressed',ao?'true':'false');
+      });
+      top.appendChild(eye);
+    }
+    if(url)top.appendChild(qlink(url));
+    e.appendChild(top); e.appendChild(b);
+    if(cap)e.appendChild(h('div','cap',cap));
+    // a janela já tem barra com o título — a aba do nó ficaria duplicada
+    var n=hideTab(A.makeNode(titulo,e,px(fx),py(fy)-CHROME,id)); N[id]=n;
+
+    // Card redimensionado cresce a partir do centro-x e da BASE que o Figma definiu.
+    // Ancorar pelo topo-esquerdo faria ele descer sobre os nós do fluxo abaixo.
+    if(opts.w&&opts.fh){
+      var cx=px(fx)+sz(fw)/2, base=py(fy)+sz(opts.fh);
+      requestAnimationFrame(function(){
+        n.style.left=Math.round(cx-e.offsetWidth/2)+'px';
+        n.style.top =Math.round(base-e.offsetHeight)+'px';
+        if(A.updateEdges)A.updateEdges();
+      });
+    }
+    return n;
+  }
+
+  // ===== cabeçalho =====
+  shot('ob-capa','Setup Agência 6D','capa-setup.png',3238.51,116.45,793.65);
+  txt('ob-kicker','fx-h2','Plano PRO e Vitalício<br>Módulo Setup Agência 6D',1831.08,699.49,3569.23)
+    .querySelector('.fx-h2').style.fontSize='19px';
+  var tt=txt('ob-titulo','fx-h1','Onboarding do Cliente',2754.41,1078.57,1685);
+  tt.querySelector('.fx-h1').style.cssText+='font-size:46px;text-align:center';
+
+  // ===== linha principal do onboarding =====
+  shape('ob-onboarding','Onboarding','term','Onboarding',                                       568.42,3049.11,452.76,183.96);
+  shape('ob-contrato','Faz um contrato','doc','Faz um contrato',                                1263.73,3049.11,420.42,183.96, GO.contrato);
+  shape('ob-briefing','Preencher Briefing','in','Preencher Briefing',                           1799.37,3007.04,452.76,268.85, GO.briefing);
+  shape('ob-pagamento','Solicitar Pagamento','act','Solicitar Pagamento',                       2479.00,3049.00,420.42,183.96, GO.pagamento);
+  shape('ob-nf','Nota Fiscal','doc','Nota Fiscal',                                              2478.51,3384.64,420.42,183.96, GO.nf);
+  shape('ob-clickup','Criar Tarefa no ClickUp','act','Criar Tarefa no Clickup<br>com todas as informações', 3060.64,3049.11,501.27,183.96, GO.clickup);
+  shape('ob-planilha','Incluir na Planilha Financeira','reg','Incluir na<br>Planilha Financeira',3060.64,3449.51,501.27,183.96, GO.planilha);
+  shape('ob-grupo','Criar grupo com a equipe e cliente','act','Criar grupo com<br>a equipe e cliente', 3675.10,3049.11,420.42,183.96, GO.grupo);
+  shape('ob-drive','Criar Drive do Cliente','act','Criar Drive do Cliente',                     4224.88,3049.11,420.42,183.96, GO.drive);
+  shape('ob-revisar','Revisar arquivos pendentes','act','Revisar arquivos pendentes',           4774.67,3049.11,420.42,183.96);
+  shape('ob-gate','Todas as informações coletadas e agrupadas?','dec','Todas as informações<br>coletadas e agrupadas?', 5421.47,2834.86,679.14,614.46);
+  shape('ob-dev','Desenvolvimento','term','Desenvolvimento',                                    6326.99,3049.11,630.63,183.96);
+  shape('ob-gdrive','Google Drive','db','<u>Google Drive</u>',                                  3305.21,3851.92,367.62,363.83, GO.drive);
+
+  txt('ob-nao1','fx-yn','Não',5356.79,2892.19);
+  txt('ob-sim1','fx-yn','Sim',6035.93,2892.19);
+  txt('ob-checklist-lbl','fx-lbl','Checklist Onboarding',4819.13,2891.82);
+
+  // ===== anotações e evidências do onboarding =====
+  // Lista conferida contra a descrição do módulo (o texto do Figma estava velho:
+  // tinha "Briefings Institucional", que não existe mais, e faltava o Vídeo de Obrigado).
+  txt('ob-briefings','fx-txt',
+    '👉🏻 Briefing Captura<br>👉🏻 Briefing Página de Vendas Completo<br>👉🏻 Formulário Site Completo<br>'+
+    '👉🏻 Briefing com Copy<br>👉🏻 Briefing Página Sessão Estratégica<br>👉🏻 Briefing Geral<br><br>'+
+    '👉🏻 <b>Parabéns, briefing enviado</b><br>👉🏻 <b>Vídeo Página de Obrigado</b>', 1831.71,1620.45,608);
+  N['ob-briefings'].style.top='470px';   // sobe pra abrir espaço pro navegador de abas
+
+  // ===== as telas do briefing — um navegador de abas no lugar dos 2 prints estáticos =====
+  var BRIEF=[
+    {ab:'Captura', em:'✍️', n:'Briefing Captura',                  c:'#f5b23f', u:'https://forms.clickup.com/9007068676/f/8cdtxg4-4633/XQXBKR08XN0T32ULJK'},
+    {ab:'Vendas',  em:'🧱', n:'Briefing Página de Vendas Completo', c:'#f26a43', u:'https://forms.clickup.com/9007068676/f/8cdtxg4-3153/NCLA70CTUCM70U0GVR'},
+    {ab:'Site',    em:'🌐', n:'Formulário Site Completo',           c:'#4e7df6', u:'https://form.jotform.com/241658769271065'},
+    {ab:'Copy',    em:'🚀', n:'Briefing com Copy',                  c:'#9e6cf2', u:'https://juniorlorenzi.com.br/briefing-com-copy/'},
+    {ab:'Sessão',  em:'🎯', n:'Briefing Página Sessão Estratégica', c:'#33c6d6', u:'https://juniorlorenzi.com.br/briefing-pagina-se/'},
+    {ab:'Geral',   em:'📋', n:'Briefing Geral',                     c:'#54c98a', u:'https://juniorlorenzi.com.br/formulario/'},
+    {ab:'Parabéns',em:'🎉', n:'Parabéns, briefing enviado',         c:'#8a97b0', u:'https://juniorlorenzi.com.br/parabens-briefing-enviado/', saida:1}
+  ];
+  (function(){
+    // 720×405 = 16:9. Quadrado não passa a ideia de "tela de navegador".
+    var W=720, CORPO=405;
+    var w=h('div','brow brow-min'); w.style.cssText+='width:'+W+'px';
+    var top=h('div','node-tab brtop'); top.setAttribute('data-drag','');
+    top.appendChild(h('span','lights','<i class="r"></i><i class="y"></i><i class="g"></i>'));
+    var abas=[];
+    BRIEF.forEach(function(b,i){
+      // rótulo curto na aba, nome inteiro no title — com 6 nomes longos a aba trunca
+      var t=h('span','brtab'+(i===0?' on':''),'<i class="fv"></i><span class="tn">'+b.em+' '+b.ab+'</span>');
+      t.querySelector('.fv').style.background=b.c;
+      t.title=b.n; if(b.saida)t.style.opacity='.75';
+      top.appendChild(t); abas.push(t);
+    });
+    w.appendChild(top);
+    var bar=h('div','brbar');
+    bar.appendChild(h('div','brnav','<b>‹</b><b>›</b>'));
+    var url=document.createElement('a'); url.className='brurl'; url.target='_blank'; url.rel='noopener';
+    url.addEventListener('pointerdown',function(e){e.stopPropagation();});
+    bar.appendChild(url); w.appendChild(bar);
+    var corpo=h('div','brbody');
+    corpo.style.cssText+='overflow:hidden;position:relative;flex:none;height:'+CORPO+'px';
+    // renderiza em viewport de desktop e reduz — senão o site serve o layout mobile
+    var ifr=ifrEscalado('about:blank','briefing',W,CORPO,DESKTOP);
+    corpo.appendChild(ifr); w.appendChild(corpo);
+    var cur=0;
+    function abrir(i){
+      cur=(i+BRIEF.length)%BRIEF.length;
+      abas.forEach(function(t,k){t.classList.toggle('on',k===cur);});
+      var b=BRIEF[cur];
+      if(ifr.src!==b.u)ifr.src=b.u;                       // um iframe só, troca o src
+      url.href=b.u; url.title=b.n;
+      url.innerHTML='<span class="lock">🔒</span> '+b.u.replace(/^https?:\/\//,'').split(/[\/?#]/)[0];
+    }
+    abas.forEach(function(t,i){t.addEventListener('click',function(e){e.stopPropagation();abrir(i);});});
+    bar.querySelector('.brnav').children[0].addEventListener('click',function(e){e.stopPropagation();abrir(cur-1);});
+    bar.querySelector('.brnav').children[1].addEventListener('click',function(e){e.stopPropagation();abrir(cur+1);});
+    abrir(0);
+    var n=hideTab(A.makeNode('Telas do briefing',w,12648,0,'ob-nav-briefing'));
+    N['ob-nav-briefing']=n;
+    // base em 1379 = onde terminava o print de briefing que ele substitui.
+    // A altura do card depende do chrome (abas + barra), então mede antes de posicionar.
+    requestAnimationFrame(function(){
+      n.style.top=(1379-n.querySelector('.node-content').offsetHeight)+'px';
+      if(A.updateEdges)A.updateEdges();
+    });
+  })();
+  // ◎ alterna print ⇄ documento ao vivo · ↗ abre no Drive
+  // 360px: teto sem encostar no card do briefing (12648). A âncora base/centro
+  // faz o card crescer pra cima, longe da caixa "Faz um contrato" abaixo.
+  shot('ob-s-contrato','Contrato de serviços','contrato.png',   1286.15,2491.95,330.68,
+       'contrato de web designer — assinado antes de tudo',GO.contrato,
+       {live:GO.contratoIfr,w:360,fh:382.22});
+  shot('ob-s-checklist','Checklist Onboarding','checklist.png', 4507.86,2109.23,1010.63,'o gate: nada passa pro desenvolvimento com item aberto',GO.checklist);
+  shot('ob-s-presenca','Presença do cliente','presenca-contrato.png',2462.34,3653.47,452.76,'briefing + contrato antes da cobrança');
+  shot('ob-s-planilha','Planilha Financeira','planilha.png',    3602.33,3338.15,679.14,'entrada lançada no mês em que caiu',GO.planilha);
+  shot('ob-s-pastas','Pasta modelo do cliente','drive-pastas.png',3149.57,4243.68,679.14,'backup · documentos · fotos · identidade · páginas',GO.drive);
+
+  // ===== trilha da Copy =====
+  txt('ob-copyse','fx-cap','Desenvolvimento da Copy<br>(se fizer)',2234.92,4243.64,699);
+
+  // sem legenda: o espaço até a caixa amarela abaixo é curto no original
+  shot('ob-ia-estrutura','Estrutura-Sites.AI','ia-estrutura-sites.png',1553.55,4900.00,944.40,'',GO.estrutura);
+  shot('ob-ia-easycopy','Easy Copy','ia-easy-copy.png',           2525.91,4902.00,834.88,'',GO.easycopy);
+
+  shape('ob-devcopy','Desenvolvimento Copy','term','Desenvolvimento Copy',                      536.08,5355.20,901.48,183.96);
+  shape('ob-estrutura','Definir estrutura','copy','Definir qual a melhor estrutura do site<br>para atingir o resultado esperado.', 1708.41,5333.33,634.68,226.38, GO.estrutura);
+  shape('ob-easycopy','Botar o Easy Copy pra escrever','copy','Botar o Easy Copy pra escrever<br>baseado no briefing do cliente.', 2634.15,5333.33,634.68,226.38, GO.easycopy);
+  lane('ob-lane','APROVAÇÃO DO CLIENTE',3616.48,5066.52,1709.99,743.82);
+  shape('ob-aprovacao','Enviar para aprovação Cliente','copy','Enviar para aprovação Cliente',  3755.95,5337.37,582.12,226.38, GO.aprovacao);
+  shape('ob-aprovou','Cliente aprovou?','dec','Cliente aprovou?',                               4507.86,5272.69,582.12,355.74);
+  shape('ob-dev2','Desenvolvimento','term','Desenvolvimento',                                   5453.81,5357.58,630.63,183.96);
+  txt('ob-nao2','fx-yn','Não',4463.39,5240.35);
+  txt('ob-sim2','fx-yn','Sim',5021.26,5240.35);
+
+  // ===== prova social (o que a comunidade falou) =====
+  shot('ob-zap-1','Leonardo · Connect','zap-leonardo.png',2637.42,6034.00,627.33,'copy inteira da página em 10 minutos');
+  shot('ob-zap-2','Rafael Moreno','zap-rafael.png',       2637.42,6462.00,624.00,'EB + Easy Copy + Easy Image');
+  shot('ob-zap-3','Anderson Designer','zap-anderson.png', 2637.00,7231.00,624.00,'Easy Copy + processos do Setup');
+  shot('ob-zap-4','Comunidade','zap-geral.png',           2634.00,7681.00,627.33,'“adiantou demais aq”');
+
+  // ===== conexões (22 conectores do Figma, inferidos por geometria) =====
+  function E(a,b,dash,sides){return A.addEdge(N[a],N[b],!!dash,sides);}
+  E('ob-onboarding','ob-contrato');
+  E('ob-contrato','ob-briefing');
+  E('ob-briefing','ob-pagamento');
+  E('ob-pagamento','ob-clickup');
+  E('ob-pagamento','ob-nf');
+  E('ob-clickup','ob-planilha');
+  E('ob-clickup','ob-grupo');
+  E('ob-grupo','ob-drive');
+  E('ob-drive','ob-revisar');
+  E('ob-revisar','ob-gate');
+  E('ob-gate','ob-dev');                      // Sim
+  // Não → refaz a coleta. Sai por cima dos dois, como no Figma, pra não deitar sobre a linha principal.
+  E('ob-gate','ob-clickup',true,['t','t']).el.classList.add('efail2');
+  E('ob-briefing','ob-gdrive',true,['b','l']);
+  E('ob-drive','ob-gdrive',true,['b','r']);
+  E('ob-briefing','ob-ia-estrutura',true,['b','t']);
+  E('ob-briefing','ob-ia-easycopy',true,['b','t']);
+  E('ob-devcopy','ob-estrutura');
+  E('ob-estrutura','ob-easycopy');
+  E('ob-easycopy','ob-aprovacao');
+  E('ob-aprovacao','ob-aprovou');
+  E('ob-aprovou','ob-dev2');                  // Sim
+  E('ob-easycopy','ob-zap-1',true);
+
+  // rótulo "Pagamento Efetuado" sobre o trecho Solicitar Pagamento → Criar Tarefa
+  txt('ob-lbl-pago','fx-txt','<b>Pagamento Efetuado</b>',2689.21,2940,300);
+
+  window.__DOC='metodo-10k';
+})();
+</script>
+
+<script>
+(function(){
   // botão: exportar o arranjo atual do canvas como arquivo
   function dl(){var s=localStorage.getItem('motor-tijolos-canvas-v4');
     if(!s){alert('nenhum arranjo salvo ainda nesta página');return}
@@ -3453,14 +3944,29 @@ window.P2={
   // ===== VIEWS: dock de enquadramentos + duplo-clique num elemento + Esc volta =====
   var FUNIL1=['n-titulo','n-zona','nLegend','n-behance','n-sniper','n-indicacoes','n-trafego-gratuito','n-busca-seo','n-video-n3-alto-valor-e-baixo-alcance','n-pesca-em-balde','n-n3-trafego','n-instagram-posicionado','n-qualificacao','n-link-bio','n-trafego-pago-2'];
   var ESQUETES=['n-titulo-2','n-zona-2','n-balde-furado-torneira','n-os-dois-balcoes-meio-fim','n-furadeira-quadro-na-parede','n-o-80-20-da-tua-fase','n-os-12-meses','n-referencia-pinterest','n-servico-solucao','n-a-conta-do-10k','nTimeline'];
-  var VIEWS=[
-    {key:'1',label:'⌂ Tudo',go:function(A){A.frameAll(650);}},
-    {key:'2',label:'Atração',go:function(A){A.frameIds(FUNIL1,650);}},
-    {key:'3',label:'Conversa',go:function(A){A.framePred(function(id){return id.indexOf('p2-')===0;},650);}},
-    {key:'4',label:'Esquetes',go:function(A){A.frameIds(ESQUETES,650);}},
-    {key:'5',label:'Pilares',go:function(A){A.framePred(function(id){return id.indexOf('n-pilar')===0||id==='n-zona-3';},650);}},
-    {key:'6',label:'Motor',go:function(A){A.frameIds(['nWheel','nBase'],650);}}
-  ];
+  var ONB_MAIN=['ob-onboarding','ob-contrato','ob-briefing','ob-pagamento','ob-nf','ob-clickup',
+    'ob-planilha','ob-grupo','ob-drive','ob-revisar','ob-gate','ob-dev','ob-gdrive',
+    'ob-nao1','ob-sim1','ob-checklist-lbl','ob-lbl-pago'];
+  var ONB_COPY=['ob-devcopy','ob-estrutura','ob-easycopy','ob-lane','ob-aprovacao','ob-aprovou',
+    'ob-dev2','ob-nao2','ob-sim2','ob-copyse','ob-ia-estrutura','ob-ia-easycopy'];
+
+  var VIEWSET={
+    'metodo-10k':[
+      {key:'1',label:'⌂ Tudo',go:function(A){A.frameAll(650);}},
+      {key:'2',label:'Atração',go:function(A){A.frameIds(FUNIL1,650);}},
+      {key:'3',label:'Conversa',go:function(A){A.framePred(function(id){return id.indexOf('p2-')===0;},650);}},
+      {key:'4',label:'Esquetes',go:function(A){A.frameIds(ESQUETES,650);}},
+      {key:'5',label:'Pilares',go:function(A){A.framePred(function(id){return id.indexOf('n-pilar')===0||id==='n-zona-3';},650);}},
+      {key:'6',label:'Motor',go:function(A){A.frameIds(['nWheel','nBase'],650);}}
+    ],
+    'onboarding':[
+      {key:'1',label:'⌂ Tudo',go:function(A){A.frameAll(650);}},
+      {key:'2',label:'Onboarding',go:function(A){A.frameIds(ONB_MAIN,650);}},
+      {key:'3',label:'Copy',go:function(A){A.frameIds(ONB_COPY,650);}},
+      {key:'4',label:'Evidências',go:function(A){A.framePred(function(id){return /^ob-(s-|zap)/.test(id);},650);}}
+    ]
+  };
+  var VIEWS=VIEWSET['metodo-10k'];
   var stack=[];
   function typing(){var ae=document.activeElement;
     return ae&&(ae.isContentEditable||ae.tagName==='INPUT'||ae.tagName==='TEXTAREA');}
@@ -3484,25 +3990,31 @@ window.P2={
     '.cockpit-badge b{font:800 12px/1 inherit;font-family:inherit;color:#fff;letter-spacing:.14em}'+
     '.cockpit-badge span{font:600 11px/1 inherit;font-family:inherit;color:rgba(235,240,250,.55);letter-spacing:.08em}';
   document.head.appendChild(st);
-  if(!/[?&]edit=1/.test(location.search)){
-    var badge=document.createElement('div');badge.className='cockpit-badge';
-    badge.innerHTML='<b>🏗 COCKPIT BUILDER</b><span>OBRA 10K · EASY BUILDER</span>';
-    document.addEventListener('DOMContentLoaded',function(){document.body.appendChild(badge);});
-  }
+  // a marca vive no topo da sidebar de documentos — sem badge flutuante duplicado
 
   window.addEventListener('load',function(){setTimeout(function(){
     var A=window.CanvasAPI;if(!A||!A.frameAll)return;
     var dock=document.createElement('div');dock.className='viewdock';
     var btns=[];
     function setOn(i){btns.forEach(function(b,j){b.classList.toggle('on',j===i);});}
-    VIEWS.forEach(function(v,i){
-      var b=document.createElement('button');b.type='button';
-      b.innerHTML='<kbd>'+v.key+'</kbd>'+v.label;
-      b.addEventListener('click',function(e){e.stopPropagation();jump(i);});
-      btns.push(b);dock.appendChild(b);});
-    var hint=document.createElement('span');hint.className='vd-hint';hint.textContent='2× clique: zoom no item · Esc: volta';
-    dock.appendChild(hint);
+    function render(){
+      dock.innerHTML='';btns=[];
+      VIEWS.forEach(function(v,i){
+        var b=document.createElement('button');b.type='button';
+        b.innerHTML='<kbd>'+v.key+'</kbd>'+v.label;
+        b.addEventListener('click',function(e){e.stopPropagation();jump(i);});
+        btns.push(b);dock.appendChild(b);});
+      var hint=document.createElement('span');hint.className='vd-hint';hint.textContent='2× clique: zoom no item · Esc: volta';
+      dock.appendChild(hint);
+    }
+    render();
     document.body.appendChild(dock);
+    // a sidebar troca o documento → o dock troca o conjunto de views
+    window.CockpitDock={
+      setDoc:function(d){VIEWS=VIEWSET[d]||VIEWSET['metodo-10k'];stack=[];render();},
+      home:function(i){if(!VIEWS[i])i=0;VIEWS[i].go(A);setOn(i);}
+    };
+    document.dispatchEvent(new CustomEvent('cockpit:dockready'));
 
     function jump(i){stack.push(A.getView());if(stack.length>30)stack.shift();VIEWS[i].go(A);setOn(i);}
     function back(){var v=stack.pop();if(v){A.setView(v,550);}else{A.frameAll(650);}setOn(-1);}
@@ -3523,6 +4035,102 @@ window.P2={
       stack.push(A.getView());if(stack.length>30)stack.shift();
       A.frameNode(n,550);setOn(-1);});
   },350);});
+})();
+</script>
+
+
+<script>
+(function(){
+  "use strict";
+  // ===== SIDEBAR DE DOCUMENTOS — manifesto estático, sem banco =====
+  // Pra adicionar um doc: crie os nós com window.__DOC='<id>' e some 1 linha aqui.
+  var DOCS=[
+    {grupo:'Método 10k', itens:[
+      {id:'metodo-10k', nome:'O Método 10k', ico:'🏗', home:0}   // home = índice da view que abre
+    ]},
+    {grupo:'Setup Agência 6D', itens:[
+      {id:'onboarding', nome:'Onboarding', ico:'◇', home:1}
+    ]}
+  ];
+  var HOME={}; DOCS.forEach(function(g){g.itens.forEach(function(i){HOME[i.id]=i.home||0;});});
+
+  var KOPEN='cockpit-sb-open', KDOC='cockpit-sb-doc', KGRP='cockpit-sb-grupos';
+  function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);}catch(e){}return null;}
+
+  var sb=document.createElement('aside'); sb.className='sb';
+  sb.innerHTML='<div class="sb-brand"><b>🏗 COCKPIT BUILDER</b><span>OBRA 10K</span></div>'+
+               '<nav class="sb-list"></nav>'+
+               '<div class="sb-foot">teclas 1-4 enquadram · Esc volta<br>⇧+roda anda de lado · ⌘+roda dá zoom<br>2× clique dá zoom no item</div>';
+  var tog=document.createElement('button'); tog.className='sb-tog'; tog.type='button';
+  tog.setAttribute('aria-label','Documentos'); tog.textContent='☰';
+
+  var list=sb.querySelector('.sb-list'), btns={};
+  var fechados=(ls(KGRP)||'').split(',');
+
+  DOCS.forEach(function(g){
+    var wrap=document.createElement('div'); wrap.className='sb-g';
+    if(fechados.indexOf(g.grupo)>-1)wrap.classList.add('closed');
+    var gh=document.createElement('button'); gh.className='sb-gh'; gh.type='button';
+    gh.innerHTML='<span class="car">▼</span>'+g.grupo;
+    gh.addEventListener('click',function(){
+      wrap.classList.toggle('closed');
+      var f=[];document.querySelectorAll('.sb-g.closed .sb-gh').forEach(function(x){f.push(x.textContent.trim());});
+      ls(KGRP,f.join(','));
+    });
+    var items=document.createElement('div'); items.className='sb-items';
+    g.itens.forEach(function(it){
+      var b=document.createElement('button'); b.className='sb-i'; b.type='button';
+      b.innerHTML='<span class="ic">'+it.ico+'</span>'+it.nome+'<span class="cnt"></span>';
+      b.addEventListener('click',function(){abrir(it.id);});
+      items.appendChild(b); btns[it.id]=b;
+    });
+    wrap.appendChild(gh); wrap.appendChild(items); list.appendChild(wrap);
+  });
+
+  function setOpen(on){
+    sb.classList.toggle('open',on);
+    document.documentElement.style.setProperty('--sbw',on?'264px':'0px');
+    tog.textContent=on?'✕':'☰';
+    ls(KOPEN,on?'1':'0');
+  }
+  tog.addEventListener('click',function(){setOpen(!sb.classList.contains('open'));});
+
+  var atual=null;
+  function abrir(id,semHash){
+    var A=window.CanvasAPI; if(!A||!A.showDoc)return;
+    atual=id;
+    Object.keys(btns).forEach(function(k){btns[k].classList.toggle('on',k===id);});
+    A.showDoc(id,0);
+    if(window.CockpitDock){window.CockpitDock.setDoc(id);window.CockpitDock.home(HOME[id]);}
+    else A.showDoc(id);
+    ls(KDOC,id);
+    if(!semHash&&location.hash.slice(1)!==id){
+      try{history.replaceState(null,'','#'+id);}catch(e){location.hash=id;}
+    }
+    if(window.matchMedia('(max-width:720px)').matches)setOpen(false);
+  }
+
+  function contar(){
+    Object.keys(btns).forEach(function(k){
+      var n=document.querySelectorAll('#world > .node[data-doc="'+k+'"]').length;
+      btns[k].querySelector('.cnt').textContent=n?n:'';
+    });
+  }
+
+  document.addEventListener('cockpit:dockready',function(){
+    document.body.appendChild(sb); document.body.appendChild(tog);
+    contar();
+    setOpen(ls(KOPEN)!=='0');
+    var alvo=location.hash.slice(1);
+    if(!btns[alvo])alvo=ls(KDOC);
+    if(!btns[alvo])alvo='metodo-10k';
+    abrir(alvo,true);
+  });
+
+  window.addEventListener('hashchange',function(){
+    var id=location.hash.slice(1);
+    if(btns[id]&&id!==atual)abrir(id,true);
+  });
 })();
 </script>
 
@@ -3566,5 +4174,68 @@ window.P2={
       if(!(t&&t.closest&&t.closest('input,textarea,[contenteditable=\"true\"]')))e.stopImmediatePropagation();
     }
   },true);
+})();
+</script>
+
+<script>
+(function(){
+  "use strict";
+  // ===== ZOOM É DO CANVAS, NUNCA DA PÁGINA =====
+  // O #viewport já bloqueia a roda, mas não alcança dois lugares:
+  //   1. fora dele (sidebar, dock, barra)
+  //   2. sobre um iframe — o evento vai pro documento do iframe, não pro nosso
+  // (1) resolve aqui; (2) só com o escudo mais abaixo.
+  window.addEventListener('wheel',function(e){
+    if(e.ctrlKey||e.metaKey)e.preventDefault();
+  },{passive:false,capture:true});
+
+  // Ctrl +/− também dão zoom de página. Ctrl+0 fica livre de propósito:
+  // é a saída se o navegador já estiver com zoom quando a página abrir.
+  window.addEventListener('keydown',function(e){
+    if((e.ctrlKey||e.metaKey)&&(e.key==='+'||e.key==='-'||e.key==='='||e.key==='_'))e.preventDefault();
+  },{capture:true});
+
+  // ===== ESCUDO DO IFRAME =====
+  // Iframe nasce inerte: roda e arrasto pertencem ao board. Um clique o desperta;
+  // clicar fora o adormece. É como Figma/Miro tratam conteúdo embutido.
+  var vivo=null;
+  function adormecer(){
+    if(!vivo)return;
+    vivo.g.style.display='';
+    vivo.cont.classList.remove('ifr-vivo');
+    vivo=null;
+  }
+  function escudar(ifr){
+    var cont=ifr.parentNode;
+    if(!cont||cont.querySelector(':scope > .ifr-guard'))return;
+    if(getComputedStyle(cont).position==='static')cont.style.position='relative';
+    var g=document.createElement('div'); g.className='ifr-guard';
+    g.title='clique para interagir com o conteúdo';
+    g.addEventListener('pointerdown',function(e){e.stopPropagation();});
+    g.addEventListener('click',function(e){
+      e.stopPropagation(); adormecer();
+      g.style.display='none'; cont.classList.add('ifr-vivo');
+      vivo={g:g,cont:cont};
+    });
+    cont.appendChild(g);
+  }
+  function varrer(){document.querySelectorAll('#world iframe').forEach(escudar);}
+
+  // clique em qualquer outro lugar do board adormece o iframe ativo
+  document.addEventListener('pointerdown',function(e){
+    if(vivo&&!vivo.cont.contains(e.target))adormecer();
+  },true);
+  // e a tecla Esc também, antes de chegar no dock de views
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'&&vivo){e.stopPropagation();adormecer();}
+  },true);
+
+  window.addEventListener('load',function(){
+    varrer();
+    // o iframe do contrato só nasce quando o olho é clicado — observa e escuda
+    var mo=new MutationObserver(varrer);
+    var w=document.getElementById('world');
+    if(w)mo.observe(w,{childList:true,subtree:true});
+  });
 })();
 </script>

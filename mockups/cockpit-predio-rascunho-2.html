@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cockpit Builder — Pilar 01 · A Obra (conceito)</title>
+<style>
+  :root{
+    --ground:#070b12; --ground-2:#0c1018; --slab:#1b2436;
+    --ink:#eef2fb; --ink-dim:#9aa7be; --ink-faint:#5d6a83;
+    --hair:rgba(255,255,255,.09);
+    --done:#2ec4a6; --now:#2b8cff; --holo:#38a0ff;
+    --tool:#54c98a; --ia:#9e6cf2;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono","Cascadia Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:radial-gradient(1100px 720px at 52% 40%, rgba(43,140,255,.07), transparent 70%), var(--ground);
+    color:var(--ink); font-family:var(--sans); overflow:hidden; height:100%;
+  }
+
+  .app{
+    height:100%; display:grid; gap:14px; padding:26px 30px;
+    grid-template-columns:288px minmax(0,1fr) 336px;
+  }
+
+  /* ---------------- esquerda: só o essencial ---------------- */
+  .side{min-width:0; align-self:start}
+  .kicker{font:700 13px/1 var(--mono); letter-spacing:.2em; color:var(--now)}
+  h1{margin:12px 0 13px; font:800 25px/1.08 var(--sans); letter-spacing:-.015em; text-transform:uppercase}
+  .tese{margin:0; font:400 13.5px/1.55 var(--sans); color:var(--ink-dim); max-width:25ch}
+
+  .prog{margin-top:28px}
+  .prog-k{font:700 10.5px/1 var(--mono); letter-spacing:.16em; color:var(--ink-dim)}
+  .prog-k b{color:var(--done)}
+  .pips{display:flex; gap:5px; margin-top:11px}
+  .pips i{height:7px; flex:1; border-radius:99px; background:var(--slab); transition:background .35s}
+  .pips i.d{background:var(--done)}
+  .pips i.n{background:var(--now); box-shadow:0 0 10px rgba(43,140,255,.7)}
+
+  .disc{margin-top:26px; font:500 9.5px/1.6 var(--mono); color:#38425a; letter-spacing:.02em; max-width:30ch}
+
+  /* ---------------- cena ---------------- */
+  .scene{min-width:0; min-height:0; overflow:hidden}
+  #stage{width:100%; height:100%; display:block}
+  .flab{font:600 12px/1 var(--sans)}
+  .fnum{font:700 11px/1 var(--mono)}
+  .ftag{font:700 8px/1 var(--mono); letter-spacing:.16em}
+  .sign{font:800 15px/1 var(--sans); letter-spacing:.06em}
+  @keyframes flick{0%,100%{opacity:.92}47%{opacity:.76}54%{opacity:1}}
+  .holo-g{animation:flick 6s ease-in-out infinite}
+  @media (prefers-reduced-motion:reduce){ .holo-g{animation:none} }
+
+  /* ---------------- painel do nó ---------------- */
+  .panel{
+    align-self:center; border:1px solid rgba(43,140,255,.42); border-radius:16px;
+    background:linear-gradient(180deg, rgba(20,32,54,.94), rgba(11,17,28,.94));
+    box-shadow:0 0 0 1px rgba(43,140,255,.10), 0 26px 60px -26px rgba(0,0,0,.85),
+               inset 0 1px 0 rgba(255,255,255,.05);
+    padding:20px; backdrop-filter:blur(8px);
+  }
+  .p-k{font:700 13px/1 var(--mono); letter-spacing:.14em; color:var(--now); display:flex; align-items:center; gap:9px}
+  .p-t{margin:13px 0 0; font:400 14px/1.5 var(--sans)}
+  .p-hr{height:1px; background:var(--hair); margin:17px 0 6px}
+
+  .slot{display:flex; gap:13px; align-items:flex-start; text-decoration:none; color:inherit;
+        padding:11px 10px; border-radius:11px; border:1px solid transparent; transition:background .18s}
+  .slot[href]:hover{background:rgba(255,255,255,.045)}
+  .ico{width:40px; height:40px; border-radius:11px; flex:none; display:grid; place-items:center;
+       font-size:16px; border:1px solid}
+  .bd{flex:1; min-width:0}
+  .bd b{display:block; font:700 10px/1 var(--mono); letter-spacing:.14em}
+  .bd b i{font-style:normal; color:var(--ink-faint)}
+  .bd strong{display:block; margin-top:7px; font:500 13.5px/1.35 var(--sans); color:var(--ink)}
+  .bd em{display:block; margin-top:5px; font:400 12px/1.45 var(--sans); color:var(--ink-dim); font-style:normal}
+  .arw{align-self:center; flex:none; color:var(--ink-faint); font-size:15px}
+
+  .slot.empty{border-style:dashed; border-color:rgba(255,255,255,.15); margin:5px 0}
+  .slot.empty .ico{opacity:.45}
+  .slot.empty .bd strong{color:var(--ink-faint); font-style:italic}
+
+  .fin{display:flex; gap:13px; align-items:center; width:100%; margin-top:13px; cursor:pointer;
+       background:transparent; border:1px solid var(--hair); border-radius:12px; padding:13px 14px;
+       color:inherit; text-align:left; transition:border-color .2s, background .2s}
+  .fin:hover{border-color:rgba(46,196,166,.6); background:rgba(46,196,166,.07)}
+  .fin s{width:25px;height:25px;border-radius:50%;border:1.5px solid var(--ink-faint);flex:none;text-decoration:none}
+  .fin b{display:block; font:700 11px/1 var(--mono); letter-spacing:.14em}
+  .fin em{display:block; margin-top:5px; font:400 12px/1 var(--sans); color:var(--ink-dim); font-style:normal}
+
+  .tag{padding:3px 7px; border-radius:5px; font:700 8.5px/1 var(--mono); letter-spacing:.1em;
+       color:#08110e; background:var(--done); box-shadow:0 0 14px rgba(46,196,166,.55)}
+
+  @media (max-width:1240px){
+    body{overflow:auto}
+    .app{grid-template-columns:1fr; grid-template-rows:auto minmax(340px,58vh) auto; height:auto}
+    .panel{align-self:stretch}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="side">
+    <div class="kicker">PILAR 01</div>
+    <h1>Entrega de alto valor</h1>
+    <p class="tese">O que sai da tua mão. Padrão de quem cobra caro — em dias, não semanas.</p>
+
+    <div class="prog">
+      <div class="prog-k"><b id="pdone">1</b> / 9 ANDARES CONCLUÍDOS</div>
+      <div class="pips" id="pips"></div>
+    </div>
+
+    <p class="disc">Andar com glow = passo 8020: não pode pular.<br>
+    Marcação de exemplo — a curadoria é do método.</p>
+  </aside>
+
+  <main class="scene"><svg id="stage" viewBox="-300 -338 552 548" preserveAspectRatio="xMidYMid meet"
+    aria-label="Torre do Pilar 01 — um andar por passo"></svg></main>
+
+  <section class="panel" id="panel"></section>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ===== os 9 passos do Pilar 01 — dados reais do index.html do Cockpit ===== */
+  var PASSOS = [
+    {no:'01', nome:'Estratégia da página', e8020:true,
+     sub:'O que ela precisa ter pra converter — decidido antes de abrir a ferramenta.',
+     ia:{n:'IA 05 · Estrutura de Sites', d:'Define a estrutura da página antes de você abrir a ferramenta.'}},
+
+    {no:'02', nome:'Copy', e8020:true,
+     sub:'O texto que vende. Design bom não salva copy fraca.',
+     ia:{n:'IA 06 · Easy Copy', d:'Gera copy persuasiva com apoio da inteligência artificial.'}},
+
+    {no:'03', nome:'Design', e8020:true,
+     sub:'Direção com intenção: arquétipo, paleta, tipografia. Nunca do zero.',
+     aula:{n:'Design Easy', d:'A direção de arte que separa página barata de página cara.'},
+     ferram:{n:'Extensão EB · 1.000+ componentes', plat:'EB', d:'Monta a página em lote, sem folha branca.'},
+     ia:{n:'IA 09 · Diretor Criativo', d:'Escolhe arquétipo, paleta e tipografia com critério.'}},
+
+    {no:'04', nome:'Imagem e direção visual', e8020:false,
+     sub:'A imagem carrega metade da percepção de valor.',
+     ia:{n:'IA 10 · Easy Image', d:'Gera e dirige as imagens da página.'}},
+
+    {no:'05', nome:'Código e efeitos', e8020:true,
+     sub:'O acabamento que separa página de página cara.',
+     ia:{n:'IA 11 · Easy Coder', d:'Escreve o código dos efeitos sem sair da ferramenta.'}},
+
+    {no:'06', nome:'Responsividade', e8020:false,
+     sub:'Perfeita em toda tela — nos componentes do EB já vem pronta.',
+     ferram:{n:'Automática nos componentes', plat:'EB', d:'Já nasce responsivo, não precisa refazer.'}},
+
+    {no:'07', nome:'Otimização', e8020:false,
+     sub:'Site lento devolve o cliente pro concorrente.',
+     aula:{n:'Easy Optimize', d:'Deixa o site rápido sem quebrar o layout.'},
+     ferram:{n:'Backup otimizado', plat:'EB', d:'Sobe o site já comprimido e enxuto.'}},
+
+    {no:'08', nome:'Implementação técnica', e8020:false,
+     sub:'Do ambiente local pro ar, sem drama.',
+     ferram:{n:'Backup WordPress · 3 cliques', plat:'EB', d:'Publica o projeto em três cliques.'}},
+
+    {no:'09', nome:'Qualidade antes de enviar', e8020:true,
+     sub:'O gate: a página só sai quando passa. Protege preço e reputação.',
+     ia:{n:'IA 12 · Analisador de Páginas', d:'Critica a página antes do cliente ver.'}}
+  ];
+
+  var atual = 2, N = PASSOS.length;
+
+  /* ===== projeção isométrica ===== */
+  var WX=0.866, WY=0.5, FW=128, FH=36;
+  function iso(x,y,z){ return [(x-y)*WX, (x+y)*WY - z]; }
+  function pt(x,y,z){ var a=iso(x,y,z); return a[0].toFixed(2)+','+a[1].toFixed(2); }
+  function box(x0,y0,x1,y1,z0,z1){
+    return {
+      top:'M'+pt(x0,y0,z1)+' L'+pt(x1,y0,z1)+' L'+pt(x1,y1,z1)+' L'+pt(x0,y1,z1)+' Z',
+      rgt:'M'+pt(x1,y0,z1)+' L'+pt(x1,y1,z1)+' L'+pt(x1,y1,z0)+' L'+pt(x1,y0,z0)+' Z',
+      lft:'M'+pt(x1,y1,z1)+' L'+pt(x0,y1,z1)+' L'+pt(x0,y1,z0)+' L'+pt(x1,y1,z0)+' Z'
+    };
+  }
+  function quad(a,b,c,d){
+    return 'M'+pt(a[0],a[1],a[2])+' L'+pt(b[0],b[1],b[2])+' L'+pt(c[0],c[1],c[2])+' L'+pt(d[0],d[1],d[2])+' Z';
+  }
+
+  var NS='http://www.w3.org/2000/svg', svg=document.getElementById('stage');
+  function el(t,a){ var e=document.createElementNS(NS,t); for(var k in a) if(a[k]!=null) e.setAttribute(k,a[k]); return e; }
+  function add(p,t,a){ var e=el(t,a); p.appendChild(e); return e; }
+  var C={ done:'#2ec4a6', now:'#2b8cff', holo:'#38a0ff' };
+
+  function defs(){
+    var d = el('defs');
+    [['gNow',7],['gDone',4],['g8020',5],['gTxt',2.2]].forEach(function(o){
+      var f=add(d,'filter',{id:o[0],x:'-90%',y:'-90%',width:'280%',height:'280%'});
+      add(f,'feGaussianBlur',{stdDeviation:o[1],result:'b'});
+      var m=add(f,'feMerge'); add(m,'feMergeNode',{'in':'b'}); add(m,'feMergeNode',{'in':'SourceGraphic'});
+    });
+    var g=add(d,'radialGradient',{id:'floorGlow'});
+    add(g,'stop',{offset:'0','stop-color':C.now,'stop-opacity':'.20'});
+    add(g,'stop',{offset:'1','stop-color':C.now,'stop-opacity':'0'});
+    return d;
+  }
+
+  /* ===== um andar ===== */
+  function andar(root, i){
+    var P=PASSOS[i], nivel=i+1;
+    var estado = nivel<atual ? 'done' : (nivel===atual ? 'now' : 'holo');
+    var z0=i*FH, z1=z0+FH-4, b=box(0,0,FW,FW,z0,z1);
+    var cor = estado==='done' ? C.done : (estado==='now' ? C.now : C.holo);
+    var g = add(root,'g', estado==='holo' ? {'class':'holo-g'} : null);
+
+    if(estado==='holo'){
+      /* holograma — arestas + volumes soltos. 8020 vem mais forte de propósito */
+      var op = (P.e8020 ? .52 : .26);
+      add(g,'path',{d:b.lft, fill:'rgba(56,160,255,.03)', stroke:'rgba(56,160,255,'+op+')','stroke-width':1});
+      add(g,'path',{d:b.rgt, fill:'rgba(56,160,255,.045)',stroke:'rgba(56,160,255,'+op+')','stroke-width':1});
+      add(g,'path',{d:b.top, fill:'none', stroke:'rgba(56,160,255,'+(op+.30)+')',
+                    'stroke-width':P.e8020?1.8:1.1, filter:P.e8020?'url(#g8020)':null});
+      [[0,0],[FW,0],[FW,FW],[0,FW]].forEach(function(c){
+        var a=iso(c[0],c[1],z0), e=iso(c[0],c[1],z1);
+        add(g,'line',{x1:a[0],y1:a[1],x2:e[0],y2:e[1],stroke:'rgba(56,160,255,'+(op*.8)+')','stroke-width':.9});
+      });
+      [[30,34],[74,52],[44,88]].forEach(function(c,k){
+        var s=16, bb=box(c[0],c[1],c[0]+s,c[1]+s,z0+2,z0+2+11+k*3);
+        add(g,'path',{d:bb.lft,fill:'none',stroke:'rgba(56,160,255,'+(op*.7)+')','stroke-width':.8});
+        add(g,'path',{d:bb.rgt,fill:'none',stroke:'rgba(56,160,255,'+(op*.7)+')','stroke-width':.8});
+        add(g,'path',{d:bb.top,fill:'none',stroke:'rgba(56,160,255,'+(op*.9)+')','stroke-width':.8});
+      });
+
+    }else{
+      /* construído — volume sólido com janelas acesas */
+      var wrap = add(g,'g', estado==='now' ? {filter:'url(#gNow)'} : null);
+      add(wrap,'path',{d:b.lft, fill:'#0e1725', stroke:'rgba(255,255,255,.07)','stroke-width':.8});
+      add(wrap,'path',{d:b.rgt, fill:'#121c2c', stroke:'rgba(255,255,255,.07)','stroke-width':.8});
+
+      var wz0=z0+7, wz1=z1-8, k;
+      for(k=0;k<4;k++){
+        var y0=14+k*28, y1=y0+19;
+        add(wrap,'path',{d:quad([FW,y0,wz0],[FW,y1,wz0],[FW,y1,wz1],[FW,y0,wz1]),
+          fill: estado==='now'?'rgba(120,190,255,.42)':'rgba(46,196,166,.28)'});
+        var xb=FW-14-k*28, xa=xb-19;
+        add(wrap,'path',{d:quad([xa,FW,wz0],[xb,FW,wz0],[xb,FW,wz1],[xa,FW,wz1]),
+          fill: estado==='now'?'rgba(120,190,255,.28)':'rgba(46,196,166,.18)'});
+      }
+
+      add(wrap,'path',{d:b.top, fill: estado==='now'?'rgba(43,140,255,.16)':'rgba(46,196,166,.10)',
+        stroke:cor,'stroke-width': (estado==='now'?2.4:1.5) + (P.e8020?.9:0),
+        filter: P.e8020 ? 'url(#g8020)' : null});
+
+      if(estado==='now'){
+        var m=iso(FW, FW*0.62, z0+FH*0.5);
+        var t=add(g,'text',{x:m[0]-4,y:m[1]+5,'class':'sign',fill:'rgba(150,205,255,.92)',
+                            'text-anchor':'end',filter:'url(#gNow)'});
+        t.textContent = P.nome.toUpperCase();
+      }
+    }
+
+    /* ---- marcador à esquerda (clicável) ---- */
+    var lz=z0+(FH-4)/2, anc=iso(0,FW,lz), my=anc[1], dim=(estado==='holo');
+    add(root,'line',{x1:-134,y1:my,x2:anc[0]-4,y2:my,
+      stroke: dim ? 'rgba(93,106,131,.4)' : (estado==='done'?'rgba(46,196,166,.5)':C.now),
+      'stroke-width':1,'stroke-dasharray':dim?'3 3':'none'});
+
+    var cg = add(root,'g',{style:'cursor:pointer'});
+    cg.addEventListener('click', function(){ atual=nivel; render(); });
+    add(cg,'circle',{cx:-150,cy:my,r:12.5,
+      fill: estado==='now' ? C.now : (estado==='done' ? 'rgba(46,196,166,.18)' : 'rgba(93,106,131,.10)'),
+      stroke: estado==='now' ? '#8fc4ff' : (estado==='done' ? C.done : 'rgba(93,106,131,.5)'),
+      'stroke-width':1.5, filter: estado==='now' ? 'url(#gNow)' : null});
+    var num = add(cg,'text',{x:-150,y:my+3.6,'class':'fnum','text-anchor':'middle',
+      fill: estado==='now' ? '#fff' : (estado==='done' ? C.done : 'rgba(154,167,190,.62)')});
+    num.textContent = estado==='done' ? '✓' : P.no;
+
+    /* nome — 8020 sobe um pouco e ganha glow */
+    var nm = add(cg,'text',{x:-171, y: P.e8020 ? my-1 : my+3.6, 'class':'flab','text-anchor':'end',
+      fill: dim ? (P.e8020?'rgba(190,205,225,.8)':'rgba(154,167,190,.48)')
+                : (estado==='now'?'#eef2fb':'rgba(200,212,230,.9)'),
+      filter: P.e8020 ? 'url(#gTxt)' : null});
+    nm.textContent = P.nome;
+
+    if(P.e8020){
+      var tg = add(cg,'text',{x:-171,y:my+11,'class':'ftag','text-anchor':'end',
+        fill: dim ? 'rgba(46,196,166,.62)' : C.done, filter:'url(#gTxt)'});
+      tg.textContent = '8020';
+    }
+  }
+
+  /* ===== fundação ===== */
+  function fundacao(root){
+    var o=20, b=box(-o,-o,FW+o,FW+o,-24,0);
+    add(root,'ellipse',{cx:0,cy:FW+16,rx:205,ry:92,fill:'url(#floorGlow)'});
+    add(root,'path',{d:b.lft,fill:'#0a1018',stroke:'rgba(255,255,255,.07)','stroke-width':.9});
+    add(root,'path',{d:b.rgt,fill:'#0d131d',stroke:'rgba(255,255,255,.07)','stroke-width':.9});
+    add(root,'path',{d:b.top,fill:'#111a27',stroke:'rgba(46,196,166,.4)','stroke-width':1.3});
+
+    var s=iso(FW+o,(FW+o)*0.55,-9);
+    var t=add(root,'text',{x:s[0]-6,y:s[1]+4,'class':'fnum',fill:'rgba(235,240,250,.7)',
+      'text-anchor':'end','letter-spacing':'.22em','font-size':'9'});
+    t.textContent = 'OBRA 10K';
+
+    var anc=iso(-o,FW+o,-12), my=anc[1];
+    add(root,'line',{x1:-134,y1:my,x2:anc[0]-4,y2:my,stroke:'rgba(46,196,166,.5)','stroke-width':1});
+    add(root,'circle',{cx:-150,cy:my,r:12.5,fill:'rgba(46,196,166,.18)',stroke:C.done,'stroke-width':1.5});
+    var f=add(root,'text',{x:-150,y:my+3.6,'class':'fnum','text-anchor':'middle',fill:C.done}); f.textContent='✓';
+    var fn=add(root,'text',{x:-171,y:my+3.6,'class':'flab','text-anchor':'end',fill:'rgba(200,212,230,.9)'});
+    fn.textContent = 'Fundação · Onboarding';
+  }
+
+  /* ===== conector até o painel ===== */
+  function conector(root){
+    var z=(atual-1)*FH+(FH-4)/2, a=iso(FW,FW*0.32,z);
+    add(root,'path',{d:'M'+a[0]+','+a[1]+' L'+(a[0]+48)+','+(a[1]-24)+' L248,'+(a[1]-24),
+      fill:'none',stroke:'rgba(43,140,255,.5)','stroke-width':1.2});
+    add(root,'circle',{cx:a[0],cy:a[1],r:3.4,fill:C.now,filter:'url(#gNow)'});
+  }
+
+  /* ===== painel do nó ===== */
+  var SLOT = {
+    aula:  {k:'AULA',       ico:'▶', cor:'#2b8cff', bg:'rgba(43,140,255,.14)',  br:'rgba(43,140,255,.42)'},
+    ferram:{k:'FERRAMENTA', ico:'⚙', cor:'#54c98a', bg:'rgba(84,201,138,.14)',  br:'rgba(84,201,138,.42)'},
+    ia:    {k:'IA DE APOIO',ico:'✦', cor:'#9e6cf2', bg:'rgba(158,108,242,.14)', br:'rgba(158,108,242,.42)'}
+  };
+
+  function painel(){
+    var P=PASSOS[atual-1], h='';
+    h += '<div class="p-k"><span>'+P.no+' · '+P.nome.toUpperCase()+'</span>'+
+         (P.e8020?'<span class="tag">8020</span>':'')+'</div>';
+    h += '<p class="p-t">'+P.sub+'</p><div class="p-hr"></div>';
+
+    ['aula','ferram','ia'].forEach(function(key){
+      var S=SLOT[key], v=P[key];
+      if(v){
+        h += '<a class="slot" href="#" onclick="return false">'+
+             '<span class="ico" style="background:'+S.bg+';border-color:'+S.br+';color:'+S.cor+'">'+S.ico+'</span>'+
+             '<span class="bd"><b style="color:'+S.cor+'">'+S.k+
+               (v.plat?' <i>· '+v.plat+'</i>':'')+'</b>'+
+               '<strong>'+v.n+'</strong><em>'+v.d+'</em></span>'+
+             '<span class="arw">→</span></a>';
+      }else{
+        h += '<div class="slot empty">'+
+             '<span class="ico" style="background:transparent;border-color:rgba(255,255,255,.18);color:#5d6a83">'+
+               S.ico+'</span>'+
+             '<span class="bd"><b style="color:#5d6a83">'+S.k+'</b>'+
+               '<strong>— sem link ainda —</strong></span></div>';
+      }
+    });
+
+    h += '<button class="fin" type="button" id="fin"><s></s>'+
+         '<span style="flex:1"><b>FINALIZAR ANDAR</b><em>Marcar andar como concluído</em></span></button>';
+
+    document.getElementById('panel').innerHTML = h;
+    document.getElementById('fin').addEventListener('click', function(){
+      atual = atual < N ? atual+1 : 1; render();
+    });
+  }
+
+  function hud(){
+    document.getElementById('pdone').textContent = atual-1;
+    var p=document.getElementById('pips'); p.innerHTML='';
+    for(var i=1;i<=N;i++){
+      var s=document.createElement('i');
+      s.className = i<atual ? 'd' : (i===atual ? 'n' : '');
+      p.appendChild(s);
+    }
+  }
+
+  function render(){
+    svg.innerHTML='';
+    svg.appendChild(defs());
+    var root=el('g');
+    fundacao(root);
+    for(var i=0;i<N;i++) andar(root,i);   // pintor: de baixo pra cima
+    conector(root);
+    svg.appendChild(root);
+    painel(); hud();
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1122 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cockpit Builder — Os 4 Prédios · O Quarteirão</title>
+<style>
+  :root{
+    --ground:#05080e; --ink:#eef2fb; --dim:#9aa7be; --faint:#5d6a83;
+    --p1:#4e7df6; --p2:#54c98a; --p3:#33c6d6; --p4:#e8a13c;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono","Cascadia Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:
+      radial-gradient(900px 520px at 22% 62%, rgba(78,125,246,.07), transparent 70%),
+      radial-gradient(760px 460px at 78% 66%, rgba(232,161,60,.06), transparent 72%),
+      var(--ground);
+    color:var(--ink); font-family:var(--sans); overflow:hidden; height:100%;
+    display:grid; grid-template-rows:auto minmax(0,1fr) auto;
+  }
+
+  /* ---------- topo ---------- */
+  .top{display:flex; align-items:flex-end; gap:26px; padding:18px 30px 12px}
+  .brand{font:700 12px/1 var(--mono); letter-spacing:.22em; color:var(--dim)}
+  .brand b{color:var(--ink)}
+  .brand em{font-style:normal; color:var(--faint)}
+  .glob{margin-left:auto; text-align:right; min-width:230px}
+  .glob-k{font:700 11px/1 var(--mono); letter-spacing:.14em; color:var(--faint)}
+  .glob-k b{color:var(--ink); font-size:15px}
+  .track{height:6px; border-radius:99px; background:#131b27; margin-top:8px; overflow:hidden}
+  .track i{display:block; height:100%; border-radius:99px;
+    background:linear-gradient(90deg,var(--p1),var(--p2) 42%,var(--p3) 70%,var(--p4));
+    box-shadow:0 0 12px rgba(84,201,138,.4); transition:width .45s cubic-bezier(.4,0,.2,1)}
+
+  /* ---------- cena ---------- */
+  .wrap{position:relative; min-height:0; min-width:0}
+  #stage{width:100%; height:100%; display:block}
+  .hit{cursor:pointer}
+  .l-nm{font:600 11px/1 var(--sans)}
+  .l-no{font:700 10px/1 var(--mono)}
+  .l-t8{font:700 7.5px/1 var(--mono); letter-spacing:.16em}
+  .sign{font:700 11px/1 var(--mono); letter-spacing:.22em}
+  .sign-s{font:700 6.5px/1 var(--mono); letter-spacing:.2em}
+  .piso{font:800 26px/1 var(--mono); letter-spacing:.02em}
+  .pl-k{font:800 8px/1 var(--mono); letter-spacing:.16em}
+  .pl-n{font:700 12px/1 var(--mono); letter-spacing:.06em}
+  .pl-s{font:500 7px/1 var(--mono); letter-spacing:.1em}
+  @keyframes flick{0%,100%{opacity:.95}48%{opacity:.78}55%{opacity:1}}
+  .holo{animation:flick 7s ease-in-out infinite}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.12}}
+  .beacon{animation:blink 2.4s ease-in-out infinite}
+  @media (prefers-reduced-motion:reduce){.holo,.beacon{animation:none}}
+
+  /* ---------- painéis: checklist do pilar + menu dos nós ---------- */
+  .pilha{position:absolute; right:20px; top:16px; bottom:14px; z-index:6; display:flex; gap:12px;
+         align-items:stretch; pointer-events:none}
+  .pilha:empty{display:none}
+  .card{pointer-events:auto; display:flex; flex-direction:column; min-height:0;
+        border-radius:15px; border:1px solid rgba(255,255,255,.11);
+        background:#0a0f19; background-image:linear-gradient(180deg,#0d1420,#070b12);
+        box-shadow:0 30px 70px -24px #000, 0 0 0 1px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.05)}
+  .card header{padding:15px 16px 13px; border-bottom:1px solid rgba(255,255,255,.07)}
+  .hd1{display:flex; align-items:center; gap:10px}
+  .kk{flex:1; font:800 9px/1 var(--mono); letter-spacing:.2em; color:var(--c)}
+  .fx{width:22px;height:22px;border-radius:6px;cursor:pointer;flex:none;
+      background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.10); color:var(--dim);
+      font:700 10px/1 var(--mono)}
+  .fx:hover{background:rgba(255,255,255,.12); color:#fff}
+  .card h2{margin:9px 0 0; font:700 16px/1.2 var(--mono); letter-spacing:.04em}
+  .card h3{margin:8px 0 0; font:700 14px/1.25 var(--sans)}
+  .tese{margin:8px 0 0; font:400 11.5px/1.5 var(--sans); color:var(--dim)}
+  .sub{margin:9px 0 0; font:400 12px/1.5 var(--sans); color:var(--dim)}
+  .mt,.cnt{margin-top:11px; font:700 8.5px/1 var(--mono); letter-spacing:.14em; color:var(--faint);
+           display:flex; align-items:center; gap:7px; flex-wrap:wrap}
+  .mt b,.cnt b{color:var(--c); font-size:11px}
+  .mbar{flex:1 0 100%; height:4px; border-radius:99px; background:rgba(255,255,255,.07); overflow:hidden}
+  .mbar i{display:block; height:100%; background:var(--c); box-shadow:0 0 9px var(--c);
+          transition:width .45s cubic-bezier(.4,0,.2,1)}
+
+  .chk{width:296px}
+  .lst{list-style:none; margin:0; padding:7px; overflow:auto; min-height:0; flex:1}
+  .pilarnav{margin:0 12px 12px; padding-top:10px; border-top:1px solid rgba(255,255,255,.07)}
+  .lst::-webkit-scrollbar{width:8px} .lst::-webkit-scrollbar-thumb{background:#1d2534; border-radius:9px}
+  .it{display:flex; align-items:stretch; gap:7px; margin-bottom:3px}
+  .ck{width:26px; flex:none; border-radius:8px; cursor:pointer; font:700 12px/1 var(--mono);
+      background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.12); color:var(--c)}
+  .ck:hover{border-color:var(--c); background:rgba(255,255,255,.07)}
+  .tx{flex:1; min-width:0; display:flex; align-items:center; gap:8px; cursor:pointer; text-align:left;
+      padding:9px 10px; border-radius:9px; background:transparent; border:1px solid transparent;
+      color:var(--dim); font:500 12.5px/1.25 var(--sans)}
+  .tx:hover{background:rgba(255,255,255,.05); color:var(--ink)}
+  .tx .no{font:700 9px/1 var(--mono); color:#46505f; flex:none}
+  .tx .nm{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .tx .ar{font:700 8.5px/1 var(--mono); color:#3d4759; flex:none}
+  .t8{font:700 7.5px/1 var(--mono); letter-spacing:.14em; font-style:normal; color:var(--c); flex:none}
+  .tu{font:700 7.5px/1 var(--mono); letter-spacing:.14em; font-style:normal; color:#c98a2f; flex:none}
+  .it.done .ck{background:var(--c); border-color:var(--c); color:#04070d}
+  .it.done .tx{color:var(--ink)}
+  .it.skip .ck{color:#46505f; border-style:dashed}
+  .it.skip .tx .nm{text-decoration:line-through; color:#46505f}
+  .it.on .tx{background:rgba(255,255,255,.07); border-color:var(--c); color:#fff}
+
+  /* modal do andar */
+  .modal-wrap{position:absolute; inset:0; z-index:5}
+  .modal-wrap:empty{display:none}
+  .backdrop{position:absolute; inset:0; background:rgba(3,5,10,.62); animation:fade .2s}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .modal{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+         width:min(430px,calc(100% - 44px)); max-height:calc(100% - 34px); padding-bottom:14px; overflow:auto;
+         box-shadow:0 40px 90px -24px #000, 0 0 0 1px rgba(0,0,0,.7)}
+  .modal .nbody{padding-bottom:2px}
+  .ex{margin:16px 14px 2px; font:700 8px/1 var(--mono); letter-spacing:.18em; color:#46505f}
+  .nav{display:flex; gap:8px; margin:10px 14px 0}
+  .nav button{flex:1; padding:9px; border-radius:9px; cursor:pointer; background:rgba(255,255,255,.04);
+              border:1px solid rgba(255,255,255,.10); color:var(--dim); font:700 8.5px/1 var(--mono); letter-spacing:.1em}
+  .nav button:hover{background:rgba(255,255,255,.09); color:var(--ink)}
+  .chip{display:inline-block; margin-top:9px; padding:4px 8px; border-radius:6px;
+        font:700 8px/1 var(--mono); letter-spacing:.14em; background:rgba(255,255,255,.06)}
+  .chip.t8{color:var(--c)} .chip.tu{color:#c98a2f}
+  .node{display:flex; gap:11px; align-items:center; margin:9px 14px 0; padding:11px;
+        border-radius:11px; text-decoration:none; color:inherit; border:1px solid rgba(255,255,255,.08);
+        background:rgba(255,255,255,.02); transition:background .16s, border-color .16s}
+  a.node:hover{background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.18)}
+  .node .ic{width:34px;height:34px;border-radius:9px;flex:none;display:grid;place-items:center;
+            font-size:15px; border:1px solid}
+  .node .bd{flex:1; min-width:0}
+  .node .bd b{display:block; font:700 8px/1 var(--mono); letter-spacing:.16em}
+  .node .bd strong{display:block; margin-top:5px; font:500 12.5px/1.35 var(--sans)}
+  .node .go{color:var(--faint); font-size:13px; flex:none}
+  .node.vazio{opacity:.5} .node.vazio .ic{border-color:rgba(255,255,255,.18); color:var(--faint)}
+  .node.vazio .bd b{color:var(--faint)} .node.vazio .bd strong{font-style:italic; color:var(--faint)}
+  .fin{margin:14px 14px 0; padding:13px; border-radius:11px; cursor:pointer;
+       background:var(--c); border:none; color:#04070d; font:800 10px/1 var(--mono); letter-spacing:.16em}
+  .fin:hover{filter:brightness(1.12)}
+  .fin.un{background:transparent; border:1px solid rgba(255,255,255,.16); color:var(--dim)}
+
+  @media (max-width:1180px){ .chk{width:250px} .nos{width:262px} }
+
+  .tip{position:absolute; pointer-events:none; opacity:0; transform:translate(-50%,-140%);
+       padding:6px 9px; border-radius:8px; background:rgba(8,12,20,.96); border:1px solid rgba(255,255,255,.14);
+       font:700 9.5px/1.35 var(--mono); letter-spacing:.08em; white-space:nowrap; transition:opacity .14s}
+  .tip b{display:block; margin-bottom:3px; font-size:8px; letter-spacing:.18em; opacity:.7}
+
+  /* ---------- dock ---------- */
+  .dock{display:flex; gap:8px; align-items:center; padding:12px 30px 20px; flex-wrap:wrap}
+  .dk{display:flex; align-items:center; gap:8px; padding:8px 13px; border-radius:10px; cursor:pointer;
+      background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08);
+      font:700 9.5px/1 var(--mono); letter-spacing:.14em; color:var(--dim); transition:all .18s}
+  .dk:hover{background:rgba(255,255,255,.07); color:var(--ink)}
+  .dk.on{color:#fff; border-color:currentColor; background:rgba(255,255,255,.06)}
+  .dk s{width:6px;height:6px;border-radius:50%;background:currentColor;text-decoration:none;flex:none}
+  .dk kbd{font:700 8.5px/1 var(--mono); padding:3px 5px; border-radius:4px; background:rgba(255,255,255,.09);
+          border:1px solid rgba(255,255,255,.10); color:var(--faint)}
+  .hint{margin-left:auto; font:500 9px/1.6 var(--mono); color:#3b4459; letter-spacing:.04em; text-align:right}
+  .hint b{color:#5b6884; font-weight:700}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">🏗 <b>COCKPIT BUILDER</b> · O QUARTEIRÃO &nbsp;<em>4 pilares · 4 prédios · 36 andares</em></div>
+  <div class="glob">
+    <div class="glob-k"><b id="gN">0</b> / 36 ANDARES CONSTRUÍDOS</div>
+    <div class="track"><i id="gBar"></i></div>
+  </div>
+</header>
+
+<div class="wrap" id="wrap">
+  <svg id="stage" preserveAspectRatio="xMidYMid meet" aria-label="Quarteirão dos 4 pilares"></svg>
+  <aside class="pilha" id="pilha"></aside>
+  <div class="modal-wrap" id="modal"></div>
+  <div class="tip" id="tip"></div>
+</div>
+
+<nav class="dock" id="dock"></nav>
+
+<script>
+(function(){
+"use strict";
+
+/* =====================================================================
+   1. OS 36 PASSOS — fonte única (mesma do wireframe.html)
+   pilar · título · 8020 · na unha
+   ===================================================================== */
+var P36=[
+  /* PILAR 01 · ENTREGA */
+  [1,'Estratégia da página',1,0,'O que ela precisa ter pra converter — decidido antes de abrir ferramenta.',[['ia','IA 05 Estrutura de Sites','app']]],
+  [1,'Copy',1,0,'O texto que vende. Design bom não salva copy fraca.',[['ia','IA 06 Easy Copy','app']]],
+  [1,'Design',1,0,'Direção com intenção: arquétipo, paleta, tipografia. Nunca do zero.',[['tool','Extensão EB · 1.000+ componentes','rec'],['ia','IA 09 Diretor Criativo','app'],['aula','Design Easy','mem']]],
+  [1,'Imagem e direção visual',0,0,'',[['ia','IA 10 Easy Image','app']]],
+  [1,'Código e efeitos',1,0,'O acabamento que separa página de página cara.',[['ia','IA 11 Easy Coder','app']]],
+  [1,'Responsividade',0,0,'Perfeita em toda tela — nos componentes EB já vem pronta.',[['tool','Automática nos componentes','rec']]],
+  [1,'Otimização',0,0,'Site lento devolve o cliente pro concorrente.',[['tool','Backup otimizado','rec'],['aula','Easy Optimize','mem']]],
+  [1,'Implementação técnica',1,0,'',[['tool','Backup WordPress · 3 cliques','rec']]],
+  [1,'Qualidade antes de enviar',1,0,'O gate: a página só sai quando passa. Protege preço e reputação.',[['ia','IA 12 Analisador de Páginas','app']]],
+
+  /* PILAR 02 · VALOR PERCEBIDO */
+  [2,'Posicionamento',1,0,'1 frase: quem você atende e o que entrega. Vira bio, portfólio e conteúdo.',[['ia','IA 02 ICP e Posicionamento','app'],['aula','Anti Prospecção','mem']]],
+  [2,'Portfólio',1,0,'3 projetos no ar. Projeto conceito conta igual.',[['tpl','Template Portfólio (Figma)','rec']]],
+  [2,'Instagram',0,0,'Bio que diz o que você faz, grid de projeto, busca te achando.',[['tpl','Template Carrossel','rec'],['ia','IA 07 Copy Carrossel','app'],['aula','Reels N3 + SEO','mem']]],
+  [2,'Plano de negócio',0,0,'Saber onde está e o que atacar.',[['proc','O Plano [10k26/27]','x'],['ia','IA 01 Análise Estratégica','app']]],
+  [2,'Atendimento',1,0,'Investiga antes de dar preço. Conversa conduzida até o sim.',[['ia','IA 03 Atendimento e Negociação','app'],['ia','IA 04 Webson Vendedor','app'],['aula','Easy Sales','mem']]],
+  [2,'Proposta profissional',1,0,'Amador no zap derruba o ticket na hora.',[['tpl','Template de Proposta','rec']]],
+  [2,'Precificação pelo valor',1,0,'Preço com critério, não com medo.',[['tool','Planilha Financeira','rec']]],
+  [2,'Prova social',0,0,'Pede hoje, publica essa semana.',[['proc','Coleta de depoimento','mem']]],
+  [2,'Eficiência',0,0,'Responder e entregar rápido vira percepção — o Pilar 1 inteiro trabalha aqui.',[]],
+  [2,'Postura',0,1,'Segurança, palavra cumprida, presença. Não tem IA pra isso — tem referência e ambiente (Pilar 4).',[]],
+  [2,'Tráfego pago · nitro',0,0,'Só se quiser acelerar. R$10/dia já valida.',[['ia','IA 08 Copy Ads','app'],['aula','Tráfego N3','mem']]],
+
+  /* PILAR 03 · GESTÃO */
+  [3,'Onboarding do cliente',1,0,'Todo projeto entra pelo mesmo trilho. Começo padrão mata refação.',[['tpl','Formulário de Briefing','rec'],['tpl','Proposta','rec'],['tpl','Contrato','rec']]],
+  [3,'Entregar no prazo',1,0,'Prazo cumprido é reputação composta.',[['tool','Esteira ClickUp · Setup Builder','rec']]],
+  [3,'Conciliar as demandas',0,0,'Vários projetos sem deixar bola cair.',[['tool','ClickUp + pasta modelo','rec']]],
+  [3,'Controlar os processos',0,0,'O processo lembra por você.',[['tool','Checklists da esteira','rec']]],
+  [3,'Proteger escopo e contrato',0,0,'Mata o \"só mais um ajuste\".',[['tpl','Template de Contrato','rec']]],
+  [3,'Controle financeiro',1,0,'Indicadores e controle: saber se tem lucro, não achar.',[['tool','Planilha Financeira','rec']]],
+  [3,'Projetar crescimento',0,0,'Projetos × ticket: as duas alavancas do 10k, todo mês.',[['tool','Planilha Financeira','rec'],['ia','IA 01 Análise Estratégica','app']]],
+  [3,'Delegar',0,1,'Ninguém delega caos. A esteira documentada é o que torna teu processo delegável.',[]],
+
+  /* PILAR 04 · AMBIENTE */
+  [4,'Mudar a mente',1,0,'Não recomeçar sempre, decisão firme, projeto terminado. De fazedor de página pra dono de obra.',[['aula','Mentalidade Builder','mem']]],
+  [4,'Mentalidade de abundância',0,0,'Ninguém esconde o jogo: tem cliente e dinheiro pra todo mundo. Concorrente vira parceiro.',[['proc','Comunidade Builder','mem']]],
+  [4,'Estar no ambiente certo',0,0,'Lugar onde vender página de R$3.000 a R$8.000 é o normal — a visão de mercado muda por osmose.',[['proc','Comunidade WhatsApp','mem'],['proc','Discord · Nichos · Behance','mem']]],
+  [4,'Cuidar com quem anda',0,0,'Feedback construtivo sem julgamento, ajuda a qualquer hora. Ritmo emprestado nos dias sem vontade.',[['proc','Turma do bootcamp','mem']]],
+  [4,'Acessar mentes que construíram',0,0,'Atalho de década: 14 mentorias gravadas + 1 nova todo mês com especialistas.',[['proc','Mentorias mensais','mem'],['ref','Lucas Neves · vendas gringa','mem'],['ref','Luan Shimoda · tráfego','mem'],['ref','Lorenzi dentro da comunidade','mem']]],
+  [4,'Networking e oportunidades',0,0,'Indicação de trabalho, parceria fechada, proposta circulando dentro da própria comunidade.',[['proc','Indicações e parcerias','mem'],['proc','Expor projeto no Behance/Nichos','mem']]],
+  [4,'Ritmo e constância',0,0,'A obra não pode parar. Semana com vistoria.',[['proc','As 4 semanas do Plano','x']]],
+  [4,'Pedir ajuda quando trava',0,0,'Suporte instantâneo, 24h, na unha. Ninguém atravessa a obra calado.',[['proc','Comunidade','mem'],['tool','Suporte na ferramenta','app']]]
+];
+
+/* =====================================================================
+   2. OS 4 PRÉDIOS — tipologia por pilar
+   ===================================================================== */
+var PREDIOS=[
+  {id:1,nome:'ENTREGA',        titulo:'Entrega de alto valor',  cor:'#4e7df6', tipo:'torre',
+   w:94, d:94, fh:33,base:44, tag:'torre envidraçada · esteira', meter:90,
+   tese:'O que sai da tua mão. Padrão de quem cobra caro — em dias, não semanas.'},
+  {id:2,nome:'VALOR PERCEBIDO',titulo:'Valor percebido',        cor:'#54c98a', tipo:'vitrine',
+   w:158,d:92, fh:20,base:46, tag:'esquina · fachada-vitrine', meter:70,
+   tese:'Como o mercado te vê. Ser encontrado, ser desejado e cobrar o preço que você pede.'},
+  {id:3,nome:'GESTÃO',         titulo:'Gestão e eficiência',    cor:'#33c6d6', tipo:'bloco',
+   w:100,d:100,fh:25,base:34, tag:'bloco técnico · casa de máquinas', meter:60,
+   tese:'O negócio por dentro. Água e luz antes do cliente entrar — nada range.'},
+  {id:4,nome:'AMBIENTE',       titulo:'Ambiente e mentalidade', cor:'#e8a13c', tipo:'terraco',
+   w:180,d:156,fh:17,base:16, recuo:19, tag:'pavilhão em terraços', meter:25,
+   tese:'Onde você constrói e como você pensa. Sozinho e com a mente velha, a obra para — este pilar segura os outros três.'}
+];
+var SEED={1:3,2:2,3:2,4:1};
+
+/* nós: destino e aparência de cada chip (mesmo mapa do index.html) */
+var GO={app:'https://app.easybuilder.com.br/',
+        rec:'https://app.easybuilder.com.br/index-v2/paginas?tipo=links',
+        mem:'https://easybuilder.club/', x:''};
+var KIND={ia:  ['⚡','#33c6d6','IA DE APOIO'], tool:['⚙','#4e7df6','FERRAMENTA'],
+          tpl: ['▤','#f5b23f','TEMPLATE'],    aula:['▶','#f26a43','AULA'],
+          ref: ['◉','#9e6cf2','REFERÊNCIA'],  proc:['↻','#54c98a','PROCESSO']};
+
+PREDIOS.forEach(function(B){
+  B.passos=P36.filter(function(p){return p[0]===B.id;}).map(function(p,i){
+    return {no:(i+1<10?'0':'')+(i+1), nome:p[1], e8020:p[2], unha:p[3], sub:p[4], nos:p[5]};
+  });
+  B.N=B.passos.length;
+});
+
+/* =====================================================================
+   3. ISO — mesmo motor do cockpit-predio.html
+   ===================================================================== */
+var WX=.866, WY=.5;
+function iso(x,y,z){ return [(x-y)*WX,(x+y)*WY-z]; }
+function P(x,y,z){ var a=iso(x,y,z); return a[0].toFixed(2)+','+a[1].toFixed(2); }
+function box(x0,y0,x1,y1,z0,z1){ return {
+  top:'M'+P(x0,y0,z1)+' L'+P(x1,y0,z1)+' L'+P(x1,y1,z1)+' L'+P(x0,y1,z1)+' Z',
+  rgt:'M'+P(x1,y0,z1)+' L'+P(x1,y1,z1)+' L'+P(x1,y1,z0)+' L'+P(x1,y0,z0)+' Z',
+  lft:'M'+P(x1,y1,z1)+' L'+P(x0,y1,z1)+' L'+P(x0,y1,z0)+' L'+P(x1,y1,z0)+' Z'};}
+function fR(X,a0,a1,z0,z1){ return 'M'+P(X,a0,z0)+' L'+P(X,a1,z0)+' L'+P(X,a1,z1)+' L'+P(X,a0,z1)+' Z'; }
+function fL(Y,a0,a1,z0,z1){ return 'M'+P(a0,Y,z0)+' L'+P(a1,Y,z0)+' L'+P(a1,Y,z1)+' L'+P(a0,Y,z1)+' Z'; }
+
+var NS='http://www.w3.org/2000/svg', svg=document.getElementById('stage');
+function el(t,a){var e=document.createElementNS(NS,t);for(var k in a)if(a[k]!=null)e.setAttribute(k,a[k]);return e;}
+function add(p,t,a){var e=el(t,a);p.appendChild(e);return e;}
+function rng(s){return function(){s=(s*1103515245+12345)&0x7fffffff;return s/0x7fffffff;};}
+function rgba(h,a){var n=parseInt(h.slice(1),16);return 'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a+')';}
+function claro(h,w){var n=parseInt(h.slice(1),16),r=n>>16&255,g=n>>8&255,b=n&255;
+  r=Math.round(r+(255-r)*w);g=Math.round(g+(255-g)*w);b=Math.round(b+(255-b)*w);
+  return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);}
+
+/* =====================================================================
+   4. LAYOUT — os 4 na mesma linha de profundidade (X+Y = 0), lado a lado
+   ===================================================================== */
+var GAP=118, cur=0;                    // rua larga entre os prédios
+PREDIOS.forEach(function(B){
+  B.hw=(B.w+B.d)/2*WX;                 // meia-largura na tela
+  cur += B.hw;                         // centro deste prédio, em px de tela
+  B.sx = cur;
+  cur += B.hw + GAP;
+  var u=B.sx/(2*WX), cx=u, cy=-u;      // X+Y = 0  ⇒  todos na mesma "rua"
+  B.x0=cx-B.w/2; B.x1=cx+B.w/2; B.y0=cy-B.d/2; B.y1=cy+B.d/2;
+});
+var U0=PREDIOS[0].sx/(2*WX)-140, U1=PREDIOS[3].sx/(2*WX)+150;
+
+/* =====================================================================
+   5. ESTADO — marcou, construiu. Não marcado com marcado acima = pulado.
+   ===================================================================== */
+var feito=PREDIOS.map(function(B){ return B.passos.map(function(_,i){ return i<SEED[B.id]; }); });
+var foco=0;                 // 0 = quarteirão · 1..4 = prédio
+var so8020=false;
+var sel=null;               // {b,i} — andar destacado
+var aberto=false;           // modal dos nós aberto? (destaque e modal são estados diferentes)
+
+function topo(b){ var t=-1,i; for(i=0;i<PREDIOS[b].N;i++) if(feito[b][i]) t=i; return t; }
+function estado(b,i){
+  if(feito[b][i]) return 'done';
+  if(i<topo(b))   return 'skip';
+  return (sel&&sel.b===b&&sel.i===i) ? 'now' : 'wait';
+}
+function construidos(b){ var c=0,i; for(i=0;i<PREDIOS[b].N;i++) if(feito[b][i]) c++; return c; }
+function pronto(b){ return construidos(b)===PREDIOS[b].N; }   // obra entregue
+var _pr=false;                                                 // prédio em desenho está pronto?
+/* laje: neon enquanto é obra · filete discreto quando entrega */
+function laje(B,Q,st){
+  if(_pr) return {s:rgba(B.cor,.42), w:1, f:null};
+  return {s:rgba(B.cor,st==='now'?1:(Q.e8020?.85:.5)),
+          w:st==='now'?2.4:(Q.e8020?1.9:1.15),
+          f:st==='now'?'url(#gA)':(Q.e8020?'url(#gD)':null)};
+}
+
+/* =====================================================================
+   6. DEFS
+   ===================================================================== */
+function defs(){
+  var d=el('defs'),i;
+  [['gA',7],['gB',3.6],['gC',2.2],['gD',5]].forEach(function(o){
+    var f=add(d,'filter',{id:o[0],x:'-95%',y:'-95%',width:'290%',height:'290%'});
+    add(f,'feGaussianBlur',{stdDeviation:o[1],result:'b'});
+    var m=add(f,'feMerge'); add(m,'feMergeNode',{'in':'b'}); add(m,'feMergeNode',{'in':'SourceGraphic'});
+  });
+  function grad(id,a,ao,b,bo){
+    var g=add(d,'linearGradient',{id:id,x1:'0',y1:'0',x2:'0',y2:'1'});
+    add(g,'stop',{offset:'0','stop-color':a,'stop-opacity':ao});
+    add(g,'stop',{offset:'1','stop-color':b,'stop-opacity':bo});
+  }
+  PREDIOS.forEach(function(B){
+    grad('gv'+B.id, claro(B.cor,.62),'.44', B.cor,'.64');          // vidro aceso
+    grad('gm'+B.id, claro(B.cor,.30),'.20', '#060a12','.72');      // vidro espelhado
+    grad('gt'+B.id, claro(B.cor,.42),'.26', B.cor,'.34');          // brando
+  });
+  grad('tij','#8a5a34','.60','#4a2f1c','.72');                     // tijolo
+  grad('mad','#b98a4e','.50','#6d4a25','.60');                     // madeira
+  grad('cnc','#2a323e','.95','#151b24','.95');                     // concreto
+  var h=add(d,'radialGradient',{id:'halo'});
+  add(h,'stop',{offset:'0','stop-color':'#ffb457','stop-opacity':'.14'});
+  add(h,'stop',{offset:'1','stop-color':'#ffb457','stop-opacity':'0'});
+  for(i=0;i<PREDIOS.length;i++){
+    var hh=add(d,'radialGradient',{id:'hl'+PREDIOS[i].id});
+    add(hh,'stop',{offset:'0','stop-color':PREDIOS[i].cor,'stop-opacity':'.16'});
+    add(hh,'stop',{offset:'1','stop-color':PREDIOS[i].cor,'stop-opacity':'0'});
+  }
+  var cp=add(d,'clipPath',{id:'chao'});
+  add(cp,'rect',{x:U0*2*WX,y:-95,width:(U1-U0)*2*WX,height:220});
+  var lg=add(d,'linearGradient',{id:'lgh',x1:'0',y1:'0',x2:'1',y2:'0'});
+  [['0','#000'],['.08','#fff'],['.92','#fff'],['1','#000']].forEach(function(s){
+    add(lg,'stop',{offset:s[0],'stop-color':s[1]}); });
+  var mk=add(d,'mask',{id:'mchao'});
+  add(mk,'rect',{x:U0*2*WX,y:-120,width:(U1-U0)*2*WX,height:280,fill:'url(#lgh)'});
+  var lv=add(d,'linearGradient',{id:'lgv',x1:'0',y1:'0',x2:'0',y2:'1'});
+  add(lv,'stop',{offset:'0','stop-color':'#05080e'});
+  add(lv,'stop',{offset:'.55','stop-color':'#080c14'});
+  add(lv,'stop',{offset:'1','stop-color':'#0a0f18'});
+  return d;
+}
+
+/* =====================================================================
+   7. O CHÃO — quarteirão + rua
+   ===================================================================== */
+function chao(root0){
+  var root=add(root0,'g',{mask:'url(#mchao)'});
+  var xA=U0*2*WX, xB=U1*2*WX, t;
+  add(root,'rect',{x:xA,y:-95,width:xB-xA,height:220,fill:'url(#lgv)'});
+  var g=add(root,'g',{'clip-path':'url(#chao)'});
+  for(t=-1600;t<1600;t+=48){                       // grelha isométrica
+    add(g,'line',{x1:t,y1:-420,x2:t+840,y2:1,stroke:'rgba(255,255,255,.030)','stroke-width':.7});
+    add(g,'line',{x1:t,y1:-420,x2:t-840,y2:1,stroke:'rgba(255,255,255,.030)','stroke-width':.7});
+  }
+  add(root,'rect',{x:xA,y:86,width:xB-xA,height:34,fill:'#0b0f17'});          // asfalto
+  add(root,'line',{x1:xA,y1:86,x2:xB,y2:86,stroke:'rgba(255,255,255,.07)','stroke-width':.9});
+  add(root,'line',{x1:xA+18,y1:103,x2:xB-18,y2:103,stroke:'rgba(255,255,255,.15)',
+    'stroke-width':1.2,'stroke-dasharray':'16 16'});
+  add(root,'line',{x1:xA,y1:120,x2:xB,y2:120,stroke:'rgba(255,255,255,.05)','stroke-width':.8});
+}
+function plot(root,B,ativo){
+  /* o terreno carrega a identidade do pilar: aro na cor + número pintado no chão */
+  var p=26, b=box(B.x0-p,B.y0-p,B.x1+p,B.y1+p,-9,0);
+  add(root,'ellipse',{cx:B.sx,cy:24,rx:B.hw+46,ry:42,fill:'url(#hl'+B.id+')',opacity:ativo?1.5:1});
+  add(root,'path',{d:b.lft,fill:'#080c12'});
+  add(root,'path',{d:b.rgt,fill:'#0a0e16'});
+  add(root,'path',{d:b.top,fill:rgba(B.cor,ativo?.07:.035),
+    stroke:rgba(B.cor,ativo?.85:.32),'stroke-width':ativo?2:1.1,filter:ativo?'url(#gD)':null});
+  var c=iso(B.x1+p*.55,B.y1+p*.55,0);                          // número pintado no canto do terreno
+  var t=add(root,'text',{x:c[0],y:c[1]+9,'class':'piso','text-anchor':'middle',
+    fill:rgba(B.cor,ativo?.34:.18)});
+  t.textContent='0'+B.id;
+}
+/* placa de obra na calçada — o que amarra pilar ↔ prédio */
+function placa(root,B,b,ativo){
+  var base=iso(B.x0+B.w*.18,B.y1+82,0), W=134, H=44, x=base[0]-W/2, y=base[1]-58;
+  var c=construidos(b), pr=c/B.N, done=(c===B.N);
+  var g=add(root,'g',{'class':'hit'});
+  g.addEventListener('click',function(e){ e.stopPropagation(); selPredio(b); });
+  add(g,'line',{x1:base[0]-16,y1:base[1],x2:base[0]-16,y2:y+H,stroke:'#2b3444','stroke-width':2});
+  add(g,'line',{x1:base[0]+16,y1:base[1],x2:base[0]+16,y2:y+H,stroke:'#2b3444','stroke-width':2});
+  add(g,'ellipse',{cx:base[0],cy:base[1],rx:20,ry:7,fill:'rgba(0,0,0,.45)'});
+  add(g,'rect',{x:x,y:y,width:W,height:H,rx:5,fill:'rgba(9,13,21,.96)',
+    stroke:rgba(B.cor,ativo?.9:.45),'stroke-width':ativo?1.8:1.1,filter:ativo?'url(#gD)':null});
+  add(g,'rect',{x:x,y:y,width:W,height:13,rx:5,fill:rgba(B.cor,ativo?.95:.62)});
+  add(g,'rect',{x:x,y:y+8,width:W,height:5,fill:rgba(B.cor,ativo?.95:.62)});
+  var t1=add(g,'text',{x:x+7,y:y+9.6,'class':'pl-k',fill:'#060a11'});
+  t1.textContent='PILAR 0'+B.id;
+  var t1b=add(g,'text',{x:x+W-7,y:y+9.6,'class':'pl-k','text-anchor':'end',fill:'#060a11'});
+  t1b.textContent=done?'PRONTO':(c+'/'+B.N);
+  var t2=add(g,'text',{x:x+7,y:y+26,'class':'pl-n',fill:ativo?'#fff':'#c3cddf'});
+  t2.textContent=B.nome;
+  var t3=add(g,'text',{x:x+7,y:y+37,'class':'pl-s',fill:'#5d6a83'});
+  t3.textContent=B.tag;
+  add(g,'rect',{x:x+7,y:y+40,width:W-14,height:3,rx:2,fill:'rgba(255,255,255,.08)'});
+  add(g,'rect',{x:x+7,y:y+40,width:(W-14)*pr,height:3,rx:2,fill:B.cor,filter:'url(#gC)'});
+}
+function arvore(root,x,y,z,s,frio){
+  var t=iso(x,y,z), c=frio?'rgba(46,102,72,.8)':'rgba(74,112,60,.88)';
+  add(root,'line',{x1:t[0],y1:t[1],x2:t[0],y2:t[1]-9*s,stroke:'#2a2118','stroke-width':1.6*s});
+  [[0,-11,6.5],[-3.4,-15,5],[3.2,-16.5,4.4],[0,-20,3.4]].forEach(function(o){
+    add(root,'ellipse',{cx:t[0]+o[0]*s,cy:t[1]+o[1]*s,rx:o[2]*s,ry:o[2]*.78*s,
+      fill:c,stroke:'rgba(96,160,116,.32)','stroke-width':.5});
+  });
+}
+function poste(root,x,y,z){
+  var b=iso(x,y,z);
+  add(root,'line',{x1:b[0],y1:b[1],x2:b[0],y2:b[1]-22,stroke:'rgba(140,152,175,.45)','stroke-width':1.1});
+  add(root,'circle',{cx:b[0],cy:b[1]-24,r:2,fill:'#ffce8a',filter:'url(#gC)'});
+}
+function gente(root,x,y,z,cor,s){
+  var p=iso(x,y,z); s=s||1;
+  add(root,'ellipse',{cx:p[0],cy:p[1],rx:3.4*s,ry:1.5*s,fill:'rgba(0,0,0,.35)'});
+  add(root,'path',{d:'M'+p[0]+','+p[1]+' l0,-7.5',stroke:cor,'stroke-width':2.6*s,'stroke-linecap':'round'});
+  add(root,'circle',{cx:p[0],cy:p[1]-10.4*s,r:1.9*s,fill:cor});
+}
+
+/* =====================================================================
+   8. GEOMETRIA DE ANDAR
+   ===================================================================== */
+function recuoDe(B,slot){                        // 04 recua em patamares, não a cada andar
+  return (B.tipo==='terraco')? Math.floor(slot/2)*B.recuo : 0;
+}
+function foot(B,slot){
+  var r=recuoDe(B,slot);
+  return [B.x0,B.y0,B.x1-r,B.y1-r];
+}
+function zOf(B,slot){ var z0=B.base+slot*B.fh; return [z0,z0+B.fh-2.5]; }
+
+/* ---- andar não construído: holograma ---- */
+function fantasma(g,B,f,z,Q){
+  var x0=f[0],y0=f[1],x1=f[2],y1=f[3],z0=z[0],z1=z[1];
+  var b=box(x0,y0,x1,y1,z0,z1), op=Q.e8020?.40:.17, r=rng(31+Math.round(x0*7)+Math.round(z0));
+  add(g,'path',{d:b.lft,fill:rgba(B.cor,.025),stroke:rgba(B.cor,op),'stroke-width':.85});
+  add(g,'path',{d:b.rgt,fill:rgba(B.cor,.035),stroke:rgba(B.cor,op),'stroke-width':.85});
+  [[x0,y0],[x1,y0],[x1,y1],[x0,y1]].forEach(function(c){
+    var a=iso(c[0],c[1],z0), e=iso(c[0],c[1],z1);
+    add(g,'line',{x1:a[0],y1:a[1],x2:e[0],y2:e[1],stroke:rgba(B.cor,op*.8),'stroke-width':.75});
+  });
+  for(var k=0;k<9;k++){
+    var bx=x0+8+r()*(x1-x0-26), by=y0+8+r()*(y1-y0-26), s=6+r()*8, hh=4+r()*(B.fh*.5);
+    var bb=box(bx,by,bx+s,by+s,z0+1,z0+1+hh);
+    add(g,'path',{d:bb.lft,fill:'none',stroke:rgba(B.cor,op*.55),'stroke-width':.5});
+    add(g,'path',{d:bb.rgt,fill:'none',stroke:rgba(B.cor,op*.55),'stroke-width':.5});
+    add(g,'path',{d:bb.top,fill:'none',stroke:rgba(B.cor,op*.75),'stroke-width':.5});
+  }
+  add(g,'path',{d:b.top,fill:'none',stroke:rgba(B.cor,op+.30),
+    'stroke-width':Q.e8020?1.8:1, filter:Q.e8020?'url(#gD)':null});
+}
+
+/* ---- andar na unha: alvenaria aparente, sem vidro ---- */
+function unha(g,B,f,z,st){
+  var x0=f[0],y0=f[1],x1=f[2],y1=f[3],z0=z[0],z1=z[1];
+  var b=box(x0,y0,x1,y1,z0,z1), k;
+  if(st==='wait'||st==='now'){                       // ainda não construído: fantasma cor de tijolo
+    var op=st==='now'?.55:.30;
+    add(g,'path',{d:b.lft,fill:'rgba(120,80,44,.04)',stroke:'rgba(190,130,70,'+op+')','stroke-width':.85});
+    add(g,'path',{d:b.rgt,fill:'rgba(120,80,44,.05)',stroke:'rgba(190,130,70,'+op+')','stroke-width':.85});
+    for(k=z0+5;k<z1-3;k+=5.5){
+      add(g,'path',{d:fR(x1,y0+4,y1-4,k,k+.5),fill:'rgba(190,130,70,'+(op*.5)+')'});
+      add(g,'path',{d:fL(y1,x0+4,x1-4,k,k+.5),fill:'rgba(190,130,70,'+(op*.4)+')'});
+    }
+    add(g,'path',{d:b.top,fill:'none',stroke:'rgba(200,140,78,'+(op+.2)+')',
+      'stroke-width':1.2,'stroke-dasharray':'5 3'});
+    var sw=iso(x1,(y0+y1)/2,z0+B.fh*.55);
+    var tw=add(g,'text',{x:sw[0]+9,y:sw[1],'class':'sign-s',fill:'rgba(206,150,88,.8)'});
+    tw.textContent='NA UNHA';
+    return;
+  }
+  add(g,'path',{d:b.lft,fill:'#171310',stroke:'rgba(255,255,255,.05)','stroke-width':.7});
+  add(g,'path',{d:b.rgt,fill:'#1b1712',stroke:'rgba(255,255,255,.05)','stroke-width':.7});
+  add(g,'path',{d:fR(x1,y0+4,y1-4,z0+3,z1-4),fill:'url(#tij)',opacity:st==='wait'?.28:1});
+  add(g,'path',{d:fL(y1,x0+4,x1-4,z0+3,z1-4),fill:'url(#tij)',opacity:st==='wait'?.24:.86});
+  for(k=z0+6;k<z1-4;k+=4.6){                                   // fiadas de tijolo
+    add(g,'path',{d:fR(x1,y0+4,y1-4,k,k+.5),fill:'rgba(10,7,5,.5)'});
+    add(g,'path',{d:fL(y1,x0+4,x1-4,k,k+.5),fill:'rgba(10,7,5,.5)'});
+  }
+  add(g,'path',{d:b.top,fill:'rgba(120,80,44,.10)',stroke:'rgba(190,130,70,.55)',
+    'stroke-width':1.3,'stroke-dasharray':'5 3'});
+  var s=iso(x1,(y0+y1)/2,z0+B.fh*.55);
+  var tx=add(g,'text',{x:s[0]+9,y:s[1],'class':'sign-s',fill:'rgba(206,150,88,.95)',filter:'url(#gC)'});
+  tx.textContent='NA UNHA';
+}
+
+/* ---- 01 · TORRE ENVIDRAÇADA ---- */
+function torre(g,B,f,z,Q,st,gate){
+  var x0=f[0],y0=f[1],x1=f[2],y1=f[3],z0=z[0],z1=z[1];
+  var b=box(x0,y0,x1,y1,z0,z1), r=rng(97+Math.round(z0)), k;
+  add(g,'path',{d:b.lft,fill:'#0b1118',stroke:'rgba(255,255,255,.05)','stroke-width':.7});
+  add(g,'path',{d:b.rgt,fill:'#0d141d',stroke:'rgba(255,255,255,.05)','stroke-width':.7});
+  add(g,'path',{d:fR(x1,y0+5,y1-5,z0+4,z1-5),fill:'url(#gv1)'});
+  add(g,'path',{d:fL(y1,x0+5,x1-5,z0+4,z1-5),fill:'url(#gv1)',opacity:.8});
+  for(k=0;k<7;k++){var a=y0+7+k*13; add(g,'path',{d:fR(x1,a,a+6,z0+4,z0+4+4+r()*10),fill:'rgba(8,20,38,.6)'});}
+  for(k=0;k<7;k++){var q=x1-7-k*13; add(g,'path',{d:fL(y1,q-6,q,z0+4,z0+4+4+r()*10),fill:'rgba(8,20,38,.6)'});}
+  for(k=y0+6;k<y1-5;k+=8.5) add(g,'path',{d:fR(x1,k,k+1.1,z0+4,z1-5),fill:'rgba(6,9,14,.8)'});   // montantes
+  for(k=x0+6;k<x1-5;k+=8.5) add(g,'path',{d:fL(y1,k,k+1.1,z0+4,z1-5),fill:'rgba(6,9,14,.8)'});
+  var L=laje(B,Q,st);
+  if(gate){                                                     // laje mais grossa: o gate
+    var lj=box(x0-2,y0-2,x1+2,y1+2,z1-6,z1);
+    add(g,'path',{d:lj.lft,fill:'#101a2a'}); add(g,'path',{d:lj.rgt,fill:'#132034'});
+    add(g,'path',{d:lj.top,fill:rgba(B.cor,_pr?.10:.16),stroke:_pr?rgba(B.cor,.7):B.cor,
+      'stroke-width':_pr?1.5:2.6,filter:_pr?null:'url(#gA)'});
+  }else{
+    add(g,'path',{d:b.top,fill:rgba(B.cor,.10),stroke:L.s,'stroke-width':L.w,filter:L.f});
+  }
+}
+
+/* ---- 02 · VITRINE (espelhado, escuro por dentro) ---- */
+function vitrine(g,B,f,z,Q,st){
+  var x0=f[0],y0=f[1],x1=f[2],y1=f[3],z0=z[0],z1=z[1];
+  var b=box(x0,y0,x1,y1,z0,z1), k;
+  add(g,'path',{d:b.lft,fill:'#0a1210',stroke:'rgba(255,255,255,.05)','stroke-width':.7});
+  add(g,'path',{d:b.rgt,fill:'#0c1614',stroke:'rgba(255,255,255,.05)','stroke-width':.7});
+  add(g,'path',{d:fR(x1,y0+4,y1-4,z0+3,z1-4),fill:'url(#gm2)'});
+  add(g,'path',{d:fL(y1,x0+4,x1-4,z0+3,z1-4),fill:'url(#gm2)',opacity:.85});
+  for(k=0;k<5;k++){                                             // reflexos diagonais
+    var a=y0+8+k*16;
+    add(g,'path',{d:fR(x1,a,a+3.4,z0+3,z1-4),fill:rgba(claro(B.cor,.6),.10)});
+  }
+  for(k=0;k<6;k++){ var q=x0+10+k*22; add(g,'path',{d:fL(y1,q,q+3.4,z0+3,z1-4),fill:rgba(claro(B.cor,.6),.08)}); }
+  for(k=y0+6;k<y1-4;k+=11) add(g,'path',{d:fR(x1,k,k+.9,z0+3,z1-4),fill:'rgba(5,10,9,.75)'});
+  for(k=x0+6;k<x1-4;k+=11) add(g,'path',{d:fL(y1,k,k+.9,z0+3,z1-4),fill:'rgba(5,10,9,.75)'});
+  var lj=box(x0-2.5,y0-2.5,x1+2.5,y1+2.5,z1-4,z1);              // laje marcada: horizontalidade
+  add(g,'path',{d:lj.lft,fill:'#0e1a17'}); add(g,'path',{d:lj.rgt,fill:'#10201b'});
+  var L=laje(B,Q,st);
+  add(g,'path',{d:lj.top,fill:rgba(B.cor,.07),stroke:L.s,'stroke-width':L.w,filter:L.f});
+}
+
+/* ---- 03 · BLOCO TÉCNICO ---- */
+function bloco(g,B,f,z,Q,st){
+  var x0=f[0],y0=f[1],x1=f[2],y1=f[3],z0=z[0],z1=z[1];
+  var b=box(x0,y0,x1,y1,z0,z1), k;
+  add(g,'path',{d:b.lft,fill:'url(#cnc)',stroke:'rgba(255,255,255,.06)','stroke-width':.7});
+  add(g,'path',{d:b.rgt,fill:'#1d242e',stroke:'rgba(255,255,255,.06)','stroke-width':.7});
+  for(k=0;k<4;k++){                                             // janelas pequenas e altas
+    var a=y0+12+k*20;
+    add(g,'path',{d:fR(x1,a,a+11,z1-13,z1-6),fill:rgba(B.cor,.5),filter:'url(#gC)'});
+  }
+  for(k=0;k<4;k++){
+    var q=x0+12+k*20;
+    add(g,'path',{d:fL(y1,q,q+11,z1-13,z1-6),fill:rgba(B.cor,.36)});
+  }
+  for(k=z0+5;k<z1-16;k+=3.4){                                   // grelhas
+    add(g,'path',{d:fR(x1,y0+10,y1-10,k,k+1),fill:'rgba(0,0,0,.35)'});
+  }
+  add(g,'path',{d:fL(y1,x0+8,x0+30,z0+5,z1-16),fill:'rgba(0,0,0,.30)',
+    stroke:rgba(B.cor,.22),'stroke-width':.6});
+  var L=laje(B,Q,st);
+  add(g,'path',{d:b.top,fill:rgba(B.cor,.08),stroke:L.s,'stroke-width':L.w,filter:L.f});
+}
+
+/* ---- 04 · TERRAÇO (madeira + tijolo, aberto) ---- */
+function terraco(g,B,f,z,Q,st,slot){
+  var x0=f[0],y0=f[1],x1=f[2],y1=f[3],z0=z[0],z1=z[1];
+  var b=box(x0,y0,x1,y1,z0,z1), k;
+  add(g,'path',{d:b.lft,fill:'#1a1410',stroke:'rgba(255,255,255,.05)','stroke-width':.7});
+  add(g,'path',{d:b.rgt,fill:'#1e1712',stroke:'rgba(255,255,255,.05)','stroke-width':.7});
+  add(g,'path',{d:fR(x1,y0+4,y1-4,z0+2,z0+7),fill:'url(#tij)'});          // base de tijolo
+  add(g,'path',{d:fL(y1,x0+4,x1-4,z0+2,z0+7),fill:'url(#tij)',opacity:.85});
+  add(g,'path',{d:fR(x1,y0+6,y1-6,z0+7,z1-4),fill:'url(#gv4)'});          // vão aberto, luz quente
+  add(g,'path',{d:fL(y1,x0+6,x1-6,z0+7,z1-4),fill:'url(#gv4)',opacity:.8});
+  for(k=y0+8;k<y1-6;k+=15) add(g,'path',{d:fR(x1,k,k+2.2,z0+7,z1-4),fill:'url(#mad)'});   // pilares de madeira
+  for(k=x0+8;k<x1-6;k+=15) add(g,'path',{d:fL(y1,k,k+2.2,z0+7,z1-4),fill:'url(#mad)'});
+  var lj=box(x0-3,y0-3,x1+3,y1+3,z1-4,z1);                                // laje/terraço
+  add(g,'path',{d:lj.lft,fill:'#221a12'}); add(g,'path',{d:lj.rgt,fill:'#281f15'});
+  var L=laje(B,Q,st);
+  add(g,'path',{d:lj.top,fill:'rgba(58,40,22,.62)',stroke:L.s,'stroke-width':L.w,filter:L.f});
+  for(k=x0+5;k<x1;k+=8)                                                   // deck de madeira
+    add(g,'line',{x1:iso(k,y0,z1)[0],y1:iso(k,y0,z1)[1],x2:iso(k,y1,z1)[0],y2:iso(k,y1,z1)[1],
+      stroke:'rgba(146,102,56,.20)','stroke-width':.7});
+}
+
+/* =====================================================================
+   9. COBERTURAS — o detalhe único de cada prédio
+   ===================================================================== */
+function guindaste(root,B,zt){                    /* 01 — só ele tem */
+  var mx=B.x1+26, my=B.y0-8, h=zt+72, base=iso(mx,my,0), k;
+  add(root,'line',{x1:base[0],y1:base[1],x2:base[0],y2:base[1]-h,
+    stroke:'rgba(255,178,86,.55)','stroke-width':2});
+  add(root,'line',{x1:base[0]-4,y1:base[1],x2:base[0]-4,y2:base[1]-h,stroke:'rgba(255,178,86,.28)','stroke-width':1});
+  add(root,'line',{x1:base[0]+4,y1:base[1],x2:base[0]+4,y2:base[1]-h,stroke:'rgba(255,178,86,.28)','stroke-width':1});
+  for(k=0;k<Math.floor(h/13);k++)
+    add(root,'line',{x1:base[0]-4,y1:base[1]-k*13,x2:base[0]+4,y2:base[1]-(k+1)*13,
+      stroke:'rgba(255,178,86,.24)','stroke-width':.7});
+  var top=base[1]-h, jL=iso(B.x0-6,B.y1+6,0)[0]-base[0];
+  add(root,'line',{x1:base[0],y1:top,x2:base[0]+jL*.86,y2:top+10,stroke:'rgba(255,178,86,.55)','stroke-width':1.8});
+  add(root,'line',{x1:base[0],y1:top,x2:base[0]+34,y2:top-4,stroke:'rgba(255,178,86,.45)','stroke-width':1.6});
+  add(root,'rect',{x:base[0]+28,y:top-9,width:11,height:7,fill:'rgba(255,178,86,.35)'});
+  var hx=base[0]+jL*.55, hy=top+6;
+  add(root,'line',{x1:hx,y1:hy,x2:hx,y2:hy+40,stroke:'rgba(255,178,86,.4)','stroke-width':.8});
+  add(root,'rect',{x:hx-5,y:hy+40,width:10,height:6,fill:'rgba(255,178,86,.5)'});
+  add(root,'circle',{cx:base[0],cy:top-3,r:2.4,fill:'#ff6b5a','class':'beacon',filter:'url(#gC)'});
+}
+function cobTorre(root,B,zt,cheio){
+  /* cheio = todos os andares construídos: a laje fecha, o guindaste vai embora */
+  var col=rgba(B.cor,cheio?.85:.4), par=box(B.x0-3,B.y0-3,B.x1+3,B.y1+3,zt,zt+5);
+  if(cheio){
+    add(root,'path',{d:par.lft,fill:'#0d1420'}); add(root,'path',{d:par.rgt,fill:'#101827'});
+    add(root,'path',{d:par.top,fill:rgba(B.cor,.14),stroke:col,'stroke-width':1.6,filter:'url(#gD)'});
+  }else{
+    ['lft','rgt','top'].forEach(function(k,i){ add(root,'path',{d:par[k],fill:'none',stroke:col,'stroke-width':i===2?1.2:.9}); });
+  }
+  [[18,24,28,17],[56,52,22,11]].forEach(function(u){
+    var bb=box(B.x0+u[0],B.y0+u[1],B.x0+u[0]+u[2],B.y0+u[1]+u[2],zt+5,zt+5+u[3]);
+    ['lft','rgt','top'].forEach(function(k){
+      add(root,'path',{d:bb[k],fill:cheio?(k==='top'?rgba(B.cor,.12):'#121b2a'):'none',
+        stroke:cheio?rgba(B.cor,.55):col,'stroke-width':.8}); });
+  });
+  var m=iso(B.x0+30,B.y0+36,zt+22);
+  add(root,'line',{x1:m[0],y1:m[1],x2:m[0],y2:m[1]-34,stroke:cheio?rgba(B.cor,.8):col,'stroke-width':1});
+  if(cheio) bandeira(root,m[0],m[1]-34,B.cor);
+  add(root,'circle',{cx:m[0],cy:m[1]-36,r:2.2,fill:'#ff6b5a','class':'beacon',filter:'url(#gC)'});
+  if(!cheio) guindaste(root,B,zt);
+}
+function bandeira(root,x,y,cor){                  /* obra entregue */
+  add(root,'path',{d:'M'+x+','+(y+2)+' l17,5 l-17,5 Z',fill:rgba(cor,.85),filter:'url(#gD)'});
+}
+function cobVitrine(root,B,zt,frac){             /* 02 — letreiro que acende */
+  var op=.22+.78*frac, cx=(B.x0+B.x1)/2, cheio=(frac>=1);
+  var par=box(B.x0-3,B.y0-3,B.x1+3,B.y1+3,zt,zt+4);
+  if(cheio){                                     /* fecha a laje quando o prédio acaba */
+    add(root,'path',{d:par.lft,fill:'#0d1a16'}); add(root,'path',{d:par.rgt,fill:'#0f1f19'});
+    add(root,'path',{d:par.top,fill:rgba(B.cor,.13),stroke:rgba(B.cor,.85),'stroke-width':1.6,filter:'url(#gD)'});
+  }else{
+    ['lft','rgt','top'].forEach(function(k){ add(root,'path',{d:par[k],fill:'none',stroke:rgba(B.cor,.4),'stroke-width':.9}); });
+  }
+  var pn=box(B.x0+6,B.y1-16,B.x1-6,B.y1-10,zt+4,zt+30);
+  add(root,'path',{d:pn.lft,fill:cheio?'#0e2019':rgba(B.cor,.10*op+.04),stroke:rgba(B.cor,.35+.4*op),'stroke-width':1});
+  add(root,'path',{d:pn.rgt,fill:cheio?'#102520':rgba(B.cor,.06),stroke:rgba(B.cor,.3),'stroke-width':.8});
+  add(root,'path',{d:pn.top,fill:rgba(B.cor,.12),stroke:rgba(B.cor,.4),'stroke-width':.8});
+  var s=iso(cx,B.y1-13,zt+17);
+  var tx=add(root,'text',{x:s[0],y:s[1]+4,'class':'sign','text-anchor':'middle',
+    fill:rgba(claro(B.cor,.55),op),filter:'url(#gA)',opacity:op});
+  tx.textContent='VALOR';
+  var s2=iso(cx,B.y1-13,zt+8);
+  var t2=add(root,'text',{x:s2[0],y:s2[1]+4,'class':'sign-s','text-anchor':'middle',
+    fill:rgba(claro(B.cor,.5),op*.85)});
+  t2.textContent='PERCEBIDO';
+  add(root,'ellipse',{cx:s[0],cy:s[1],rx:76,ry:26,fill:rgba(B.cor,.05*op+.02)});
+}
+function lobbyVitrine(root,B){                   /* térreo: marquise + vitrine dupla */
+  var b=box(B.x0,B.y0,B.x1,B.y1,0,B.base), k;
+  add(root,'path',{d:b.lft,fill:'#0a1210',stroke:'rgba(255,255,255,.05)','stroke-width':.8});
+  add(root,'path',{d:b.rgt,fill:'#0c1614',stroke:'rgba(255,255,255,.05)','stroke-width':.8});
+  [[B.y0+10,B.y0+52],[B.y0+60,B.y1-10]].forEach(function(v){     // vitrine dupla (face direita)
+    add(root,'path',{d:fR(B.x1,v[0],v[1],6,B.base-14),fill:rgba(claro(B.cor,.5),.30),
+      stroke:rgba(B.cor,.6),'stroke-width':.9});
+  });
+  [[B.x0+10,B.x0+52],[B.x0+60,B.x1-10]].forEach(function(v){
+    add(root,'path',{d:fL(B.y1,v[0],v[1],6,B.base-14),fill:rgba(claro(B.cor,.5),.22),
+      stroke:rgba(B.cor,.45),'stroke-width':.9});
+  });
+  var mq=box(B.x0-9,B.y0-9,B.x1+9,B.y1+9,B.base-13,B.base-7);    // marquise
+  add(root,'path',{d:mq.lft,fill:'#101c18'}); add(root,'path',{d:mq.rgt,fill:'#13221c'});
+  add(root,'path',{d:mq.top,fill:'#17291f',stroke:rgba(B.cor,.35),'stroke-width':.8});
+  for(k=B.y0+8;k<B.y1-6;k+=14) add(root,'path',{d:fR(B.x1,k,k+1.2,6,B.base-14),fill:'rgba(4,9,8,.8)'});
+  add(root,'path',{d:b.top,fill:rgba(B.cor,.05),stroke:rgba(B.cor,.4),'stroke-width':1.1});
+}
+function dutos(root,B,slotOf,b){                 /* 03 — tubulação por fora */
+  var n=0,i;
+  for(i=0;i<slotOf.length;i++) if(slotOf[i]>=0) n++;
+  var zt=B.base+n*B.fh;
+  [[B.x1+4,B.y0+16],[B.x1+4,B.y1-16]].forEach(function(p,idx){
+    var a=iso(p[0],p[1],0), b2=iso(p[0],p[1],zt+8);
+    add(root,'line',{x1:a[0],y1:a[1],x2:b2[0],y2:b2[1],stroke:'#2b323c','stroke-width':3.4});
+    add(root,'line',{x1:a[0],y1:a[1],x2:b2[0],y2:b2[1],stroke:'#1a2029','stroke-width':1.6});
+    for(i=0;i<B.N;i++){                                          // só o andar construído acende o duto
+      if(slotOf[i]<0||!feito[b][i]) continue;
+      var z0=B.base+slotOf[i]*B.fh+4, z1=z0+B.fh-9;
+      var c=iso(p[0],p[1],z0), d=iso(p[0],p[1],z1);
+      add(root,'line',{x1:c[0],y1:c[1],x2:d[0],y2:d[1],stroke:rgba(B.cor,.75),'stroke-width':1.5,filter:'url(#gC)'});
+      add(root,'circle',{cx:c[0],cy:c[1],r:1.8,fill:rgba(B.cor,.9)});
+    }
+    if(idx===0){                                                 // medidor na fachada
+      var m=iso(p[0],p[1]-9,14);
+      add(root,'rect',{x:m[0]-6,y:m[1]-7,width:12,height:14,rx:2,fill:'#141a22',stroke:'#3c4653','stroke-width':.8});
+      add(root,'circle',{cx:m[0],cy:m[1]-1,r:3,fill:'none',stroke:rgba(B.cor,.8),'stroke-width':1});
+    }
+  });
+  for(var k=0;k<n;k++){                                          // escada metálica lateral
+    var z=B.base+k*B.fh, e0=iso(B.x0-6,B.y1-14,z), e1=iso(B.x0-6,B.y1-14,z+B.fh);
+    add(root,'line',{x1:e0[0],y1:e0[1],x2:e1[0]-9,y2:e1[1],stroke:'rgba(120,134,152,.4)','stroke-width':1});
+    add(root,'line',{x1:e0[0],y1:e0[1],x2:e0[0]-9,y2:e0[1],stroke:'rgba(120,134,152,.24)','stroke-width':.8});
+  }
+}
+function cobBloco(root,B,zt,cheio){              /* 03 — caixa d'água + exaustores */
+  var op=cheio?1:.34, fl=function(c){return cheio?c:'none';};
+  var g=add(root,'g',{opacity:op});
+  var par=box(B.x0-2,B.y0-2,B.x1+2,B.y1+2,zt,zt+4);
+  ['lft','rgt','top'].forEach(function(k){
+    add(g,'path',{d:par[k],fill:fl('#161d27'),stroke:cheio?'#2b3543':rgba(B.cor,.5),'stroke-width':.9}); });
+  var cx=iso(B.x0+30,B.y0+34,zt+4), i;
+  for(i=0;i<4;i++){
+    var lx=cx[0]-11+i*7.4;
+    add(g,'line',{x1:lx,y1:cx[1],x2:lx,y2:cx[1]-13,stroke:cheio?'#39424f':rgba(B.cor,.45),'stroke-width':1.2});
+  }
+  add(g,'ellipse',{cx:cx[0],cy:cx[1]-14,rx:17,ry:7,fill:fl('#232c38'),stroke:cheio?'#3f4a58':rgba(B.cor,.45),'stroke-width':.9});
+  add(g,'rect',{x:cx[0]-17,y:cx[1]-30,width:34,height:16,fill:fl('#1c242e'),stroke:cheio?'#3f4a58':rgba(B.cor,.45),'stroke-width':.9});
+  add(g,'ellipse',{cx:cx[0],cy:cx[1]-30,rx:17,ry:7,fill:fl('#2a3440'),stroke:cheio?'#4a5563':rgba(B.cor,.5),'stroke-width':.9});
+  [[74,30],[74,66],[42,74]].forEach(function(u){
+    var e=iso(B.x0+u[0],B.y0+u[1],zt+4);
+    add(g,'ellipse',{cx:e[0],cy:e[1]-4,rx:8,ry:4,fill:fl('#1a222c'),stroke:cheio?'#3a4450':rgba(B.cor,.4),'stroke-width':.9});
+    add(g,'ellipse',{cx:e[0],cy:e[1]-8,rx:8,ry:4,fill:'none',stroke:rgba(B.cor,.5),'stroke-width':.9});
+    add(g,'line',{x1:e[0]-8,y1:e[1]-8,x2:e[0]+8,y2:e[1]-8,stroke:rgba(B.cor,.35),'stroke-width':.7});
+  });
+}
+function cobTerraco(root0,B,zt,n,cheio){         /* 04 — pergolado + fogo + gente */
+  var root=add(root0,'g',{opacity:cheio?1:.32});
+  var r=recuoDe(B,n-1), x0=B.x0,y0=B.y0,x1=B.x1-r,y1=B.y1-r, k;
+  var px0=x0+16,py0=y0+16,px1=Math.max(px0+34,x1-16),py1=Math.max(py0+30,y1-16);
+  var pt=box(px0,py0,px1,py1,zt+22,zt+24);                        // pergolado
+  [[px0,py0],[px1,py0],[px1,py1],[px0,py1]].forEach(function(c){
+    var a=iso(c[0],c[1],zt), b2=iso(c[0],c[1],zt+22);
+    add(root,'line',{x1:a[0],y1:a[1],x2:b2[0],y2:b2[1],stroke:'#7a5630','stroke-width':2});
+  });
+  for(k=px0;k<=px1;k+=9)
+    add(root,'line',{x1:iso(k,py0,zt+23)[0],y1:iso(k,py0,zt+23)[1],x2:iso(k,py1,zt+23)[0],y2:iso(k,py1,zt+23)[1],
+      stroke:'rgba(140,98,54,.75)','stroke-width':1.4});
+  add(root,'path',{d:pt.top,fill:'none',stroke:'rgba(160,112,60,.5)','stroke-width':1});
+  var f=iso((px0+px1)/2,(py0+py1)/2,zt);                          // fogo no meio
+  add(root,'ellipse',{cx:f[0],cy:f[1],rx:26,ry:12,fill:'rgba(255,166,70,.14)',filter:'url(#gA)'});
+  add(root,'ellipse',{cx:f[0],cy:f[1],rx:9,ry:4.4,fill:'#241a12',stroke:'#5a4026','stroke-width':1});
+  add(root,'path',{d:'M'+f[0]+','+(f[1]-14)+' q-6,6 -3,10 q3,4 3,4 q0,0 3,-4 q3,-4 -3,-10 Z',
+    fill:'#ffb457','class':'beacon',filter:'url(#gA)'});
+  gente(root,px0+8,py1+4,zt,'rgba(255,206,150,.9)',1);
+  gente(root,px1-6,py0+10,zt,'rgba(255,190,130,.75)',.9);
+}
+
+/* =====================================================================
+   10. LOBBY genérico
+   ===================================================================== */
+function lobby(root,B){
+  if(B.tipo==='vitrine'){ lobbyVitrine(root,B); return; }
+  var b=box(B.x0,B.y0,B.x1,B.y1,0,B.base), r=rng(11+B.id*13), k;
+  var quente=(B.tipo==='terraco');
+  add(root,'path',{d:b.lft,fill:'#0b1017',stroke:'rgba(255,255,255,.05)','stroke-width':.8});
+  add(root,'path',{d:b.rgt,fill:'#0d131b',stroke:'rgba(255,255,255,.05)','stroke-width':.8});
+  if(B.tipo==='bloco'){
+    add(root,'path',{d:fR(B.x1,B.y0+6,B.y1-6,4,B.base-6),fill:'url(#cnc)'});
+    add(root,'path',{d:fL(B.y1,B.x0+6,B.x1-6,4,B.base-6),fill:'url(#cnc)',opacity:.9});
+    add(root,'path',{d:fR(B.x1,B.y0+34,B.y0+56,4,B.base-12),fill:'rgba(0,0,0,.55)',
+      stroke:rgba(B.cor,.45),'stroke-width':1});                  // portão
+    for(k=6;k<B.base-8;k+=3.4) add(root,'path',{d:fL(B.y1,B.x0+14,B.x1-14,k,k+1),fill:'rgba(0,0,0,.3)'});
+  }else{
+    add(root,'path',{d:fR(B.x1,B.y0+7,B.y1-7,5,B.base-9),fill:quente?'url(#tij)':'url(#gt1)'});
+    add(root,'path',{d:fL(B.y1,B.x0+7,B.x1-7,5,B.base-9),fill:quente?'url(#tij)':'url(#gt1)',opacity:.82});
+    for(k=0;k<6;k++){var a=B.y0+10+r()*(B.d-30); add(root,'path',{d:fR(B.x1,a,a+8,5,5+5+r()*9),
+      fill:quente?'rgba(30,18,10,.55)':'rgba(10,20,36,.6)'});}
+    add(root,'path',{d:fR(B.x1,(B.y0+B.y1)/2-9,(B.y0+B.y1)/2+9,5,B.base-16),
+      fill:rgba(claro(B.cor,.5),.22),stroke:rgba(B.cor,.5),'stroke-width':.8});
+  }
+  var mq=box(B.x0-5,B.y0-5,B.x1+5,B.y1+5,B.base-8,B.base-3);
+  add(root,'path',{d:mq.lft,fill:'#101724'}); add(root,'path',{d:mq.rgt,fill:'#131b29'});
+  add(root,'path',{d:mq.top,fill:'#18202e',stroke:'rgba(255,255,255,.06)','stroke-width':.7});
+  add(root,'path',{d:b.top,fill:rgba(B.cor,.05),stroke:rgba(B.cor,.42),'stroke-width':1.2});
+}
+
+/* =====================================================================
+   12. UM PRÉDIO
+   ===================================================================== */
+function predio(root,b){
+  var B=PREDIOS[b], ativo=(foco===b+1), apagado=(foco!==0&&!ativo), i;
+  _pr=pronto(b);
+  var g=add(root,'g',{opacity:apagado?.52:1,'class':'hit'});
+  g.addEventListener('click',function(e){ e.stopPropagation(); selPredio(b); });
+  var slotOf=[], slot=0;
+  for(i=0;i<B.N;i++){ slotOf[i]=(estado(b,i)==='skip')?-1:slot++; }
+
+  plot(g,B,ativo);
+
+  /* área de clique: a silhueta inteira, invisível.
+     Sem isso o clique cai no vazio entre as linhas do holograma e o prédio não seleciona. */
+  var ztH=B.base+slot*B.fh, sil=box(B.x0,B.y0,B.x1,B.y1,-9,ztH), hk;
+  for(hk in sil) add(g,'path',{d:sil[hk],fill:'transparent',stroke:'none'});
+
+  lobby(g,B);
+
+  for(i=0;i<B.N;i++){
+    if(slotOf[i]<0) continue;
+    (function(i){
+      var Q=B.passos[i], st=estado(b,i), f=foot(B,slotOf[i]), z=zOf(B,slotOf[i]);
+      var vis=(!so8020 || Q.e8020 || st==='done');
+      var fg=add(g,'g',{'class':'hit', opacity: vis?1:.10});
+      fg.addEventListener('click',function(e){ e.stopPropagation(); selPredio(b,i); });
+      fg.addEventListener('mousemove',function(e){ tip(e,B,Q,st); });
+      fg.addEventListener('mouseleave',semTip);
+      if(st==='wait'||st==='now'){
+        if(st==='now'&&!Q.unha) fantasma(fg,B,f,z,Q);
+        else if(Q.unha) unha(fg,B,f,z,st);
+        else { fg.setAttribute('class','hit holo'); fantasma(fg,B,f,z,Q); }
+      }else if(Q.unha){
+        unha(fg,B,f,z,st);
+      }else if(B.tipo==='torre'){   torre(fg,B,f,z,Q,st,i===B.N-1);
+      }else if(B.tipo==='vitrine'){ vitrine(fg,B,f,z,Q,st);
+      }else if(B.tipo==='bloco'){   bloco(fg,B,f,z,Q,st);
+      }else{                        terraco(fg,B,f,z,Q,st,slotOf[i]); }
+    })(i);
+  }
+
+  var zt=B.base+slot*B.fh-2.5, frac=construidos(b)/B.N, cheio=_pr;   // fecha só com a obra 100%
+  if(B.tipo==='torre')        cobTorre(g,B,zt,cheio);
+  else if(B.tipo==='vitrine') cobVitrine(g,B,zt,frac);
+  else if(B.tipo==='bloco'){  cobBloco(g,B,zt,cheio); dutos(g,B,slotOf,b); }
+  else                        cobTerraco(g,B,zt,slot,cheio);
+
+  /* árvores e gente nos terraços do 04 — só onde já foi construído */
+  if(B.tipo==='terraco'){
+    for(i=0;i<B.N;i++){
+      if(slotOf[i]<0||!feito[b][i]||slotOf[i]%2===0) continue;   // terraço aparece no fim do patamar
+      var zz=B.base+(slotOf[i]+1)*B.fh-2.5, rr=recuoDe(B,slotOf[i]);
+      arvore(g,B.x1-rr-9,B.y1-rr-30,zz,.78,false);
+      arvore(g,B.x1-rr-32,B.y1-rr-9,zz,.66,false);
+      gente(g,B.x1-rr-9,B.y1-rr-62,zz,'rgba(255,206,150,.85)',.85);
+      gente(g,B.x1-rr-58,B.y1-rr-10,zz,'rgba(255,190,130,.7)',.8);
+    }
+  }
+
+  /* entorno */
+  arvore(g,B.x0-12,B.y1+12,0,B.tipo==='terraco'?1.2:.95,B.tipo!=='terraco');
+  arvore(g,B.x1+14,B.y0-12,0,.85,B.tipo!=='terraco');
+  poste(g,B.x1+16,B.y1+16,0);
+  if(B.tipo==='terraco'){ arvore(g,B.x1+16,B.y1+8,0,1.05,false); gente(g,B.x0-6,B.y1+26,0,'rgba(255,206,150,.7)',.9); }
+
+  placa(g,B,b,ativo);
+
+  /* andar selecionado: anel no chão ligando prédio ↔ painel */
+  if(ativo&&sel&&sel.b===b&&slotOf[sel.i]>=0){
+    var zc=B.base+slotOf[sel.i]*B.fh+B.fh*.5, fc=foot(B,slotOf[sel.i]);
+    var a=iso(fc[2],(fc[1]+fc[3])/2,zc);
+    add(g,'circle',{cx:a[0],cy:a[1],r:4,fill:B.cor,filter:'url(#gA)'});
+    add(g,'line',{x1:a[0],y1:a[1],x2:a[0]+40,y2:a[1]-18,stroke:rgba(B.cor,.6),'stroke-width':1.2});
+  }
+
+  var alto={torre:88,vitrine:40,bloco:44,terraco:34}[B.tipo];
+  B.zt=zt;
+  B.bbox=[iso(B.x0,B.y1,0)[0]-104, iso(B.x0,B.y0,zt+alto)[1],   // -104 = a placa cabe
+          iso(B.x1,B.y0,0)[0]+34, iso(B.x1,B.y1,-9)[1]+52];
+}
+
+/* =====================================================================
+   13. TOOLTIP
+   ===================================================================== */
+var tipEl=document.getElementById('tip'), wrap=document.getElementById('wrap');
+function tip(e,B,Q,st){
+  var r=wrap.getBoundingClientRect();
+  tipEl.innerHTML='<b style="color:'+B.cor+'">PILAR 0'+B.id+' · '+B.nome+'</b>'+Q.no+' · '+Q.nome.toUpperCase()+
+    (Q.e8020?'  <span style="color:'+B.cor+'">8020</span>':'')+(Q.unha?'  <span style="color:#ce9658">NA UNHA</span>':'')+
+    '<br><span style="opacity:.55">'+(st==='done'?'construído':'clique pra abrir o andar')+'</span>';
+  tipEl.style.left=(e.clientX-r.left)+'px'; tipEl.style.top=(e.clientY-r.top-6)+'px'; tipEl.style.opacity=1;
+}
+function semTip(){ tipEl.style.opacity=0; }
+
+/* =====================================================================
+   14. PAINÉIS — checklist do pilar e menu dos nós
+   ===================================================================== */
+var pilha=document.getElementById('pilha'), modal=document.getElementById('modal');
+function cardChk(B,b){
+  var c=construidos(b), h='', i;
+  h='<section class="card chk" style="--c:'+B.cor+'">'+
+    '<header><div class="hd1"><span class="kk">PILAR 0'+B.id+'</span>'+
+    '<button class="fx" data-fechar="1" title="voltar pro quarteirão">✕</button></div>'+
+    '<h2>'+B.nome+'</h2><p class="tese">'+B.tese+'</p>'+
+    '<div class="mt"><span>O SISTEMA CONSTRÓI</span><b>'+B.meter+'%</b>'+
+    '<div class="mbar"><i style="width:'+B.meter+'%"></i></div></div>'+
+    '<div class="cnt"><b>'+c+'</b>/'+B.N+' ANDARES CONSTRUÍDOS'+
+    '<div class="mbar"><i style="width:'+(c/B.N*100)+'%"></i></div></div></header><ol class="lst">';
+  for(i=0;i<B.N;i++){
+    var Q=B.passos[i], st=estado(b,i);
+    h+='<li class="it '+st+(sel&&sel.b===b&&sel.i===i?' on':'')+'">'+
+       '<button class="ck" data-ck="'+i+'" title="construir andar">'+
+       (st==='done'?'✓':(st==='skip'?'–':''))+'</button>'+
+       '<button class="tx" data-go="'+i+'"><span class="no">'+Q.no+'</span>'+
+       '<span class="nm">'+Q.nome+'</span>'+
+       (Q.e8020?'<em class="t8">8020</em>':'')+(Q.unha?'<em class="tu">NA UNHA</em>':'')+
+       '<span class="ar">'+(Q.nos.length?Q.nos.length+' ↗':'—')+'</span></button></li>';
+  }
+  h+='</ol><div class="nav pilarnav">'+
+     '<button data-pilar="-1">‹ PILAR 0'+(b===0?4:b)+'</button>'+
+     '<button data-pilar="1">PILAR 0'+(b===3?1:b+2)+' ›</button></div>';
+  return h+'</section>';
+}
+/* modal do andar — os três nós do padrão (aula · ferramenta · IA) + o que sobrar */
+var SLOTS=[['aula','AULA','▶','#f26a43'],['tool','FERRAMENTA','⚙','#4e7df6'],['ia','IA DE APOIO','⚡','#33c6d6']];
+function noHTML(K,n,vazio){
+  if(vazio) return '<div class="node vazio"><span class="ic" style="color:'+K[3]+'55;border-color:'+K[3]+'33">'+
+    K[2]+'</span><span class="bd"><b style="color:#5d6a83">'+K[1]+'</b>'+
+    '<strong>— sem nó neste andar —</strong></span></div>';
+  var href=GO[n[2]]||'';
+  return '<a class="node" '+(href?'href="'+href+'" target="_blank" rel="noopener"':'')+'>'+
+    '<span class="ic" style="color:'+K[3]+';border-color:'+K[3]+'55;background:'+K[3]+'1f">'+K[2]+'</span>'+
+    '<span class="bd"><b style="color:'+K[3]+'">'+K[1]+'</b><strong>'+n[1]+'</strong></span>'+
+    '<span class="go">'+(href?'↗':'')+'</span></a>';
+}
+function cardNos(B,b,i){
+  var Q=B.passos[i], feitoQ=feito[b][i], usados=[], h='';
+  h='<div class="backdrop" data-nos="0"></div><section class="card modal" style="--c:'+B.cor+'">'+
+    '<header><div class="hd1"><span class="kk">PILAR 0'+B.id+' · '+B.nome+' · ANDAR '+Q.no+'</span>'+
+    '<button class="fx" data-nos="0" title="fechar (Esc)">✕</button></div>'+
+    '<h3>'+Q.nome+'</h3>'+
+    (Q.e8020?'<span class="chip t8">8020 · segura o resultado</span>':'')+
+    (Q.unha?'<span class="chip tu">NA UNHA · sem ferramenta</span>':'')+
+    (Q.sub?'<p class="sub">'+Q.sub+'</p>':'')+'</header><div class="nbody">';
+  SLOTS.forEach(function(S){
+    var n=null,k;
+    for(k=0;k<Q.nos.length;k++){
+      if(usados.indexOf(k)>=0) continue;
+      if(Q.nos[k][0]===S[0] || (S[0]==='tool'&&Q.nos[k][0]==='tpl')){ n=Q.nos[k]; usados.push(k); break; }
+    }
+    h+=noHTML(S,n,!n);
+  });
+  var extra=Q.nos.filter(function(_,k){ return usados.indexOf(k)<0; });
+  if(extra.length){
+    h+='<div class="ex">TAMBÉM NESTE ANDAR</div>';
+    extra.forEach(function(n){
+      var K2=KIND[n[0]]||['•','#7c8aa3','NÓ'];
+      h+=noHTML([n[0],K2[2],K2[0],K2[1]],n,false);
+    });
+  }
+  h+='</div><button class="fin'+(feitoQ?' un':'')+'" data-fin="'+i+'">'+
+     (feitoQ?'DESMARCAR ANDAR':'CONSTRUIR ANDAR')+'</button>'+
+     '<div class="nav"><button data-nav="-1">‹ ANDAR ANTERIOR</button>'+
+     '<button data-nav="1">PRÓXIMO ANDAR ›</button></div></section>';
+  return h;
+}
+function pintaPaineis(){
+  modal.innerHTML='';
+  if(!foco){ pilha.innerHTML=''; return; }
+  var b=foco-1, B=PREDIOS[b];
+  pilha.innerHTML=cardChk(B,b);
+  if(aberto&&sel&&sel.b===b){                      // o modal dos nós vem por cima da cena
+    modal.innerHTML=cardNos(B,b,sel.i);
+    [].forEach.call(modal.querySelectorAll('[data-nos]'),function(el2){
+      el2.addEventListener('click',function(){ aberto=false; hash(); render(); });
+    });
+    [].forEach.call(modal.querySelectorAll('[data-fin]'),function(el2){
+      el2.addEventListener('click',function(){ toggle(b,+el2.dataset.fin); });
+    });
+    [].forEach.call(modal.querySelectorAll('[data-nav]'),function(el2){
+      el2.addEventListener('click',function(){
+        var j=sel.i+(+el2.dataset.nav);
+        if(j>=0&&j<B.N) abrirNos(b,j);
+      });
+    });
+  }
+  [].forEach.call(pilha.querySelectorAll('[data-ck]'),function(el2){
+    el2.addEventListener('click',function(){ toggle(b,+el2.dataset.ck); });
+  });
+  [].forEach.call(pilha.querySelectorAll('[data-go]'),function(el2){
+    el2.addEventListener('click',function(){ abrirNos(b,+el2.dataset.go); });
+  });
+  [].forEach.call(pilha.querySelectorAll('[data-fin]'),function(el2){
+    el2.addEventListener('click',function(){ toggle(b,+el2.dataset.fin); });
+  });
+  [].forEach.call(pilha.querySelectorAll('[data-fechar]'),function(el2){
+    el2.addEventListener('click',voltar);
+  });
+  [].forEach.call(pilha.querySelectorAll('[data-pilar]'),function(el2){
+    el2.addEventListener('click',function(){ selPredio((b+4+(+el2.dataset.pilar))%4); });
+  });
+  var on=pilha.querySelector('.it.on'); if(on&&on.scrollIntoView) on.scrollIntoView({block:'nearest'});
+}
+
+/* =====================================================================
+   15. ENQUADRAMENTO — a câmera anda até o prédio (cena única)
+   ===================================================================== */
+var VB=null, alvo=null, raf=null;
+function aplica(){ svg.setAttribute('viewBox',VB.join(' ')); }
+function enquadra(inst){
+  var W=wrap.clientWidth||1280, H=wrap.clientHeight||660, R=W/H;
+  var P=foco?(pilha.offsetWidth?pilha.offsetWidth+52:0):0;
+  var L=Math.max(260,W-P);                      // área livre, à esquerda dos painéis
+  var x0=1e9,y0=1e9,x1=-1e9,y1=-1e9, f;
+  if(foco){
+    var B=PREDIOS[foco-1];
+    x0=B.bbox[0]; y0=B.bbox[1]; x1=B.bbox[2]; y1=B.bbox[3]; f=.80;
+  }else{
+    PREDIOS.forEach(function(B){ if(!B.bbox)return;
+      x0=Math.min(x0,B.bbox[0]); y0=Math.min(y0,B.bbox[1]);
+      x1=Math.max(x1,B.bbox[2]); y1=Math.max(y1,B.bbox[3]); });
+    f=.92;
+  }
+  var bw=x1-x0, bh=y1-y0, cx=(x0+x1)/2, cy=(y0+y1)/2;
+  var s=Math.min(f*L/bw, f*H/bh);               // px por unidade
+  var VW=W/s, VH=H/s;
+  var a=[cx-(L/2)/s, cy-(H/2)/s, VW, VH];
+  alvo=a;
+  if(!VB||inst){ VB=a.slice(); aplica(); return; }
+  if(raf) cancelAnimationFrame(raf);
+  var de=VB.slice(), t0=performance.now();
+  (function passo(){
+    var k=Math.min(1,(performance.now()-t0)/420), e=1-Math.pow(1-k,3), i;
+    for(i=0;i<4;i++) VB[i]=de[i]+(alvo[i]-de[i])*e;
+    aplica();
+    if(k<1) raf=requestAnimationFrame(passo);
+  })();
+}
+
+/* =====================================================================
+   16. RENDER
+   ===================================================================== */
+function render(inst){
+  semTip();
+  svg.innerHTML='';
+  svg.appendChild(defs());
+  var root=el('g'), i;
+  chao(root);
+  for(i=0;i<PREDIOS.length;i++) predio(root,i);     // cena única: os 4 sempre na tela
+  svg.appendChild(root);
+
+  var tot=0;
+  for(i=0;i<PREDIOS.length;i++) tot+=construidos(i);
+  document.getElementById('gN').textContent=tot;
+  document.getElementById('gBar').style.width=(tot/36*100)+'%';
+  pintaPaineis(); enquadra(inst); pintaDock();
+}
+/* marcar/desmarcar não mexe no modal — só no andar */
+function toggle(b,i){ feito[b][i]=!feito[b][i]; foco=b+1; sel={b:b,i:i}; hash(); render(); }
+/* clique no prédio ou num andar: leva a câmera e abre o checklist. O modal NÃO abre aqui. */
+function selPredio(b,i){
+  foco=b+1;
+  sel=(i==null)?null:{b:b,i:i};
+  aberto=false; hash(); render();
+}
+/* só o checklist abre o modal dos três nós */
+function abrirNos(b,i){ foco=b+1; sel={b:b,i:i}; aberto=true; hash(); render(); }
+function voltar(){ foco=0; sel=null; aberto=false; hash(); render(); }
+function setFoco(k){ if(k===0) voltar(); else selPredio(k-1); }
+function hash(){                                   // deep-link: #p2 (prédio) · #p2/05 (andar aberto)
+  var h=foco?('#p'+foco+((aberto&&sel)?'/'+PREDIOS[foco-1].passos[sel.i].no:'')):'#tudo';
+  if(location.hash!==h){ try{ history.replaceState(null,'',h); }catch(e){} }
+}
+function doHash(){
+  var m=/^#p([1-4])(?:\/(\d{1,2}))?$/.exec(location.hash);
+  foco = m ? +m[1] : 0;
+  aberto = !!(m&&m[2]);
+  sel = aberto ? {b:foco-1, i:Math.max(0,Math.min(PREDIOS[foco-1].N-1,+m[2]-1))} : null;
+}
+
+/* =====================================================================
+   17. DOCK
+   ===================================================================== */
+var DOCK=[{k:'1',l:'TUDO',c:'#9aa7be',f:0},
+          {k:'2',l:'PILAR 01 · ENTREGA',c:'#4e7df6',f:1},
+          {k:'3',l:'PILAR 02 · VALOR',  c:'#54c98a',f:2},
+          {k:'4',l:'PILAR 03 · GESTÃO', c:'#33c6d6',f:3},
+          {k:'5',l:'PILAR 04 · AMBIENTE',c:'#e8a13c',f:4}];
+var dock=document.getElementById('dock');
+DOCK.forEach(function(d){
+  var b=document.createElement('button');
+  b.className='dk'; b.style.color=d.c; b.dataset.f=d.f;
+  b.innerHTML='<s></s>'+d.l+'<kbd>'+d.k+'</kbd>';
+  b.addEventListener('click',function(){ setFoco(d.f); });
+  dock.appendChild(b);
+});
+var b8=document.createElement('button');
+b8.className='dk'; b8.style.color='#c98a2f'; b8.id='b8';
+b8.innerHTML='<s></s>SÓ 8020<kbd>6</kbd>';
+b8.addEventListener('click',function(){ so8020=!so8020; render(); });
+dock.appendChild(b8);
+var h=document.createElement('div');
+h.className='hint';
+h.innerHTML='<b>Clique no prédio</b> → a câmera centraliza e abre o checklist · <b>clique no passo</b> → os nós daquele andar<br>'+
+            'construir é no <b>✓</b> do checklist · glow = <b>8020</b> · tijolo aparente = <b>na unha</b> · <b>Esc</b> volta';
+dock.appendChild(h);
+function pintaDock(){
+  [].forEach.call(dock.querySelectorAll('.dk'),function(b){
+    if(b.id==='b8'){ b.className='dk'+(so8020?' on':''); return; }
+    b.className='dk'+(+b.dataset.f===foco?' on':'');
+  });
+}
+
+/* =====================================================================
+   18. TECLAS
+   ===================================================================== */
+document.addEventListener('keydown',function(e){
+  if(e.key>='1'&&e.key<='5'){ setFoco(+e.key-1); }
+  else if(e.key==='6'){ so8020=!so8020; render(); }
+  else if(e.key==='Escape'){ if(aberto){ aberto=false; hash(); render(); } else voltar(); }   // Esc volta uma camada
+});
+svg.addEventListener('click',function(e){ if(e.target===svg||e.target.tagName==='rect') voltar(); });
+window.addEventListener('resize',function(){ enquadra(true); });
+window.addEventListener('hashchange',function(){ doHash(); render(); });
+
+doHash();
+render(true);
+setTimeout(function(){ enquadra(true); },80);
+})();
+</script>
+</body>
+</html>

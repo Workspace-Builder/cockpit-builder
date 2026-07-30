@@ -1,0 +1,793 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cockpit Builder — Wireframe de Navegação</title>
+<style>
+  :root{
+    --ground:#0c1018; --panel:#141c2b; --panel-2:#182130;
+    --slab:#20283a; --slab-line:rgba(255,255,255,.06);
+    --ink:#eef2fb; --ink-dim:#9aa7be; --ink-faint:#5d6a83;
+    --hair:rgba(255,255,255,.09);
+    --c-p1:#4e7df6; --c-p2:#54c98a; --c-p3:#33c6d6; --c-p4:#e8a13c;
+    --c-wire:#5d6a83; --c-ok:#54c98a;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono","Cascadia Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden;background:var(--ground);
+    color:var(--ink);font-family:var(--sans)}
+
+  /* ---------- viewport / mundo ---------- */
+  #vp{position:fixed;inset:0;overflow:hidden;cursor:grab;
+    background:
+      radial-gradient(1200px 700px at 60% 20%,rgba(78,125,246,.07),transparent 60%),
+      linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px) 0 0/40px 40px,
+      linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px) 0 0/40px 40px,
+      var(--ground)}
+  #vp.grab{cursor:grabbing}
+  #world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
+  .pg{position:absolute;left:0;top:0;display:none}
+  .pg.on{display:block}
+  /* !important porque .faixa/.tk vêm depois e também declaram position —
+     mesma especificidade, a última venceria e o nó cairia no fluxo normal. */
+  .nd{position:absolute!important}
+
+  /* ---------- caixas ---------- */
+  .box{border-radius:12px;padding:14px 16px;background:var(--panel);
+    border:1px solid var(--hair);box-shadow:0 20px 50px -28px rgba(0,0,0,.8)}
+  .box.wire{background:rgba(20,28,43,.42);border:1px dashed var(--c-wire)}
+  .box .cap{font-family:var(--mono);font-size:9px;letter-spacing:.24em;
+    text-transform:uppercase;color:var(--ink-faint);margin-bottom:6px}
+  .box .ttl{font-size:15px;font-weight:700;letter-spacing:-.01em}
+  .box .sub{font-size:11.5px;color:var(--ink-dim);margin-top:4px;line-height:1.35}
+
+  /* faixa = andar do prédio */
+  .faixa{width:1146px;border-radius:14px;padding:14px 16px 16px;
+    background:rgba(20,28,43,.42);border:1px dashed var(--c-wire);position:relative}
+  .faixa .fh{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+  .faixa .fn{font-family:var(--mono);font-size:10px;letter-spacing:.22em;color:var(--ink-faint)}
+  .faixa .ft{font-size:17px;font-weight:800;letter-spacing:-.01em}
+  .faixa .fc{font-family:var(--mono);font-size:10px;color:var(--ink-faint);margin-left:auto}
+  .faixa .fbar{position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:3px}
+  .steps{display:flex;flex-wrap:wrap;gap:8px}
+
+  .step{width:168px;height:78px;border-radius:9px;padding:8px 10px;cursor:pointer;overflow:hidden;
+    background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.16);
+    display:flex;flex-direction:column;gap:5px;transition:background .12s,border-color .12s}
+  .step:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.4)}
+  .step .n{font-family:var(--mono);font-size:9px;color:var(--ink-faint)}
+  .step .t{font-size:11.5px;font-weight:600;line-height:1.25;overflow:hidden;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .step .tags{display:flex;gap:4px;margin-top:auto}
+  .tg{font-family:var(--mono);font-size:8px;letter-spacing:.1em;padding:2px 5px;
+    border-radius:4px;border:1px solid currentColor}
+  .tg.f8020{color:#f5b23f}
+  .tg.unha{color:#f26a43}
+  .step.sel{border-style:solid;border-color:#fff;background:rgba(255,255,255,.1)}
+
+  /* trilho */
+  .est{width:150px;border-radius:9px;padding:9px 11px;cursor:pointer;
+    background:rgba(20,28,43,.7);border:1px dashed rgba(255,255,255,.2)}
+  .est:hover{border-color:#fff}
+  .est .n,.est .t{display:block}
+  .est .n{font-family:var(--mono);font-size:9px;color:var(--ink-faint)}
+  .est .t{font-size:11.5px;font-weight:600;line-height:1.25;margin-top:3px}
+
+  /* código */
+  .code{font-family:var(--mono);font-size:10.5px;line-height:1.65;color:var(--ink-dim);
+    background:rgba(0,0,0,.4);border:1px solid var(--hair);border-radius:8px;
+    padding:12px 14px;white-space:pre;margin-top:10px}
+  .code b{color:#f5b23f;font-weight:600}
+  .code s{color:#f26a43;text-decoration:none}
+  .code u{color:var(--c-ok);text-decoration:none}
+  .code i{color:var(--ink-faint);font-style:normal}
+
+  /* elo do fluxo */
+  .elo{width:190px;border-radius:10px;padding:11px 13px;background:var(--panel);
+    border:1px solid var(--hair)}
+  .elo .k{font-family:var(--mono);font-size:8.5px;letter-spacing:.18em;color:var(--ink-faint)}
+  .elo .v{font-size:12.5px;font-weight:700;margin-top:4px}
+  .elo .d{font-size:10.5px;color:var(--ink-dim);margin-top:4px;line-height:1.35}
+  .seta{font-size:18px;color:var(--ink-faint);padding-top:14px}
+
+  /* card de subtask */
+  .tk{width:250px;border-radius:10px;padding:11px 13px;background:var(--panel);
+    border:1px solid var(--hair);position:relative}
+  .tk.blk{border-style:dashed;border-color:var(--c-wire);background:rgba(20,28,43,.42)}
+  .tk .num{font-family:var(--mono);font-size:8.5px;letter-spacing:.16em;color:var(--ink-faint)}
+  .tk .nm{font-size:12.5px;font-weight:700;margin-top:4px;line-height:1.25}
+  .tk .de{font-size:10.5px;color:var(--ink-dim);margin-top:5px;line-height:1.4}
+  .tk .stt{display:inline-block;margin-top:8px;font-family:var(--mono);font-size:8px;
+    letter-spacing:.1em;padding:2px 6px;border-radius:4px;border:1px solid currentColor}
+  .st-ok{color:var(--c-ok)} .st-run{color:#f5b23f} .st-wait{color:var(--c-wire)}
+  .st-gate{color:#f26a43} .st-orf{color:#e5484d}
+
+  /* ---------- sidebar ---------- */
+  .sb{position:fixed;left:0;top:0;bottom:0;width:250px;z-index:900;
+    background:rgba(12,16,24,.94);backdrop-filter:blur(14px);
+    border-right:1px solid var(--hair);display:flex;flex-direction:column;
+    transform:translateX(0);transition:transform .22s}
+  .sb.off{transform:translateX(-250px)}
+  .sb-brand{padding:16px 16px 14px;border-bottom:1px solid var(--hair)}
+  .sb-brand b{display:block;font-size:12px;font-weight:800;letter-spacing:.14em}
+  .sb-brand span{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.2em;
+    color:var(--ink-faint);margin-top:5px}
+  .sb-list{flex:1;overflow:auto;padding:12px 10px}
+  .grp{font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--ink-faint);
+    padding:12px 8px 7px}
+  .pgb{width:100%;display:flex;align-items:center;gap:9px;padding:9px 10px;margin-bottom:2px;
+    border:none;border-radius:8px;background:none;color:var(--ink-dim);cursor:pointer;
+    font:600 12.5px/1.2 var(--sans);text-align:left}
+  .pgb:hover{background:rgba(255,255,255,.06);color:var(--ink)}
+  .pgb.on{background:rgba(78,125,246,.2);color:#fff}
+  .pgb .ic{width:16px;text-align:center;flex:none}
+  .pgb .st{margin-left:auto;font-family:var(--mono);font-size:8px;letter-spacing:.08em;
+    padding:2px 5px;border-radius:4px;border:1px solid currentColor;flex:none}
+  .pgb .st.ok{color:var(--c-ok)}
+  .pgb .st.wire{color:var(--c-wire)}
+  .sb-foot{padding:12px 16px 14px;border-top:1px solid var(--hair);
+    font-family:var(--mono);font-size:9px;line-height:1.7;color:var(--ink-faint)}
+  .sb-tog{position:fixed;left:262px;top:14px;z-index:901;width:34px;height:34px;
+    border-radius:9px;border:1px solid var(--hair);background:rgba(12,16,24,.9);
+    color:var(--ink-dim);cursor:pointer;font-size:15px;transition:left .22s}
+  .sb.off ~ .sb-tog{left:12px}
+
+  /* ---------- dock de vistas ---------- */
+  .dock{position:fixed;left:calc(50% + 125px);bottom:16px;transform:translateX(-50%);
+    display:flex;gap:4px;align-items:center;z-index:900;
+    background:rgba(10,14,24,.9);border:1px solid var(--hair);border-radius:999px;
+    padding:5px 8px;backdrop-filter:blur(10px);transition:left .22s}
+  .sb.off ~ .dock{left:50%}
+  .dock button{border:none;background:none;color:var(--ink-dim);cursor:pointer;
+    font:600 12px/1 var(--sans);padding:8px 12px;border-radius:999px;
+    display:flex;gap:7px;align-items:center;white-space:nowrap}
+  .dock button:hover{background:rgba(255,255,255,.08);color:#fff}
+  .dock button.on{background:rgba(78,125,246,.22);color:#fff}
+  .dock kbd{font:600 9px/1 var(--mono);color:var(--ink-faint);
+    border:1px solid rgba(255,255,255,.18);border-radius:4px;padding:2px 4px;min-width:8px;
+    text-align:center}
+
+  /* ---------- topo: você está aqui ---------- */
+  .here{position:fixed;top:14px;right:16px;z-index:900;display:flex;align-items:center;gap:14px;
+    background:rgba(10,14,24,.9);border:1px solid var(--hair);border-radius:999px;
+    padding:9px 16px;backdrop-filter:blur(10px)}
+  .here .crumb{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--ink-dim)}
+  .here .crumb b{color:#fff}
+  .here .prog{display:flex;align-items:center;gap:8px}
+  .here .bar{width:90px;height:4px;border-radius:3px;background:rgba(255,255,255,.12);
+    overflow:hidden}
+  .here .bar i{display:block;height:100%;width:0;background:var(--c-p2);transition:width .25s}
+  .here .num{font-family:var(--mono);font-size:10px;color:var(--ink-dim)}
+
+  /* ---------- painel do nó ---------- */
+  .insp{position:fixed;right:0;top:0;bottom:0;width:340px;z-index:950;
+    background:rgba(14,19,29,.97);border-left:1px solid var(--hair);
+    backdrop-filter:blur(16px);transform:translateX(340px);transition:transform .2s;
+    display:flex;flex-direction:column}
+  .insp.on{transform:translateX(0)}
+  .insp .ih{padding:18px 18px 14px;border-bottom:1px solid var(--hair);position:relative}
+  .insp .ic{font-family:var(--mono);font-size:9px;letter-spacing:.18em;color:var(--ink-faint)}
+  .insp .it{font-size:19px;font-weight:800;margin-top:7px;letter-spacing:-.015em}
+  .insp .ix{position:absolute;right:14px;top:14px;border:none;background:none;
+    color:var(--ink-faint);font-size:17px;cursor:pointer;line-height:1}
+  .insp .ib{flex:1;overflow:auto;padding:16px 18px}
+  .vaga{display:flex;gap:11px;align-items:flex-start;padding:12px;border-radius:9px;
+    margin-bottom:9px;border:1px dashed rgba(255,255,255,.16);background:rgba(255,255,255,.02)}
+  .vaga .vi{font-size:14px;width:18px;flex:none;text-align:center}
+  .vaga .vk{font-family:var(--mono);font-size:8.5px;letter-spacing:.16em;color:var(--ink-faint)}
+  .vaga .vv{font-size:12px;margin-top:3px;color:var(--ink-dim);line-height:1.35}
+  .insp .chk{display:flex;align-items:center;gap:9px;margin-top:16px;padding-top:14px;
+    border-top:1px solid var(--hair);font-size:12.5px;color:var(--ink-dim);cursor:pointer}
+  .insp .chk i{width:15px;height:15px;border-radius:4px;border:1px solid var(--ink-faint);
+    display:inline-block;flex:none}
+  .insp .chk.done i{background:var(--c-ok);border-color:var(--c-ok)}
+  .insp .if{padding:12px 18px;border-top:1px solid var(--hair);
+    font-family:var(--mono);font-size:9px;line-height:1.7;color:var(--ink-faint)}
+
+  /* ---------- legenda ---------- */
+  .leg{position:fixed;left:262px;bottom:16px;z-index:880;display:flex;gap:16px;
+    align-items:center;background:rgba(10,14,24,.86);border:1px solid var(--hair);
+    border-radius:10px;padding:9px 14px;backdrop-filter:blur(10px);transition:left .22s;
+    font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;color:var(--ink-faint)}
+  .sb.off ~ .leg{left:12px}
+  .leg span{display:flex;align-items:center;gap:6px}
+  .leg i{width:15px;height:10px;border-radius:3px;display:inline-block}
+  .leg i.ok{border:1px solid var(--c-ok);background:rgba(84,201,138,.18)}
+  .leg i.wf{border:1px dashed var(--c-wire)}
+</style>
+</head>
+<body>
+
+<div id="vp"><div id="world"></div></div>
+
+<aside class="sb" id="sb">
+  <div class="sb-brand"><b>🏗 COCKPIT BUILDER</b><span>WIREFRAME · NAVEGAÇÃO</span></div>
+  <nav class="sb-list" id="sbList"></nav>
+  <div class="sb-foot">teclas 1-6 trocam vista<br>Esc fecha o painel<br>← do navegador volta</div>
+</aside>
+<button class="sb-tog" id="sbTog" type="button" aria-label="Páginas">☰</button>
+
+<div class="dock" id="dock"></div>
+
+<div class="here">
+  <div class="crumb" id="crumb"></div>
+  <div class="prog"><div class="bar"><i id="progBar"></i></div><span class="num" id="progNum">0/36</span></div>
+</div>
+
+<div class="leg">
+  <span><i class="ok"></i> construído · no ar</span>
+  <span><i class="wf"></i> wireframe · a construir</span>
+</div>
+
+<aside class="insp" id="insp">
+  <div class="ih">
+    <button class="ix" id="inspX" type="button">✕</button>
+    <div class="ic" id="inspCap"></div>
+    <div class="it" id="inspTtl"></div>
+  </div>
+  <div class="ib" id="inspBody"></div>
+  <div class="if">painel = subtarefa #5 · checkbox = subtarefa #9</div>
+</aside>
+
+<script>
+(function(){
+"use strict";
+
+/* =========================================================
+   1. OS 36 PASSOS — fonte única (a "Ordem 0" do blueprint)
+   Títulos reais, extraídos do index.html. Sem conteúdo novo.
+   ========================================================= */
+var PASSOS=[
+  // pilar, titulo, 8020(proposta), unha, cicloPos
+  [1,'Estratégia da página',1,0,4],
+  [1,'Copy',1,0,5],
+  [1,'Design',1,0,6],
+  [1,'Imagem e direção visual',0,0,null],
+  [1,'Código e efeitos',1,0,7],
+  [1,'Responsividade',0,0,null],
+  [1,'Otimização',0,0,null],
+  [1,'Implementação técnica',1,0,8],
+  [1,'Qualidade antes de enviar',1,0,9],
+
+  [2,'Posicionamento',1,0,null],
+  [2,'Portfólio',1,0,null],
+  [2,'Instagram',0,0,null],
+  [2,'Plano de negócio',0,0,null],
+  [2,'Atendimento',1,0,1],
+  [2,'Proposta profissional',1,0,2],
+  [2,'Precificação pelo valor',1,0,null],
+  [2,'Prova social',0,0,11],
+  [2,'Eficiência',0,0,null],
+  [2,'Postura',0,1,null],
+  [2,'Tráfego pago · nitro',0,0,null],
+
+  [3,'Onboarding do cliente',1,0,3],
+  [3,'Entregar no prazo',1,0,10],
+  [3,'Conciliar as demandas',0,0,null],
+  [3,'Controlar os processos',0,0,null],
+  [3,'Proteger escopo e contrato',0,0,null],
+  [3,'Controle financeiro',1,0,null],
+  [3,'Projetar crescimento',0,0,null],
+  [3,'Delegar',0,1,null],
+
+  [4,'Mudar a mente',1,0,null],
+  [4,'Mentalidade de abundância',0,0,null],
+  [4,'Estar no ambiente certo',0,0,null],
+  [4,'Cuidar com quem anda',0,0,null],
+  [4,'Acessar mentes que construíram',0,0,null],
+  [4,'Networking e oportunidades',0,0,null],
+  [4,'Ritmo e constância',0,0,null],
+  [4,'Pedir ajuda quando trava',0,0,null]
+];
+
+var PILAR={
+  1:{fase:'ENTREGA',       titulo:'Entrega de alto valor', cor:'var(--c-p1)', andar:'TÉRREO · FUNDAÇÃO'},
+  2:{fase:'VALOR PERCEBIDO',titulo:'Valor percebido',      cor:'var(--c-p2)', andar:'2º ANDAR'},
+  3:{fase:'GESTÃO',        titulo:'Gestão e eficiência',   cor:'var(--c-p3)', andar:'3º ANDAR'},
+  4:{fase:'AMBIENTE',      titulo:'Ambiente e mentalidade',cor:'var(--c-p4)', andar:'COBERTURA'}
+};
+
+function passos(p){var r=[];for(var i=0;i<PASSOS.length;i++)if(PASSOS[i][0]===p)r.push(PASSOS[i]);return r;}
+
+/* =========================================================
+   2. O MANIFESTO DE PÁGINAS — o motor da task #4
+   Adicionar página = 1 objeto aqui. Nada mais.
+   ========================================================= */
+var PAGES=[
+ {grupo:'O PROJETO', itens:[
+   {id:'motor',  nome:'O Motor',      ico:'⚙',  estado:'wire', render:pgMotor,  views:vMotor},
+   {id:'escopo', nome:'O Escopo',     ico:'📋', estado:'wire', render:pgEscopo, views:vEscopo}
+ ]},
+ {grupo:'OBRA 10K', itens:[
+   {id:'metodo', nome:'O Método 10k', ico:'🏗', estado:'ok',   render:pgMetodo,     views:vMetodo},
+   {id:'obra',   nome:'A Obra',       ico:'🧱', estado:'wire', render:pgObra,       views:vObra},
+   {id:'trilho', nome:'O Trilho',     ico:'↻',  estado:'wire', render:pgTrilho,     views:vTrilho}
+ ]},
+ {grupo:'SETUP AGÊNCIA 6D', itens:[
+   {id:'onboarding', nome:'Onboarding', ico:'◇', estado:'ok', render:pgOnb, views:vOnb}
+ ]}
+];
+
+var byId={},ordem=[];
+PAGES.forEach(function(g){g.itens.forEach(function(p){p.grupo=g.grupo;byId[p.id]=p;ordem.push(p.id);});});
+
+/* =========================================================
+   3. HELPERS DE DESENHO
+   ========================================================= */
+var world=document.getElementById('world'), vp=document.getElementById('vp');
+
+function el(cls,html){var d=document.createElement('div');d.className=cls||'';
+  if(html!=null)d.innerHTML=html;return d;}
+function put(pg,node,x,y){node.classList.add('nd');node.style.left=x+'px';node.style.top=y+'px';
+  pg.appendChild(node);return node;}
+function caixa(cap,ttl,sub,w,wire){
+  var d=el('box'+(wire?' wire':''));d.style.width=(w||260)+'px';
+  d.innerHTML=(cap?'<div class="cap">'+cap+'</div>':'')+'<div class="ttl">'+ttl+'</div>'+
+              (sub?'<div class="sub">'+sub+'</div>':'');
+  return d;}
+
+/* =========================================================
+   4. AS PÁGINAS
+   ========================================================= */
+
+function bloco(cap,ttl,sub,code,w){
+  var d=caixa(cap,ttl,sub,w,true);
+  if(code){var c=el('code');c.innerHTML=code;d.appendChild(c);}
+  return d;
+}
+function elo(k,v,dsc){
+  var d=el('elo');
+  d.innerHTML='<div class="k">'+k+'</div><div class="v">'+v+'</div><div class="d">'+dsc+'</div>';
+  return d;
+}
+
+/* ---- ⚙ O MOTOR — a subtarefa #4 explicada ---- */
+function pgMotor(pg){
+  put(pg,caixa('SUBTAREFA #4 · 86ajqefwq',
+    'Motor de páginas distintas (tipo Figma), com navegação entre elas',
+    'Entregável literal da task: "Board com as páginas navegáveis." '+
+    'Motor = página vira coisa DECLARADA num lugar só. Não é editor — o autor edita código, o aluno só navega.',
+    640,true),0,0);
+
+  // --- hoje x depois ---
+  put(pg,bloco('COMO É HOJE · criar página = cirurgia',
+    'Espalhado em 17 blocos &lt;script&gt;',
+    'A página existe porque alguém escreveu um bloco novo no meio dos outros. '+
+    'Sidebar, dock e hash são listas separadas que você tem que lembrar de atualizar nas 3.',
+    '<i>// bloco 9 de 17, no meio do arquivo</i>\n'+
+    'window.<s>__DOC</s>=\'onboarding\';\n'+
+    'A.makeNode(\'Contrato\', el, 120, 40);\n'+
+    '<i>// ...43 chamadas...</i>\n\n'+
+    '<i>// 400 linhas abaixo, outra lista:</i>\n'+
+    'var <s>DOCS</s>=[{grupo:\'…\',itens:[…]}];\n'+
+    '<i>// e outra:</i>\n'+
+    'var <s>VIEWSET</s>={\'onboarding\':[…]};',
+    500),0,180);
+
+  put(pg,bloco('COMO FICA · criar página = 1 objeto',
+    'Um manifesto, três consumidores',
+    'Você declara a página uma vez. Sidebar, dock de vistas e deep-link leem daí. '+
+    'Adicionar a 5ª página é acrescentar uma linha — nada mais no arquivo muda.',
+    'var <b>PAGES</b>=[\n'+
+    '  {grupo:\'OBRA 10K\', itens:[\n'+
+    '    {id:\'obra\',   nome:\'A Obra\',\n'+
+    '     ico:\'🧱\',    estado:\'wire\',\n'+
+    '     render:<u>layoutPredio</u>,\n'+
+    '     views:[…]},\n\n'+
+    '    <u>{id:\'nova\', nome:\'Página Nova\', …}</u>\n'+
+    '  ]}\n'+
+    '];',
+    500),560,180);
+
+  // --- fluxo ---
+  put(pg,caixa('O FLUXO','Como o manifesto vira tela',
+    'Três consumidores leem a mesma lista. É isso que faz "adicionar 1 linha" bastar.',600,true),0,560);
+  var chain=[
+    ['1 · DECLARA','PAGES','id · nome · grupo · render · views'],
+    ['2 · MONTA','render(pg)','desenha os nós daquela página'],
+    ['3 · LÊ','sidebar','lista as páginas por grupo'],
+    ['4 · LÊ','dock','vistas daquela página'],
+    ['5 · LÊ','#hash','deep-link e botão voltar']
+  ];
+  for(var i=0;i<chain.length;i++){
+    put(pg,elo(chain[i][0],chain[i][1],chain[i][2]),i*228,690);
+    if(i<chain.length-1)put(pg,el('seta','→'),i*228+200,700);
+  }
+
+  // --- buracos ---
+  put(pg,caixa('O QUE FALTA PRA "NAVEGÁVEL" SER VERDADE',
+    'Três buracos que o board tem hoje',
+    'Trocar de página já funciona. Estes três não — e sem eles "navegável" é só uma lista de links.',
+    600,true),0,850);
+  var bur=[
+    ['✕ DEEP-LINK DE VISTA','você não consegue mandar link que abre no Pilar 02','o hash guarda só a página: #onboarding'],
+    ['✕ BOTÃO VOLTAR','o ← do navegador sai do site','nenhum pushState — a troca de página não entra no histórico'],
+    ['✕ VOCÊ ESTÁ AQUI','nada diz onde o aluno está no mapa','sem breadcrumb e sem progresso']
+  ];
+  for(var j=0;j<bur.length;j++)
+    put(pg,caixa(bur[j][0],bur[j][1],bur[j][2],330,true),j*350,990);
+
+  put(pg,caixa('NESTE WIREFRAME','Os três já estão resolvidos — teste',
+    'Troque de página, aperte 2 pra mudar a vista, olhe a URL, e use o ← do navegador. '+
+    'O canto superior direito é o "você está aqui".',600,true),0,1140);
+}
+function vMotor(){return[
+  {k:'1',l:'⌂ Tudo'},
+  {k:'2',l:'Hoje × Depois',sel:'.box.wire',pad:80},
+  {k:'3',l:'O fluxo',sel:'.elo'},
+  {k:'4',l:'Os buracos'}
+];}
+
+/* ---- 📋 O ESCOPO — as 12 subtasks ---- */
+function pgEscopo(pg){
+  var T=[
+   ['01','Mapear entregáveis','Setup Builder · Arsenal · Mentorias · links das IAs · Easy Sales','ok','DEPLOY NA MAIN'],
+   ['02','Fluxograma de Processos','só a primeira etapa, pra validar. Figma + vídeo na task','run','VALIDANDO'],
+   ['03','Separar e renomear o repo','eb-plano-10k → cockpit-builder','ok','PR PRA DEV'],
+   ['04','Liberar acesso ao Elvis','push no repo','ok','PR PRA DEV'],
+   ['05','Planejar a arquitetura','blueprint: página por pilar + flywheel, navegação, 8020, nó clicável','gate','GATE DO CEO'],
+   ['06','Páginas + navegação','motor de páginas distintas com navegação entre elas','wait','PENDENTE'],
+   ['07','Nó clicável','abre os 3 links: ferramenta + aula + IA','wait','PLANEJANDO'],
+   ['08','Tag visual 8020','destaque do imprescindível de começar','wait','PENDENTE'],
+   ['09','Página do Flywheel','a roda com o arsenal mapeado por pilar/setor','wait','PENDENTE'],
+   ['10','Transpor o Figma','o Figma que o CEO anexar na task-pai','wait','PENDENTE'],
+   ['11','Checklists por etapa','aluno marca e vê evolução — vira o painel do bootcamp','wait','PENDENTE'],
+   ['12','Mapa de links das aulas','transcrições + mapa. SEM RESPONSÁVEL E SEM DESCRIÇÃO','orf','ÓRFÃ']
+  ];
+  put(pg,caixa('AUDITORIA','As 12 subtasks de "Cockpit | Bootcamp Builder 10k"',
+    '4 entregues · 1 em validação · 1 no gate · 5 travadas pelo gate · 1 órfã. '+
+    'Sete das doze não começam enquanto a #05 não voltar aprovada.',700,true),0,0);
+  for(var i=0;i<T.length;i++){
+    var t=T[i], d=el('tk'+(t[3]==='wait'||t[3]==='orf'?' blk':''));
+    d.innerHTML='<div class="num">SUBTASK '+t[0]+'</div><div class="nm">'+t[1]+'</div>'+
+                '<div class="de">'+t[2]+'</div>'+
+                '<div class="stt st-'+t[3]+'">'+t[4]+'</div>';
+    put(pg,d,(i%4)*272,160+Math.floor(i/4)*180);
+  }
+  put(pg,caixa('O GARGALO','Tudo passa pela #05',
+    'O gate não é burocracia: a Decisão 1 (4 pilares em 1 página ou em 4) define o que a #06 constrói. '+
+    'Codar antes é apostar. Este wireframe existe pra transformar as 7 decisões em algo clicável.',
+    700,true),0,720);
+}
+function vEscopo(){return[
+  {k:'1',l:'⌂ Tudo'},
+  {k:'2',l:'Entregues',sel:'.tk:not(.blk)'},
+  {k:'3',l:'Travadas',sel:'.tk.blk'}
+];}
+
+// ---- O MÉTODO (já construído — representado em blocos) ----
+function pgMetodo(pg){
+  var b=[
+    ['PARTE 1','Funil Antiprospecção','Behance · sniper · indicações · SEO · tráfego',0,0],
+    ['ESQUETES','As 11 esquetes','balde furado · dois balcões · furadeira · 80/20',320,0],
+    ['NÚMERO','A conta do 10k','projetos × ticket — as duas alavancas',640,0],
+    ['PARTE 2','Da conversa ao ciclo','qualificação · link na bio · Instagram posicionado',0,150],
+    ['MOTOR','Motor de tijolos','a roda que gira sozinha',320,150],
+    ['RESUMO','Os 4 pilares','hoje moram aqui — vão migrar pra “A Obra”',640,150]
+  ];
+  for(var i=0;i<b.length;i++)
+    put(pg,caixa(b[i][0],b[i][1],b[i][2],290,false),b[i][3],b[i][4]);
+  put(pg,caixa('ESTADO','✅ Página construída e no ar','Nada a fazer aqui. Serve de referência do que “pronto” parece.',600,false),0,320);
+}
+function vMetodo(){return[
+  {k:'1',l:'⌂ Tudo'},{k:'2',l:'Atração'},{k:'3',l:'Conversa'},
+  {k:'4',l:'Esquetes'},{k:'5',l:'Pilares'},{k:'6',l:'Motor'}
+];}
+
+// ---- A OBRA (wireframe — 4 andares) ----
+function pgObra(pg){
+  var ordemAndar=[4,3,2,1], y=0;
+  for(var i=0;i<ordemAndar.length;i++){
+    var p=ordemAndar[i], cfg=PILAR[p], lst=passos(p);
+    var f=el('faixa');
+    f.setAttribute('data-pilar',p);
+    var bar=el('fbar');bar.style.background=cfg.cor;f.appendChild(bar);
+    var h=el('fh');
+    h.innerHTML='<span class="fn">'+cfg.andar+'</span>'+
+                '<span class="ft">PILAR 0'+p+' · '+cfg.titulo+'</span>'+
+                '<span class="fc">'+lst.length+' passos</span>';
+    f.appendChild(h);
+    var st=el('steps');
+    for(var j=0;j<lst.length;j++){
+      var r=lst[j], s=el('step');
+      s.setAttribute('data-p',p);s.setAttribute('data-t',r[1]);s.setAttribute('data-i',j+1);
+      s.innerHTML='<span class="n">'+(j+1)+'/'+lst.length+'</span>'+
+                  '<span class="t">'+r[1]+'</span>'+
+                  '<span class="tags">'+(r[2]?'<span class="tg f8020">8020</span>':'')+
+                  (r[3]?'<span class="tg unha">NA UNHA</span>':'')+'</span>';
+      st.appendChild(s);
+    }
+    f.appendChild(st);
+    put(pg,f,0,y);
+    y+=240;                      // provisório — relayout() remede depois de visível
+  }
+  var info=caixa('SUBTAREFAS QUE ESTA PÁGINA VALIDA',
+    '#4 páginas · #6 tag 8020 · #9 checklists',
+    'Clique num passo → abre o painel de 3 vagas (#5). A tag 8020 aqui é proposta — a curadoria é a Decisão 4.',
+    600,true);
+  info.setAttribute('data-rodape','1');
+  put(pg,info,0,y+16);
+}
+function vObra(){return[
+  {k:'1',l:'⌂ Tudo'},
+  {k:'2',l:'Pilar 01',sel:'.faixa[data-pilar="1"]',pad:60},
+  {k:'3',l:'Pilar 02',sel:'.faixa[data-pilar="2"]',pad:60},
+  {k:'4',l:'Pilar 03',sel:'.faixa[data-pilar="3"]',pad:60},
+  {k:'5',l:'Pilar 04',sel:'.faixa[data-pilar="4"]',pad:60},
+  {k:'6',l:'Só 8020', sel:'.step .tg.f8020',pad:120}
+];}
+
+// ---- O TRILHO (wireframe — ciclo) ----
+function pgTrilho(pg){
+  var cic=[];
+  for(var i=0;i<PASSOS.length;i++)if(PASSOS[i][4]!=null)cic.push(PASSOS[i]);
+  cic.sort(function(a,b){return a[4]-b[4];});
+
+  var cx=520,cy=430,rx=470,ry=330,n=cic.length;
+  var svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('width',1160);svg.setAttribute('height',920);
+  svg.style.position='absolute';svg.style.left='0';svg.style.top='0';
+  svg.innerHTML='<ellipse cx="'+(cx+80)+'" cy="'+(cy+40)+'" rx="'+rx+'" ry="'+ry+'" '+
+    'fill="none" stroke="rgba(255,255,255,.14)" stroke-width="2" stroke-dasharray="7 7"/>';
+  pg.appendChild(svg);
+
+  for(var j=0;j<n;j++){
+    var a=(j/n)*Math.PI*2-Math.PI/2;
+    var x=cx+80+Math.cos(a)*rx-75, y=cy+40+Math.sin(a)*ry-28;
+    var e=el('est');
+    e.setAttribute('data-p',cic[j][0]);e.setAttribute('data-t',cic[j][1]);
+    e.setAttribute('data-i',j+1);
+    e.innerHTML='<span class="n">ESTAÇÃO '+(j+1)+'</span><span class="t">'+cic[j][1]+'</span>';
+    put(pg,e,x,y);
+  }
+  put(pg,caixa('O QUE É','Os mesmos passos, outro eixo',
+    'O Prédio é cumulativo (constrói uma vez). O Trilho é cíclico (roda a cada cliente). '+
+    'Mentalidade não entra — não cicla. Zero conteúdo duplicado: é filtro sobre a mesma lista.',
+    340,true),cx-90,cy-30);
+  put(pg,caixa('SUBTAREFA','#7 · Flywheel por setor',
+    'Decisão 3: isto é vista sobre os 36 passos, não página com conteúdo próprio.',
+    380,true),0,900);
+}
+function vTrilho(){return[
+  {k:'1',l:'⌂ Tudo'},{k:'2',l:'Entrada'},{k:'3',l:'Entrega'},{k:'4',l:'Retorno'}
+];}
+
+// ---- ONBOARDING (já construído) ----
+function pgOnb(pg){
+  var b=['Contrato','Briefing','Pagamento','Nota Fiscal','Tarefa ClickUp','Grupo',
+         'Drive','Revisar','Gate de aprovação','Dev','Trilha de Copy'];
+  for(var i=0;i<b.length;i++)
+    put(pg,caixa('','' +b[i],'',180,false),(i%4)*200,Math.floor(i/4)*110);
+  put(pg,caixa('ESTADO','✅ Página construída · em validação',
+    'Fluxograma reconstruído do Figma. 6 nós ainda sem destino (tracejados no board real).',
+    600,false),0,350);
+}
+function vOnb(){return[
+  {k:'1',l:'⌂ Tudo'},{k:'2',l:'Onboarding'},{k:'3',l:'Copy'},{k:'4',l:'Evidências'}
+];}
+
+/* =========================================================
+   5. MOTOR — monta, troca, enquadra, deep-link
+   ========================================================= */
+var pgEls={}, atual=null, vistaAtual=0;
+
+ordem.forEach(function(id){
+  var p=byId[id], d=el('pg');d.id='pg-'+id;
+  p.render(d);
+  world.appendChild(d);pgEls[id]=d;
+});
+
+function bbox(id){
+  var d=pgEls[id], ns=d.children, minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9,achou=false;
+  for(var i=0;i<ns.length;i++){
+    var n=ns[i];if(n.tagName==='svg')continue;
+    var x=n.offsetLeft,y=n.offsetTop,w=n.offsetWidth,h=n.offsetHeight;
+    if(!w&&!h)continue;achou=true;
+    if(x<minx)minx=x;if(y<miny)miny=y;
+    if(x+w>maxx)maxx=x+w;if(y+h>maxy)maxy=y+h;
+  }
+  if(!achou)return{x:0,y:0,w:800,h:600};
+  return{x:minx,y:miny,w:maxx-minx,h:maxy-miny};
+}
+
+var tx=0,ty=0,z=1;
+function apply(){world.style.transform='translate('+tx+'px,'+ty+'px) scale('+z+')';}
+function frame(box,pad){
+  pad=pad||90;
+  var W=vp.clientWidth-(sbAberta()?250:0)-(insp.classList.contains('on')?340:0);
+  var H=vp.clientHeight;
+  var k=Math.min((W-pad*2)/box.w,(H-pad*2)/box.h,1.4);
+  z=k;
+  tx=(sbAberta()?250:0)+(W-box.w*k)/2-box.x*k;
+  ty=(H-box.h*k)/2-box.y*k;
+  apply();
+}
+function frameSel(sel,pad){
+  var d=pgEls[atual], ns=d.querySelectorAll(sel);
+  if(!ns.length){frame(bbox(atual),pad);return;}
+  var minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9;
+  for(var i=0;i<ns.length;i++){
+    var n=ns[i], x=0,y=0,e=n;
+    while(e&&e!==d){x+=e.offsetLeft;y+=e.offsetTop;e=e.offsetParent;}
+    if(x<minx)minx=x;if(y<miny)miny=y;
+    if(x+n.offsetWidth>maxx)maxx=x+n.offsetWidth;
+    if(y+n.offsetHeight>maxy)maxy=y+n.offsetHeight;
+  }
+  frame({x:minx,y:miny,w:maxx-minx,h:maxy-miny},pad);
+}
+
+function sbAberta(){return !document.getElementById('sb').classList.contains('off');}
+
+/* Alturas só são mensuráveis depois que a página sai do display:none.
+   Empilhar por medida evita a altura chutada — que desalinha e sobrepõe. */
+var medido={};
+function relayout(id){
+  if(medido[id])return; medido[id]=1;
+  var d=pgEls[id], fs=d.querySelectorAll('.faixa');
+  if(!fs.length)return;
+  var y=0;
+  for(var i=0;i<fs.length;i++){fs[i].style.top=y+'px';y+=fs[i].offsetHeight+26;}
+  var rod=d.querySelector('[data-rodape]');
+  if(rod)rod.style.top=(y+14)+'px';
+}
+
+function showPage(id,vi,push){
+  if(!byId[id])id=ordem[0];
+  atual=id;vistaAtual=vi||0;
+  ordem.forEach(function(k){pgEls[k].classList.toggle('on',k===id);});
+  relayout(id);
+  renderSidebar();renderDock();renderCrumb();fecharInsp();
+  // Empilha ANTES de enquadrar: aplicarVista faz replaceState, e se rodasse
+  // primeiro sobrescreveria a entrada da página anterior — o ← pularia uma página.
+  var h='#'+id+(vistaAtual?'/'+vistaAtual:'');
+  if(push!==false&&location.hash!==h)history.pushState({id:id,v:vistaAtual},'',h);
+  aplicarVista(vistaAtual,true);
+}
+
+function aplicarVista(i,mudo){
+  vistaAtual=i;
+  var v=byId[atual].views()[i];
+  if(v&&v.sel)frameSel(v.sel,v.pad); else frame(bbox(atual));
+  renderDock();
+  if(mudo)return;                       // troca de vista substitui, não empilha
+  var h='#'+atual+(i?'/'+i:'');
+  if(location.hash!==h)history.replaceState({id:atual,v:i},'',h);
+}
+
+/* ---- sidebar ---- */
+var sbList=document.getElementById('sbList');
+function renderSidebar(){
+  sbList.innerHTML='';
+  PAGES.forEach(function(g){
+    sbList.appendChild(el('grp',g.grupo));
+    g.itens.forEach(function(p){
+      var b=document.createElement('button');
+      b.type='button';b.className='pgb'+(p.id===atual?' on':'');
+      b.innerHTML='<span class="ic">'+p.ico+'</span><span>'+p.nome+'</span>'+
+        '<span class="st '+(p.estado==='ok'?'ok':'wire')+'">'+
+        (p.estado==='ok'?'NO AR':'WIRE')+'</span>';
+      b.onclick=function(){showPage(p.id,0,true);};
+      sbList.appendChild(b);
+    });
+  });
+}
+
+/* ---- dock ---- */
+var dock=document.getElementById('dock');
+function renderDock(){
+  dock.innerHTML='';
+  var vs=byId[atual].views();
+  vs.forEach(function(v,i){
+    var b=document.createElement('button');b.type='button';
+    b.className=(i===vistaAtual?'on':'');
+    b.innerHTML='<kbd>'+v.k+'</kbd>'+v.l;
+    b.onclick=function(){aplicarVista(i);};
+    dock.appendChild(b);
+  });
+}
+
+/* ---- você está aqui ---- */
+function renderCrumb(){
+  var p=byId[atual];
+  document.getElementById('crumb').innerHTML=p.grupo+' &nbsp;›&nbsp; <b>'+p.nome+'</b>';
+  atualizarProgresso();
+}
+var feitos={};
+function atualizarProgresso(){
+  var n=0;for(var k in feitos)if(feitos[k])n++;
+  document.getElementById('progBar').style.width=(n/36*100)+'%';
+  document.getElementById('progNum').textContent=n+'/36';
+}
+
+/* ---- painel do nó (#5 + #9) ---- */
+var insp=document.getElementById('insp'), inspAtivo=null;
+function abrirInsp(pilar,titulo,idx,total){
+  var cfg=PILAR[pilar];
+  document.getElementById('inspCap').textContent=
+    cfg?('PILAR 0'+pilar+' · '+cfg.fase+'  ·  passo '+idx+' de '+total):('ESTAÇÃO '+idx);
+  document.getElementById('inspTtl').textContent=titulo;
+  var b=document.getElementById('inspBody');
+  b.innerHTML=
+    vaga('▶','AULA','— sem link ainda · depende do mapa de aulas (task pendente, sem responsável)')+
+    vaga('⚡','IA','— sem link individual · hoje tudo cai na home do app (Decisão 7)')+
+    vaga('⚙','FERRAMENTA','— sem selo de plataforma · DB e AB sem URL (Decisão 5)');
+  var c=el('chk'+(feitos[titulo]?' done':''),'<i></i><span>marcar como feito</span>');
+  c.onclick=function(){feitos[titulo]=!feitos[titulo];
+    c.classList.toggle('done',!!feitos[titulo]);atualizarProgresso();};
+  b.appendChild(c);
+  insp.classList.add('on');
+}
+function vaga(ico,k,v){
+  return '<div class="vaga"><span class="vi">'+ico+'</span><span><span class="vk">'+k+
+         '</span><span class="vv">'+v+'</span></span></div>';
+}
+function fecharInsp(){insp.classList.remove('on');
+  var s=document.querySelector('.step.sel');if(s)s.classList.remove('sel');}
+document.getElementById('inspX').onclick=fecharInsp;
+
+world.addEventListener('click',function(e){
+  var s=e.target.closest?e.target.closest('.step,.est'):null;
+  if(!s)return;
+  var old=document.querySelector('.step.sel');if(old)old.classList.remove('sel');
+  if(s.classList.contains('step'))s.classList.add('sel');
+  var p=+s.getAttribute('data-p');
+  abrirInsp(p,s.getAttribute('data-t'),+s.getAttribute('data-i'),passos(p).length);
+});
+
+/* ---- pan + zoom ---- */
+var arrastando=false,px=0,py=0;
+vp.addEventListener('pointerdown',function(e){
+  if(e.target.closest&&e.target.closest('.step,.est'))return;
+  arrastando=true;px=e.clientX;py=e.clientY;vp.classList.add('grab');
+  vp.setPointerCapture(e.pointerId);
+});
+vp.addEventListener('pointermove',function(e){
+  if(!arrastando)return;tx+=e.clientX-px;ty+=e.clientY-py;px=e.clientX;py=e.clientY;apply();
+});
+vp.addEventListener('pointerup',function(){arrastando=false;vp.classList.remove('grab');});
+vp.addEventListener('wheel',function(e){
+  e.preventDefault();
+  if(e.ctrlKey||e.metaKey){
+    var k=Math.exp(-e.deltaY*.0015), nz=Math.max(.15,Math.min(3,z*k));
+    tx=e.clientX-(e.clientX-tx)*(nz/z);ty=e.clientY-(e.clientY-ty)*(nz/z);z=nz;
+  }else if(e.shiftKey){tx-=e.deltaY;}
+  else{tx-=e.deltaX;ty-=e.deltaY;}
+  apply();
+},{passive:false});
+
+/* ---- teclado ---- */
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){fecharInsp();return;}
+  var n=parseInt(e.key,10);
+  if(n>=1&&n<=9){
+    var vs=byId[atual].views();
+    if(vs[n-1])aplicarVista(n-1);
+  }
+});
+
+/* ---- sidebar toggle ---- */
+document.getElementById('sbTog').onclick=function(){
+  document.getElementById('sb').classList.toggle('off');
+  setTimeout(function(){aplicarVista(vistaAtual);},240);
+};
+
+/* ---- deep link + botão voltar ---- */
+function lerHash(){
+  var h=(location.hash||'').replace('#','').split('/');
+  return{id:h[0]||ordem[0], v:parseInt(h[1],10)||0};
+}
+window.addEventListener('popstate',function(){
+  var s=lerHash();showPage(s.id,s.v,false);
+});
+window.addEventListener('resize',function(){aplicarVista(vistaAtual);});
+
+var ini=lerHash();
+showPage(ini.id,ini.v,false);
+history.replaceState({id:ini.id,v:ini.v},'','#'+ini.id+(ini.v?'/'+ini.v:''));
+
+})();
+</script>
+</body>
+</html>

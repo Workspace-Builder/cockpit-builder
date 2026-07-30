@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cockpit Builder — Wireframe da página O Trilho (flywheel)</title>
+<style>
+  :root{
+    --fundo:#0c1018; --fundo-2:#111826; --painel:#141c2b; --painel-2:#182130;
+    --texto:#eef2fb; --texto-2:#9aa7be; --texto-3:#5d6a83;
+    --fio:rgba(255,255,255,.09); --fio-2:rgba(255,255,255,.17);
+    --azul:#4e7df6; --verde:#54c98a; --ambar:#f5b23f; --laranja:#f26a43;
+    --ciano:#33c6d6; --roxo:#9e6cf2;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden;background:var(--fundo);
+    color:var(--texto);font-family:var(--sans);font-size:14px}
+  button{font:inherit;color:inherit;cursor:pointer;background:none;border:none}
+
+  .tela{display:flex;height:100%}
+  .palco{flex:1;position:relative;display:grid;place-items:center;min-width:0;
+    background:radial-gradient(900px 600px at 50% 40%,rgba(78,125,246,.07),transparent 62%)}
+
+  /* ---------- a roda gigante ---------- */
+  .roda{position:relative;width:min(74vh,680px);aspect-ratio:1}
+  .roda svg{width:100%;height:100%;overflow:visible}
+  .fatia{cursor:pointer;transition:opacity .18s}
+  .fatia .preenche{opacity:.30;transition:opacity .2s}
+  .fatia:hover .preenche{opacity:.55}
+  .fatia.on .preenche{opacity:.92}
+  .fatia .borda{fill:none;stroke-width:1.5}
+  .fatia.on .borda{stroke-width:3}
+  .num{font-family:var(--mono);font-size:20px;font-weight:700;pointer-events:none}
+  .rot{font-size:13px;font-weight:700;fill:var(--texto);pointer-events:none;
+    text-transform:uppercase;letter-spacing:.06em}
+
+  /* miolo: o que o flywheel PROMETE */
+  .miolo{position:absolute;inset:0;margin:auto;width:42%;height:42%;display:flex;
+    flex-direction:column;align-items:center;justify-content:center;text-align:center;
+    gap:6px;pointer-events:none}
+  .miolo .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.28em;color:var(--texto-3)}
+  .miolo .n{font-size:44px;font-weight:800;letter-spacing:-.03em;line-height:1}
+  .miolo .s{font-size:11.5px;color:var(--texto-2);line-height:1.4;max-width:22ch}
+
+  /* a seta do ciclo: o que faz ser flywheel e não pizza */
+  .giro{position:absolute;left:50%;top:-14px;transform:translateX(-50%);
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--fundo);
+    background:linear-gradient(92deg,var(--verde),var(--ambar));
+    padding:5px 13px;border-radius:99px;font-weight:700;white-space:nowrap}
+
+  /* ---------- painel da etapa ---------- */
+  .etapa{width:392px;flex:none;border-left:1px solid var(--fio);
+    background:rgba(16,22,34,.96);display:flex;flex-direction:column}
+  .cab{padding:20px 22px 16px;border-bottom:1px solid var(--fio);position:relative}
+  .cab .idx{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:9px;
+    font-family:var(--mono);font-weight:800;font-size:14px;color:#0c1018}
+  .cab h2{margin:11px 0 0;font-size:23px;font-weight:800;letter-spacing:-.02em}
+  .cab .papel{margin:7px 0 0;font-size:12.5px;line-height:1.5;color:var(--texto-2)}
+
+  /* recebe / entrega — a corrente de energia */
+  .corrente{display:flex;gap:9px;padding:14px 22px;border-bottom:1px solid var(--fio)}
+  .corrente div{flex:1;border:1px solid var(--fio);border-radius:10px;padding:9px 11px}
+  .corrente .k{font-family:var(--mono);font-size:8.5px;letter-spacing:.16em;color:var(--texto-3);
+    display:block;margin-bottom:4px}
+  .corrente .v{font-size:11.5px;line-height:1.35;color:var(--texto)}
+
+  .corpo{flex:1;overflow:auto;padding:16px 22px}
+  .tit{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;color:var(--texto-3);
+    text-transform:uppercase;margin:0 0 10px}
+  .passo{display:flex;gap:10px;align-items:flex-start;padding:9px 11px;border-radius:9px;
+    background:rgba(255,255,255,.03);border:1px solid var(--fio);margin-bottom:7px}
+  .passo .p{font-family:var(--mono);font-size:9px;color:var(--texto-3);padding-top:2px;min-width:16px}
+  .passo b{font-size:12.5px;font-weight:700;display:block}
+  .passo .sub{font-size:11px;color:var(--texto-2);line-height:1.35;margin-top:2px}
+  .tag{display:inline-block;font-family:var(--mono);font-size:8px;letter-spacing:.1em;
+    padding:2px 5px;border-radius:4px;border:1px solid currentColor;color:var(--ambar);margin-left:6px}
+
+  .arsenal{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
+  .chip{font-family:var(--mono);font-size:9.5px;padding:4px 8px;border-radius:6px;
+    border:1px solid var(--fio);color:var(--texto-2);background:rgba(255,255,255,.03)}
+
+  .rodape{padding:13px 22px;border-top:1px solid var(--fio);display:flex;
+    align-items:center;justify-content:space-between;gap:10px}
+  .rodape span{font-family:var(--mono);font-size:10px;color:var(--texto-3)}
+  .rodape button{border:1px solid var(--fio);border-radius:8px;padding:7px 13px;
+    font-size:12px;font-weight:600;color:var(--texto-2)}
+  .rodape button:hover{color:#fff;border-color:var(--azul)}
+
+  .dica{position:absolute;left:26px;bottom:22px;font-family:var(--mono);font-size:10px;
+    letter-spacing:.06em;color:var(--texto-3)}
+  .dica kbd{border:1px solid var(--fio-2);border-radius:4px;padding:2px 5px;margin:0 2px}
+</style>
+</head>
+<body>
+
+<div class="tela">
+  <div class="palco">
+    <div class="roda">
+      <div class="giro">↻ cada volta custa menos que a anterior</div>
+      <svg id="svg" viewBox="0 0 1000 1000" aria-label="Flywheel"></svg>
+      <div class="miolo">
+        <span class="k">O CICLO</span>
+        <span class="n" id="mNum">11</span>
+        <span class="s" id="mSub">passos que rodam a cada cliente — os outros 25 você constrói uma vez</span>
+      </div>
+    </div>
+    <div class="dica">clique numa fase · ou <kbd>1</kbd>…<kbd>6</kbd> · <kbd>←</kbd><kbd>→</kbd> anda no ciclo</div>
+  </div>
+
+  <aside class="etapa">
+    <div class="cab">
+      <span class="idx" id="eIdx">01</span>
+      <h2 id="eNome">Atração</h2>
+      <p class="papel" id="ePapel"></p>
+    </div>
+
+    <div class="corrente">
+      <div><span class="k">RECEBE DE</span><span class="v" id="eRec"></span></div>
+      <div><span class="k">ENTREGA PRA</span><span class="v" id="eEnt"></span></div>
+    </div>
+
+    <div class="corpo">
+      <p class="tit">O que você faz aqui</p>
+      <div id="ePassos"></div>
+      <p class="tit" style="margin-top:20px">Com o que você faz</p>
+      <div class="arsenal" id="eArsenal"></div>
+    </div>
+
+    <div class="rodape">
+      <button id="ant">← anterior</button>
+      <span id="ePos">fase 1 de 6</span>
+      <button id="prox">próxima →</button>
+    </div>
+  </aside>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* =========================================================
+   O DADO — as duas camadas que o repo já tem
+   · passos: lib/passos.ts filtrado por cicloPos (o que se FAZ)
+   · arsenal: lib/flywheel.ts, bricks por fase (COM O QUE se faz)
+   O papel/recebe/entrega é o que transforma pizza em flywheel.
+   ========================================================= */
+var FASES=[
+ {n:'Atração', cor:'var(--ambar)',
+  papel:'Leads chegam sem prospecção ativa — posicionamento, portfólio e conteúdo fazem o trabalho.',
+  recebe:'Prova social da volta anterior',
+  entrega:'Conversas que já chegam aquecidas',
+  passos:[], arsenal:['02 · ICP e Posicionamento','08 · Copy Ads','Template Portfólio','Anti Prospecção','Comunidade Behance']},
+
+ {n:'Venda', cor:'var(--laranja)',
+  papel:'Qualquer pessoa vende como o Lorenzi. A IA investiga o lead e conduz a conversa até o sim.',
+  recebe:'Lead que já sabe quem você é',
+  entrega:'Projeto fechado e escopo claro',
+  passos:[{p:1,t:'Atendimento',s:'Investiga antes de dar preço.',k:1},
+          {p:2,t:'Proposta profissional',s:'Amador no zap derruba o ticket na hora.',k:1}],
+  arsenal:['01 · Análise Estratégica','03 · Atendimento e Negociação','04 · Webson Vendedor','Proposta comercial','Contrato']},
+
+ {n:'Gestão', cor:'var(--ciano)',
+  papel:'A entrada do projeto, processualizada. Briefing, contrato, pastas, financeiro — nada se perde.',
+  recebe:'Escopo fechado',
+  entrega:'Projeto pronto pra execução, sem retrabalho',
+  passos:[{p:3,t:'Onboarding do cliente',s:'Todo projeto entra pelo mesmo trilho.',k:1}],
+  arsenal:['Formulários de briefing','Gestão ClickUp','Pasta modelo (Drive)','Planilha financeira']},
+
+ {n:'Execução', cor:'var(--azul)',
+  papel:'O coração. O sistema constrói o que é mecânico — 3× mais rápido — e devolve o tempo pro que importa.',
+  recebe:'Briefing completo',
+  entrega:'Página pronta pra revisão',
+  passos:[{p:4,t:'Estratégia da página',s:'Decidido antes de abrir ferramenta.',k:1},
+          {p:5,t:'Copy',s:'O texto que vende.',k:1},
+          {p:6,t:'Design',s:'Arquétipo, paleta, tipografia. Nunca do zero.',k:1},
+          {p:7,t:'Código e efeitos',s:'O acabamento que separa página de página cara.',k:1},
+          {p:8,t:'Implementação técnica',s:'',k:1}],
+  arsenal:['05 · Estrutura de Sites','06 · Easy Copy','09 · Diretor Criativo','10 · Easy Image','Extensão EB · 1.000+ componentes']},
+
+ {n:'Qualidade', cor:'var(--verde)',
+  papel:'O gate. A página só sai quando passa — é o que protege preço e reputação.',
+  recebe:'Página construída',
+  entrega:'Entrega que o cliente mostra pros outros',
+  passos:[{p:9,t:'Qualidade antes de enviar',s:'O gate: só sai quando passa.',k:1},
+          {p:10,t:'Entregar no prazo',s:'Prazo cumprido é reputação composta.',k:1}],
+  arsenal:['12 · Analisador de Páginas','Checklist de entrega']},
+
+ {n:'Posicionamento', cor:'var(--roxo)',
+  papel:'A entrega vira ativo: depoimento, portfólio, conteúdo. É aqui que a volta seguinte fica mais barata.',
+  recebe:'Cliente satisfeito',
+  entrega:'Prova social que alimenta a Atração — o ciclo fecha',
+  passos:[{p:11,t:'Prova social',s:'Pede hoje, publica essa semana.',k:0}],
+  arsenal:['10 · Easy Image (mockups)','Comunidade Behance','Coleta de depoimento']}
+];
+
+var CX=500, CY=500, R_IN=250, R_OUT=430, GAP=2.4, N=FASES.length, PASSO=360/N;
+var atual=0;
+
+function polar(r,g){var a=(g-90)*Math.PI/180;return[CX+r*Math.cos(a),CY+r*Math.sin(a)];}
+function fmt(p){return p[0].toFixed(1)+' '+p[1].toFixed(1);}
+function anel(ri,ro,a0,a1){
+  var p0=polar(ro,a0),p1=polar(ro,a1),p2=polar(ri,a1),p3=polar(ri,a0);
+  var g=(a1-a0)<=180?0:1;
+  return'M'+fmt(p0)+'A'+ro+' '+ro+' 0 '+g+' 1 '+fmt(p1)+'L'+fmt(p2)+'A'+ri+' '+ri+' 0 '+g+' 0 '+fmt(p3)+'Z';
+}
+function el(t,a){var e=document.createElementNS('http://www.w3.org/2000/svg',t);
+  for(var k in a)e.setAttribute(k,a[k]);return e;}
+
+var svg=document.getElementById('svg');
+FASES.forEach(function(f,i){
+  var a0=i*PASSO+GAP/2, a1=(i+1)*PASSO-GAP/2, meio=(a0+a1)/2;
+  var g=el('g',{class:'fatia',id:'f'+i,tabindex:'0',role:'button','aria-label':f.n});
+  g.appendChild(el('path',{class:'preenche',d:anel(R_IN,R_OUT,a0,a1),fill:f.cor}));
+  g.appendChild(el('path',{class:'borda',d:anel(R_IN,R_OUT,a0,a1),stroke:f.cor}));
+
+  var pn=polar(R_IN+34,meio);
+  var n=el('text',{class:'num',x:pn[0],y:pn[1]+7,'text-anchor':'middle',fill:f.cor});
+  n.textContent='0'+(i+1); g.appendChild(n);
+
+  var pr=polar((R_IN+R_OUT)/2+26,meio);
+  var r=el('text',{class:'rot',x:pr[0],y:pr[1]+5,'text-anchor':'middle',
+    transform:'rotate('+(meio>180?meio+90:meio-90)+' '+pr[0]+' '+pr[1]+')'});
+  r.textContent=f.n; g.appendChild(r);
+
+  g.addEventListener('click',function(){abrir(i);});
+  g.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();abrir(i);}});
+  svg.appendChild(g);
+});
+
+// seta entre fases: a energia passando adiante
+FASES.forEach(function(f,i){
+  var a=(i+1)*PASSO;
+  var p=polar(R_OUT+22,a);
+  var t=el('text',{x:p[0],y:p[1]+5,'text-anchor':'middle','font-size':'15',fill:'var(--texto-3)',
+    transform:'rotate('+a+' '+p[0]+' '+p[1]+')'});
+  t.textContent='▸'; svg.appendChild(t);
+});
+
+function abrir(i){
+  atual=i; var f=FASES[i];
+  FASES.forEach(function(_,k){document.getElementById('f'+k).classList.toggle('on',k===i);});
+  document.getElementById('eIdx').textContent='0'+(i+1);
+  document.getElementById('eIdx').style.background=f.cor;
+  document.getElementById('eNome').textContent=f.n;
+  document.getElementById('ePapel').textContent=f.papel;
+  document.getElementById('eRec').textContent=f.recebe;
+  document.getElementById('eEnt').textContent=f.entrega;
+  document.getElementById('ePos').textContent='fase '+(i+1)+' de '+N;
+
+  var box=document.getElementById('ePassos');
+  box.innerHTML = f.passos.length ? '' :
+    '<div class="passo"><span class="p">—</span><span><b>Nenhum passo cicla aqui</b>'+
+    '<span class="sub">esta fase é efeito das outras: ela acontece porque as anteriores aconteceram.</span></span></div>';
+  f.passos.forEach(function(p){
+    var d=document.createElement('div'); d.className='passo';
+    d.innerHTML='<span class="p">'+p.p+'</span><span><b>'+p.t+
+      (p.k?'<span class="tag">8020</span>':'')+'</b>'+
+      (p.s?'<span class="sub">'+p.s+'</span>':'')+'</span>';
+    box.appendChild(d);
+  });
+
+  var ars=document.getElementById('eArsenal'); ars.innerHTML='';
+  f.arsenal.forEach(function(a){
+    var s=document.createElement('span'); s.className='chip'; s.textContent=a; ars.appendChild(s);
+  });
+}
+
+document.getElementById('ant').onclick=function(){abrir((atual-1+N)%N);};
+document.getElementById('prox').onclick=function(){abrir((atual+1)%N);};
+document.addEventListener('keydown',function(e){
+  if(e.key==='ArrowRight')return abrir((atual+1)%N);
+  if(e.key==='ArrowLeft')return abrir((atual-1+N)%N);
+  var n=parseInt(e.key,10);
+  if(n>=1&&n<=N)abrir(n-1);
+});
+
+abrir(0);
+})();
+</script>
+</body>
+</html>

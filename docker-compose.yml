@@ -1,0 +1,30 @@
+# Banco local do Cockpit.
+#
+# Porta 5436 no host: 5432 é o padrão e 5434 é do workspace-builder, que roda
+# na mesma máquina. Duas stacks disputando porta é a primeira coisa a quebrar
+# num setup novo.
+#
+# Sem pgbouncer aqui de propósito: ele existe no workspace-builder porque lá há
+# worker Celery abrindo conexão por tarefa. Este app tem um pool só.
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: cockpit-postgres
+    environment:
+      POSTGRES_USER: cockpit
+      POSTGRES_PASSWORD: cockpit
+      POSTGRES_DB: cockpit
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "127.0.0.1:5436:5432"
+    volumes:
+      - cockpit_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cockpit -d cockpit"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  cockpit_pgdata:
