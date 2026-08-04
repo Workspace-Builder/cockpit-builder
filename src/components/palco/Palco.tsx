@@ -2,7 +2,16 @@
 
 import BoardCanvas from "@/components/canvas/BoardCanvas";
 import Obra from "@/components/obra/Obra";
-import type { ArestaBoard, NoBoard, Pagina } from "@/lib/model";
+import Motor from "@/components/motor/Motor";
+import { ID_OBRA, ID_MOTOR } from "@/lib/passos";
+import type {
+  ArestaBoard,
+  GavetasDaPagina,
+  NoBoard,
+  Oitenta,
+  Pagina,
+  Passo,
+} from "@/lib/model";
 
 // ---------------------------------------------------------------------------
 // O palco — o canvas, sempre
@@ -30,21 +39,34 @@ export default function Palco({
   onFerramenta,
   itemSel,
   onItem,
+  oitentaVinte,
+  passos,
+  gavetas,
+  andarInicial,
 }: {
   pagina: Pagina;
   nos: NoBoard[];
   arestas: ArestaBoard[];
   editando: boolean;
-  ferramenta: import("@/components/canvas/BarraFerramentas").Ferramenta;
+  ferramenta: import("@/components/canvas/BarraDeEdicao").Ferramenta;
   onFerramenta: (
-    f: import("@/components/canvas/BarraFerramentas").Ferramenta,
+    f: import("@/components/canvas/BarraDeEdicao").Ferramenta,
   ) => void;
   itemSel: string | null;
   onItem: (id: string | null) => void;
+  oitentaVinte: Oitenta;
+  passos: Passo[];
+  gavetas: GavetasDaPagina;
+  andarInicial?: string;
 }) {
   // A Obra não é canvas de nós: é o quarteirão isométrico dos 4 pilares,
   // desenhado a partir da Ordem 0 (lib/passos.ts).
-  if (pagina.id === "obra") return <Obra />;
+  if (pagina.id === ID_OBRA)
+    return <Obra passos={passos} oitentaVinte={oitentaVinte} andarInicial={andarInicial} />;
+
+  // O Trilho também não é canvas de nós: é a roda do funil anti-prospecção com
+  // o arsenal por setor, desenhada a partir de lib/flywheel.ts.
+  if (pagina.id === ID_MOTOR) return <Motor />;
 
   return (
     <div className="relative min-h-0 flex-1 overflow-hidden">
@@ -57,6 +79,7 @@ export default function Palco({
         onFerramenta={onFerramenta}
         itemSel={itemSel}
         onItem={onItem}
+        gavetas={gavetas}
       />
     </div>
   );

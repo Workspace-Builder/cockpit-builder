@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   useReactFlow,
   useStore,
@@ -68,12 +68,10 @@ function caixaDe(n: Node): Caixa {
 export function useGuias({
   nos,
   editando,
-  movidos,
   setMovidos,
 }: {
   nos: NoBoard[];
   editando: boolean;
-  movidos: Record<string, XYPosition>;
   setMovidos: (
     f: (antes: Record<string, XYPosition>) => Record<string, XYPosition>,
   ) => void;
@@ -82,16 +80,13 @@ export function useGuias({
   const [guias, setGuias] = useState<Guias>(SEM_GUIAS);
   const zoom = useStore((s) => s.transform[2]);
 
-  /** o `movidos` de antes de cada arrasto — a pilha do Ctrl+Z */
-  const historico = useRef<Record<string, XYPosition>[]>([]);
-
-  // Onde cada nó estava quando a página carregou. É o que o desfazer precisa
-  // pra nó que sai do override: `movidos` guarda só quem se mexeu, então sem
-  // isto não haveria como saber pra onde ele volta.
-  const origem = useMemo(
-    () => new Map(nos.map((n) => [n.id, { x: n.x, y: n.y }])),
-    [nos],
-  );
+  /* O Ctrl+Z SAIU DAQUI em 2026-08-03.
+     Havia uma pilha de `movidos` neste hook, e ela desfazia só POSIÇÃO — não
+     cobria colar, criar, excluir nem gaveta, e morria ao trocar de página
+     (era `useRef`). Hoje quem desfaz é o servidor, restaurando a cópia
+     anterior do JSON da página (`lib/historico.ts`): um mecanismo só, que
+     cobre toda operação e sobrevive ao F5. Manter os dois seria ter duas
+     verdades sobre "o que era antes". */
 
   // A página é a mesma pra todos os nós; ler do primeiro evita arrastar o id
   // por Palco e AppShell só pra chegar aqui.
@@ -138,24 +133,26 @@ export function useGuias({
         setGuias(SEM_GUIAS);
       }
 
+      // Comparar antes de gravar: um objeto novo com os MESMOS números ainda é
+      // estado novo pro React, e o `movidos` alimenta os nós do canvas. Sem
+      // esta guarda, uma mudança de posição que não move nada (o React Flow
+      // emite algumas) rebobinava o board inteiro à toa. Ver a nota longa em
+      // `aoMudarNos` (BoardCanvas): é o mesmo laço, pela outra porta.
       setMovidos((antes) => {
+        let mudou = false;
         const novo = { ...antes };
         for (const p of posicoes) {
-          if (p.type === "position" && p.position) novo[p.id] = p.position;
+          if (p.type !== "position" || !p.position) continue;
+          const atual = antes[p.id];
+          if (atual && atual.x === p.position.x && atual.y === p.position.y) continue;
+          novo[p.id] = p.position;
+          mudou = true;
         }
-        return novo;
+        return mudou ? novo : antes;
       });
     },
     [editando, getNodes, zoom, guias, setMovidos],
   );
-
-  /** Antes de mover, guarda de onde saiu — senão não há pra onde voltar. */
-  const onNodeDragStart = useCallback(() => {
-    historico.current.push({ ...movidos });
-    // 50 passos: fundo suficiente pra uma sessão de organização, e raso o
-    // bastante pra não segurar cópia do board sem limite na memória.
-    if (historico.current.length > 50) historico.current.shift();
-  }, [movidos]);
 
   /** Soltou: some com as guias e grava. `arrastados` traz a seleção inteira. */
   const onNodeDragStop = useCallback(
@@ -167,28 +164,5 @@ export function useGuias({
     [gravar],
   );
 
-  /**
-   * Ctrl+Z: volta o `movidos` pro estado anterior ao último arrasto e regrava.
-   *
-   * Regrava DUAS listas, e a segunda é a que não é óbvia: o nó que sai do
-   * override volta na tela pra posição da carga, mas no banco continua a
-   * posição arrastada. Sem gravar a volta dele, o desfazer sumiria no F5.
-   */
-  const desfazer = useCallback(() => {
-    const anterior = historico.current.pop();
-    if (!anterior) return;
-
-    const saindo = Object.keys(movidos).filter((id) => !(id in anterior));
-    setMovidos(() => anterior);
-
-    gravar([
-      ...Object.entries(anterior).map(([id, p]) => ({ id, x: p.x, y: p.y })),
-      ...saindo.flatMap((id) => {
-        const o = origem.get(id);
-        return o ? [{ id, x: o.x, y: o.y }] : [];
-      }),
-    ]);
-  }, [movidos, origem, gravar, setMovidos]);
-
-  return { guias, onNodesChange, onNodeDragStart, onNodeDragStop, desfazer };
+  return { guias, onNodesChange, onNodeDragStop };
 }

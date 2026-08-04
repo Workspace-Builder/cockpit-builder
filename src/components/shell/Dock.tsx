@@ -21,6 +21,7 @@ import {
   salvarCheckpointAction,
 } from "@/app/actions";
 import type { Pagina } from "@/lib/model";
+import { PODE_EDITAR } from "@/lib/modo";
 
 // ---------------------------------------------------------------------------
 // A barra de baixo — checkpoints de tela, e o menu de edição
@@ -107,31 +108,46 @@ export default function Dock({
       <div
         className={clsx(
           "fixed bottom-[22px] left-1/2 z-[900] flex -translate-x-1/2 items-center gap-1",
-          "max-w-[calc(100vw-var(--w-lateral)-var(--w-direita)-40px)] rounded-2xl border",
+          // O calc de baixo dá NEGATIVO abaixo de ~624px de tela (288+296+40),
+          // e max-width negativo é valor inválido: o CSS descarta a regra
+          // inteira e o dock crescia solto, jogando os checkpoints pra fora da
+          // tela sem scroll pra alcançar. A trava de mobile vem primeiro e a
+          // das colunas só entra onde as colunas existem.
+          "max-w-[calc(100vw-24px)] lg:max-w-[calc(100vw-var(--w-lateral-atual)-var(--w-direita)-40px)]",
+          "rounded-2xl border",
           "bg-[rgba(13,18,29,.96)] px-2.5 py-[7px] shadow-[0_16px_44px_rgba(0,0,0,.55)] backdrop-blur-md",
           editando ? "border-[rgba(245,178,63,.55)]" : "border-fio",
         )}
       >
         {/* Estava escondido no ⋮ e ninguém achava. Botão de modo é estado da
-            tela, não comando de menu: fica à vista, dizendo em qual modo você está. */}
-        <button
-          type="button"
-          onClick={() => onEditando(!editando)}
-          title={editando ? "Sair da edição" : "Editar esta página"}
-          className={clsx(
-            "flex h-10 flex-none items-center gap-2 rounded-[10px] px-3 text-[12.5px] font-semibold",
-            editando
-              ? "bg-[rgba(245,178,63,.18)] text-ambar"
-              : "text-texto-2 hover:bg-white/[.09] hover:text-white",
-          )}
-        >
-          <Move size={13} />
-          {editando ? "Movendo itens" : "Editar"}
-        </button>
-        <span className="mx-1 h-6 w-px flex-none bg-fio" />
+            tela, não comando de menu: fica à vista, dizendo em qual modo você está.
+
+            Some inteiro na build do aluno: ali não há escrita nenhuma do outro
+            lado (as ações viram no-op), então o botão prometeria um modo que
+            não existe. `PODE_EDITAR` é constante de build, então o ramo é
+            podado do bundle em vez de viajar junto e nunca renderizar. */}
+        {PODE_EDITAR && (
+          <>
+            <button
+              type="button"
+              onClick={() => onEditando(!editando)}
+              title={editando ? "Sair da edição" : "Editar esta página"}
+              className={clsx(
+                "flex h-10 flex-none items-center gap-2 rounded-[10px] px-3 text-[12.5px] font-semibold",
+                editando
+                  ? "bg-[rgba(245,178,63,.18)] text-ambar"
+                  : "text-texto-2 hover:bg-white/[.09] hover:text-white",
+              )}
+            >
+              <Move size={13} />
+              {editando ? "Movendo itens" : "Editar"}
+            </button>
+            <span className="mx-1 h-6 w-px flex-none bg-fio" />
+          </>
+        )}
 
         <div className="flex min-w-0 items-center gap-1 overflow-x-auto">
-          {pagina.vistas.length === 0 && (
+          {pagina.vistas.length === 0 && PODE_EDITAR && (
             <span className="whitespace-nowrap px-3 text-[11.5px] text-texto-3">
               nenhuma tela salva — use o ⋮
             </span>
@@ -163,21 +179,31 @@ export default function Dock({
                 // Arrasto nativo do HTML, sem dependência nova. É o mesmo
                 // recurso que o wireframe-navegacao.html usava pra reordenar
                 // camadas — e aqui a lista tem meia dúzia de itens, não mil.
-                draggable
-                onDragStart={() => setPuxando(v.id)}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  if (puxando && puxando !== v.id) setAlvo(v.id);
-                }}
-                onDragLeave={() => setAlvo((a) => (a === v.id ? null : a))}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  soltarEm(v.id);
-                }}
-                onDragEnd={limparArrasto}
+                //
+                // Pro aluno o mesmo botão fica só com o onClick que navega:
+                // reordenar e renomear são escrita, e sem elas o `title` também
+                // muda — prometer "arraste pra reordenar" onde nada reordena é
+                // pior que não dizer nada.
+                {...(PODE_EDITAR
+                  ? {
+                      draggable: true,
+                      onDragStart: () => setPuxando(v.id),
+                      onDragOver: (e: React.DragEvent) => {
+                        e.preventDefault();
+                        if (puxando && puxando !== v.id) setAlvo(v.id);
+                      },
+                      onDragLeave: () =>
+                        setAlvo((a) => (a === v.id ? null : a)),
+                      onDrop: (e: React.DragEvent) => {
+                        e.preventDefault();
+                        soltarEm(v.id);
+                      },
+                      onDragEnd: limparArrasto,
+                      onDoubleClick: () => setRenomeando(v.id),
+                      title: "Arraste pra reordenar · duplo clique renomeia",
+                    }
+                  : { title: v.label })}
                 onClick={() => onVista(i)}
-                onDoubleClick={() => setRenomeando(v.id)}
-                title="Arraste pra reordenar · duplo clique renomeia"
                 className={clsx(
                   "flex h-10 flex-none items-center gap-2 whitespace-nowrap rounded-[10px] px-3 text-[12.5px] font-semibold",
                   i === vista
@@ -247,6 +273,9 @@ export default function Dock({
           )}
         </button>
 
+        {/* O ⋮ inteiro é escrita — salvar, regravar, renomear e excluir
+            checkpoint. Não existe pro aluno. */}
+        {PODE_EDITAR && (
         <div className="relative flex-none">
           <button
             type="button"
@@ -315,6 +344,7 @@ export default function Dock({
             </div>
           )}
         </div>
+        )}
 
         <span className="hidden whitespace-nowrap px-2 text-[11px] text-texto-3 xl:block">
           {editando
