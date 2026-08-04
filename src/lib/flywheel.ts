@@ -14,7 +14,54 @@ export type Natureza =
   | "ia" | "tool" | "setup" | "curso"
   | "comunidade" | "mentoria" | "suporte" | "bonus" | "processo";
 
-export type Tijolo = { n: string; t: Natureza; note?: string; loop?: boolean };
+/** Pilar de origem do tijolo (`passos.ts`). `0` = não nasceu de passo nenhum. */
+export type Pilar = 0 | 1 | 2 | 3 | 4;
+
+export type Tijolo = {
+  n: string;
+  t: Natureza;
+  note?: string;
+  loop?: boolean;
+  /**
+   * De ONDE o tijolo vem. O setor diz onde ele é usado; o pilar, de onde saiu.
+   *
+   * O cruzamento foi feito pelo rótulo, porque é só isso que existe hoje: os
+   * mesmos entregáveis estão escritos duas vezes, à mão, aqui e em `passos.ts`
+   * ("IA 05 Estrutura de Sites" lá, "05 · Estrutura de Sites" aqui). De 40
+   * entregáveis, 5 batem por nome. Enquanto não houver id ligando os dois, esta
+   * coluna é curadoria — e desincroniza sozinha na próxima edição.
+   *
+   * `0` não é erro: é item de plataforma (bônus, comunidade, acervo) que não
+   * nasceu de passo nenhum. A tela mostra a contagem em vez de fingir cobertura.
+   */
+  p?: Pilar;
+
+  /**
+   * O MESMO entregável, do lado da Obra: `"<id-do-passo>:<vaga>"`.
+   *
+   * A Obra e o Motor mostram o mesmo arsenal por eixos diferentes — lá por
+   * andar, aqui por fase do ciclo. Até agora os dois guardavam o item pelo
+   * rótulo escrito à mão, e o mesmo entregável tinha dois nomes: "IA 05
+   * Estrutura de Sites" no `passos.ts`, "05 · Estrutura de Sites" aqui. Este
+   * campo é a costura: quem tem `ref` deixa de ser texto solto e passa a
+   * apontar pra vaga real, com URL, plataforma e marcação 80/20 já resolvidas
+   * do outro lado.
+   *
+   * 41 dos 67 tijolos têm par. Os 26 sem `ref` não são erro — são acervo e
+   * bônus (PageBox, +800 seções, Licenças Elementor) que não nascem de passo
+   * nenhum. Enquanto não tiverem, não abrem: link que não leva a lugar nenhum
+   * é pior que ausência de link.
+   */
+  ref?: string;
+};
+
+export const PILARES: Record<Pilar, { n: string; c: string }> = {
+  1: { n: "Pilar 01 · Entrega de alto valor", c: "var(--c-p1)" },
+  2: { n: "Pilar 02 · Valor percebido", c: "var(--c-p2)" },
+  3: { n: "Pilar 03 · Gestão e eficiência", c: "var(--c-p3)" },
+  4: { n: "Pilar 04 · Ambiente e mentalidade", c: "var(--c-p4)" },
+  0: { n: "Sem pilar mapeado", c: "var(--texto-3)" },
+};
 
 export type Fase = {
   key: string;
@@ -44,93 +91,93 @@ export const PHASES=[
   {key:'atracao', name:'Atração', varc:'--c-atracao',
    role:'Leads chegam sem prospecção ativa — posicionamento, portfólio e conteúdo fazem o trabalho por você.',
    bricks:[
-     {n:'02 · ICP e Posicionamento',t:'ia'},
-     {n:'08 · Copy Builder — Ads',t:'ia'},
-     {n:'07 · Copy Builder — Carrossel',t:'ia'},
-     {n:'10 · Easy Image',t:'ia'},
-     {n:'Template de Portfólio (Behance)',t:'setup'},
-     {n:'Template de Carrossel (Instagram)',t:'setup'},
-     {n:'Comunidade Behance',t:'comunidade'},
-     {n:'Anti Prospecção',t:'curso'},
-     {n:'Easy Sales',t:'curso'},
-     {n:'Indicação de clientes grandes',t:'comunidade'},
-     {n:'Arena Builder (marketplace)',t:'comunidade'},
-     {n:'Rede de contratação interna',t:'comunidade'},
-     {n:'Tools Builder (isca / front-end)',t:'tool'}
+     {n:'02 · ICP e Posicionamento',t:'ia',p:2,ref:'posicionamento:ia'},
+     {n:'08 · Copy Builder — Ads',t:'ia',p:2,ref:'trafego-pago-nitro:ia'},
+     {n:'07 · Copy Builder — Carrossel',t:'ia',p:2,ref:'instagram:ia'},
+     {n:'10 · Easy Image',t:'ia',p:1,ref:'imagem-e-direcao-visual:ia'},
+     {n:'Template de Portfólio (Behance)',t:'setup',p:2,ref:'portfolio:ferram'},
+     {n:'Template de Carrossel (Instagram)',t:'setup',p:2,ref:'instagram:ferram'},
+     {n:'Comunidade Behance',t:'comunidade',p:0},
+     {n:'Anti Prospecção',t:'curso',p:2,ref:'posicionamento:aula'},
+     {n:'Easy Sales',t:'curso',p:2,ref:'atendimento:aula'},
+     {n:'Indicação de clientes grandes',t:'comunidade',p:4},
+     {n:'Arena Builder (marketplace)',t:'comunidade',p:0},
+     {n:'Rede de contratação interna',t:'comunidade',p:0},
+     {n:'Tools Builder (isca / front-end)',t:'tool',p:0}
    ]},
   {key:'venda', name:'Venda', varc:'--c-venda',
    role:'Qualquer pessoa vende como o Lorenzi. A IA investiga o lead e conduz a conversa até o sim.',
    bricks:[
-     {n:'01 · Análise Estratégica',t:'ia'},
-     {n:'03 · Atendimento e Negociação',t:'ia'},
-     {n:'04 · Webson Vendedor',t:'ia'},
-     {n:'02 · ICP e Posicionamento',t:'ia'},
-     {n:'Proposta comercial',t:'setup'},
-     {n:'Contrato profissional',t:'setup'},
-     {n:'Easy Sales',t:'curso'}
+     {n:'01 · Análise Estratégica',t:'ia',p:2,ref:'plano-de-negocio:ia'},
+     {n:'03 · Atendimento e Negociação',t:'ia',p:2,ref:'atendimento:ia'},
+     {n:'04 · Webson Vendedor',t:'ia',p:0},
+     {n:'02 · ICP e Posicionamento',t:'ia',p:2,ref:'posicionamento:ia'},
+     {n:'Proposta comercial',t:'setup',p:2,ref:'proposta-profissional:ferram'},
+     {n:'Contrato profissional',t:'setup',p:3,ref:'proteger-escopo-e-contrato:ferram'},
+     {n:'Easy Sales',t:'curso',p:2,ref:'atendimento:aula'}
    ]},
   {key:'gestao', name:'Gestão', varc:'--c-gestao',
    role:'A entrada e a organização do projeto, processualizadas. Briefing, contrato, pastas, financeiro — nada se perde.',
    bricks:[
-     {n:'Formulários de briefing',t:'setup'},
-     {n:'Formulário de coleta de dados',t:'setup'},
-     {n:'Gestão ClickUp (Setup Builder)',t:'setup'},
-     {n:'Pasta modelo (Google Drive)',t:'setup'},
-     {n:'Fluxograma dos processos',t:'setup'},
-     {n:'Planilha financeira',t:'setup'},
-     {n:'Contrato profissional',t:'setup'},
-     {n:'Proposta comercial',t:'setup'},
-     {n:'Compartilhamento de recursos (equipe)',t:'tool'},
-     {n:'Meus Recursos',t:'tool'}
+     {n:'Formulários de briefing',t:'setup',p:3,ref:'onboarding-do-cliente:ferram'},
+     {n:'Formulário de coleta de dados',t:'setup',p:0},
+     {n:'Gestão ClickUp (Setup Builder)',t:'setup',p:3,ref:'entregar-no-prazo:ferram'},
+     {n:'Pasta modelo (Google Drive)',t:'setup',p:3,ref:'conciliar-as-demandas:ferram'},
+     {n:'Fluxograma dos processos',t:'setup',p:0},
+     {n:'Planilha financeira',t:'setup',p:3,ref:'controle-financeiro:ferram'},
+     {n:'Contrato profissional',t:'setup',p:3,ref:'proteger-escopo-e-contrato:ferram'},
+     {n:'Proposta comercial',t:'setup',p:2,ref:'proposta-profissional:ferram'},
+     {n:'Compartilhamento de recursos (equipe)',t:'tool',p:0},
+     {n:'Meus Recursos',t:'tool',p:0}
    ]},
   {key:'execucao', name:'Execução', varc:'--c-execucao',
    role:'O coração. O sistema constrói tudo que é mecânico — 3× mais rápido — e devolve o tempo pro que importa.',
    bricks:[
-     {n:'05 · Estrutura de Sites',t:'ia'},
-     {n:'06 · Easy Copy',t:'ia'},
-     {n:'09 · Diretor Criativo',t:'ia'},
-     {n:'10 · Easy Image',t:'ia'},
-     {n:'11 · Easy Coder',t:'ia'},
-     {n:'01 · Análise Estratégica',t:'ia'},
-     {n:'Extensão Easy Builder — 1.000+ componentes',t:'tool'},
-     {n:'+180 páginas completas',t:'tool'},
-     {n:'+800 seções',t:'tool'},
-     {n:'+120 códigos & elementos',t:'tool'},
-     {n:'Responsividade automática',t:'tool'},
-     {n:'Templates de IA',t:'tool'},
-     {n:'Backup WordPress (3 cliques)',t:'tool'},
-     {n:'Meus Recursos',t:'tool'},
-     {n:'Novos drops (quinzenal)',t:'tool'},
-     {n:'PageBox — 70+ Figma',t:'tool'},
-     {n:'Arsenal do Web Designer',t:'tool'},
-     {n:'Design Easy',t:'curso'},
-     {n:'Fast Builder / Profissão Web Building',t:'curso'},
-     {n:'Figma Education',t:'bonus'},
-     {n:'Hospedagem VPS',t:'bonus'},
-     {n:'Licenças Elementor',t:'bonus'},
-     {n:'Suporte com desenvolvedores',t:'suporte'}
+     {n:'05 · Estrutura de Sites',t:'ia',p:1,ref:'estrategia-da-pagina:ia'},
+     {n:'06 · Easy Copy',t:'ia',p:1,ref:'copy:ia'},
+     {n:'09 · Diretor Criativo',t:'ia',p:1,ref:'design:ia'},
+     {n:'10 · Easy Image',t:'ia',p:1,ref:'imagem-e-direcao-visual:ia'},
+     {n:'11 · Easy Coder',t:'ia',p:1,ref:'codigo-e-efeitos:ia'},
+     {n:'01 · Análise Estratégica',t:'ia',p:2,ref:'plano-de-negocio:ia'},
+     {n:'Extensão Easy Builder — 1.000+ componentes',t:'tool',p:1,ref:'design:ferram'},
+     {n:'+180 páginas completas',t:'tool',p:0},
+     {n:'+800 seções',t:'tool',p:0},
+     {n:'+120 códigos & elementos',t:'tool',p:0},
+     {n:'Responsividade automática',t:'tool',p:1,ref:'responsividade:ferram'},
+     {n:'Templates de IA',t:'tool',p:0},
+     {n:'Backup WordPress (3 cliques)',t:'tool',p:1,ref:'implementacao-tecnica:ferram'},
+     {n:'Meus Recursos',t:'tool',p:0},
+     {n:'Novos drops (quinzenal)',t:'tool',p:0},
+     {n:'PageBox — 70+ Figma',t:'tool',p:0},
+     {n:'Arsenal do Web Designer',t:'tool',p:0},
+     {n:'Design Easy',t:'curso',p:1,ref:'design:aula'},
+     {n:'Fast Builder / Profissão Web Building',t:'curso',p:0},
+     {n:'Figma Education',t:'bonus',p:0},
+     {n:'Hospedagem VPS',t:'bonus',p:0},
+     {n:'Licenças Elementor',t:'bonus',p:0},
+     {n:'Suporte com desenvolvedores',t:'suporte',p:0}
    ]},
   {key:'qualidade', name:'Qualidade', varc:'--c-qualidade',
    role:'O gate. Otimização, performance, segurança e o olho do Lorenzi garantem que nenhuma página saia abaixo do padrão.',
    bricks:[
-     {n:'12 · Analisador de Páginas',t:'ia',note:'o gate que toda página atravessa'},
-     {n:'Easy Optimize',t:'curso'},
-     {n:'11 · Easy Coder (otimização)',t:'ia'},
-     {n:'Responsividade automática',t:'tool'},
-     {n:'Tools Builder (compressor / otimizador)',t:'tool'},
-     {n:'Backup WordPress (ambiente seguro)',t:'tool'},
-     {n:'Suporte com desenvolvedores',t:'suporte'}
+     {n:'12 · Analisador de Páginas',t:'ia',p:1,note:'o gate que toda página atravessa',ref:'qualidade-antes-de-enviar:ia'},
+     {n:'Easy Optimize',t:'curso',p:1,ref:'otimizacao:aula'},
+     {n:'11 · Easy Coder (otimização)',t:'ia',p:1,ref:'codigo-e-efeitos:ia'},
+     {n:'Responsividade automática',t:'tool',p:1,ref:'responsividade:ferram'},
+     {n:'Tools Builder (compressor / otimizador)',t:'tool',p:0},
+     {n:'Backup WordPress (ambiente seguro)',t:'tool',p:1,ref:'otimizacao:ferram'},
+     {n:'Suporte com desenvolvedores',t:'suporte',p:0}
    ]},
   {key:'posicionamento', name:'Posicionamento', varc:'--c-posicionamento',
    role:'A entrega vira portfólio, indicação e tráfego gratuito. Fecha o volante e reabastece a Atração.',
    bricks:[
-     {n:'Template de Portfólio (Figma)',t:'setup',loop:true},
-     {n:'Template de Carrossel (Instagram)',t:'setup',loop:true},
-     {n:'07 · Copy Builder — Carrossel',t:'ia',loop:true},
-     {n:'10 · Easy Image (mockups)',t:'ia'},
-     {n:'02 · ICP e Posicionamento',t:'ia'},
-     {n:'Comunidade Behance',t:'comunidade'},
-     {n:'Coleta de depoimento',t:'processo'}
+     {n:'Template de Portfólio (Figma)',t:'setup',p:2,loop:true,ref:'portfolio:ferram'},
+     {n:'Template de Carrossel (Instagram)',t:'setup',p:2,loop:true,ref:'instagram:ferram'},
+     {n:'07 · Copy Builder — Carrossel',t:'ia',p:2,loop:true,ref:'instagram:ia'},
+     {n:'10 · Easy Image (mockups)',t:'ia',p:1,ref:'imagem-e-direcao-visual:ia'},
+     {n:'02 · ICP e Posicionamento',t:'ia',p:2,ref:'posicionamento:ia'},
+     {n:'Comunidade Behance',t:'comunidade',p:0},
+     {n:'Coleta de depoimento',t:'processo',p:2,ref:'prova-social:ferram'}
    ]}
 ] as Fase[];
 
