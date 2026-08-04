@@ -1,0 +1,129 @@
+/* ---------------------------------------------------------------------------
+   O TRILHO — casca comum das 3 perspectivas
+   Só a PISTA muda entre os três arquivos. Painel, HUD, cores e tipografia são
+   idênticos de propósito: se a casca variasse, a comparação não valeria nada.
+   Tokens iguais aos de src/app/globals.css.
+   --------------------------------------------------------------------------- */
+
+:root{
+  --fundo:#0c1018; --fundo-2:#111826; --painel:#141c2b; --painel-2:#182130;
+  --texto:#eef2fb; --texto-2:#9aa7be; --texto-3:#5d6a83;
+  --fio:rgba(255,255,255,.09); --fio-2:rgba(255,255,255,.17);
+  --c-atracao:#f5b23f; --c-venda:#f26a43; --c-gestao:#33c6d6;
+  --c-execucao:#4e7df6; --c-qualidade:#9e6cf2; --c-posicionamento:#54c98a;
+  --acento:#4e7df6;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--fundo);
+  color:var(--texto);font-family:var(--sans);font-size:14px;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:none}
+
+.tela{display:flex;height:100%}
+.palco{flex:1;position:relative;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+
+/* ---------- cabeçalho ---------- */
+.topo{padding:18px 26px 0;flex:none;position:relative;z-index:3}
+.topo .kick{font-family:var(--mono);font-size:9.5px;letter-spacing:.26em;color:var(--texto-3)}
+.topo h1{margin:6px 0 0;font-size:25px;font-weight:800;letter-spacing:-.025em}
+.topo h1 em{font-style:normal;color:var(--texto-3);font-weight:600}
+.topo .lede{margin:6px 0 0;font-size:12.5px;color:var(--texto-2);max-width:62ch;line-height:1.5}
+
+/* ---------- HUD: odômetro · volta · bagageiro ---------- */
+.hud{position:absolute;left:26px;bottom:18px;display:flex;gap:9px;align-items:stretch;z-index:4}
+.hitem{border:1px solid var(--fio);border-radius:10px;padding:8px 12px;background:rgba(12,16,24,.82);
+  backdrop-filter:blur(6px);display:flex;flex-direction:column;gap:5px;justify-content:center}
+.hk{font-family:var(--mono);font-size:8px;letter-spacing:.18em;color:var(--texto-3)}
+.hitem b{font-family:var(--mono);font-size:16px;font-weight:800;letter-spacing:-.02em}
+.bag{min-width:auto}
+#hBag{display:flex;gap:3px}
+#hBag i{width:11px;height:13px;border-radius:2px;border:1px solid var(--fio-2);
+  background:rgba(255,255,255,.04);position:relative;transition:background .25s,border-color .25s}
+#hBag i::after{content:"";position:absolute;left:1px;right:1px;top:4px;height:1px;background:rgba(255,255,255,.14)}
+#hBag i.on{border-color:transparent}
+
+.dica{position:absolute;right:24px;bottom:20px;font-family:var(--mono);font-size:10px;
+  letter-spacing:.05em;color:var(--texto-3);text-align:right;line-height:1.9;z-index:4}
+.dica kbd{border:1px solid var(--fio-2);border-radius:4px;padding:2px 5px;margin:0 1px;color:var(--texto-2)}
+
+/* ---------- painel do posto ---------- */
+.posto{width:404px;flex:none;border-left:1px solid var(--fio);background:rgba(16,22,34,.97);
+  display:flex;flex-direction:column;--pc:var(--c-execucao)}
+
+.pcab{padding:18px 20px 14px;border-bottom:1px solid var(--fio);display:flex;gap:12px;align-items:flex-start}
+.pkm{flex:none;display:grid;place-items:center;width:42px;height:42px;border-radius:11px;
+  font-family:var(--mono);font-weight:800;font-size:16px;color:#0c1018;background:var(--pc)}
+.pcab h2{margin:0;font-size:20px;font-weight:800;letter-spacing:-.02em;line-height:1.2}
+.ptrecho{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.16em;
+  color:var(--pc);margin-top:4px;text-transform:uppercase}
+.ped{margin-left:auto;flex:none;font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;
+  border:1px solid currentColor;color:#f26a43;border-radius:5px;padding:3px 6px;white-space:nowrap}
+.ped.livre{color:var(--texto-3)}
+
+.psub{margin:0;padding:12px 20px;font-size:12px;line-height:1.5;color:var(--texto-2);
+  border-bottom:1px solid var(--fio)}
+
+.btit{font-family:var(--mono);font-size:9px;letter-spacing:.16em;color:var(--texto-3);
+  text-transform:uppercase;margin:0 0 9px;display:flex;align-items:center;gap:7px}
+.ph{font-family:var(--mono);font-size:7.5px;letter-spacing:.08em;text-transform:none;
+  border:1px dashed var(--fio-2);border-radius:4px;padding:2px 5px;color:var(--texto-3)}
+
+/* a bomba: o checklist como abastecimento */
+.bomba{display:flex;gap:14px;padding:15px 20px;border-bottom:1px solid var(--fio)}
+.tanque{flex:none;width:50px;border:1px solid var(--fio-2);border-radius:10px;position:relative;
+  overflow:hidden;background:rgba(0,0,0,.34)}
+.nivel{position:absolute;left:0;right:0;bottom:0;height:0;transition:height .38s cubic-bezier(.4,.1,.2,1);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--pc) 82%,#fff),var(--pc))}
+.tanque .risco{position:absolute;left:0;width:7px;height:1px;background:var(--fio-2)}
+.tanque .lit{position:absolute;inset:auto 0 0;text-align:center;font-family:var(--mono);
+  font-size:11px;font-weight:800;padding:5px 0;color:var(--texto);mix-blend-mode:difference}
+.lado{flex:1;min-width:0}
+.item{display:flex;gap:9px;align-items:flex-start;padding:7px 9px;border-radius:8px;cursor:pointer;
+  border:1px solid var(--fio);background:rgba(255,255,255,.025);margin-bottom:5px;transition:.16s}
+.item:hover{border-color:var(--fio-2);background:rgba(255,255,255,.05)}
+.item .cx{flex:none;width:14px;height:14px;border-radius:4px;border:1.5px solid var(--fio-2);
+  margin-top:1px;display:grid;place-items:center;font-size:9px;color:#0c1018;transition:.16s}
+.item.on .cx{background:var(--pc);border-color:var(--pc)}
+.item.on .cx::after{content:"✓";font-weight:800}
+.item span{font-size:11.5px;line-height:1.35;color:var(--texto-2)}
+.item.on span{color:var(--texto);text-decoration:line-through;text-decoration-color:var(--texto-3)}
+.gate{margin-top:9px;font-family:var(--mono);font-size:9.5px;letter-spacing:.05em;
+  padding:7px 9px;border-radius:8px;border:1px solid var(--fio);color:var(--texto-3)}
+.gate.travado{color:#f26a43;border-color:color-mix(in srgb,#f26a43 40%,transparent);
+  background:color-mix(in srgb,#f26a43 9%,transparent)}
+.gate.ok{color:var(--c-posicionamento);border-color:color-mix(in srgb,#54c98a 40%,transparent);
+  background:color-mix(in srgb,#54c98a 9%,transparent)}
+
+/* a prateleira: o arsenal que vive dentro do posto */
+.prat{flex:1;overflow:auto;padding:15px 20px}
+.tij{display:flex;gap:9px;align-items:center;padding:7px 10px;border-radius:8px;margin-bottom:5px;
+  border:1px solid var(--fio);background:rgba(255,255,255,.025)}
+.tij .ic{flex:none;width:22px;height:22px;border-radius:6px;display:grid;place-items:center;font-size:11px;
+  background:color-mix(in srgb,var(--pc) 16%,transparent);border:1px solid color-mix(in srgb,var(--pc) 32%,transparent)}
+.tij b{font-size:11.5px;font-weight:600;display:block}
+.tij .nat{font-family:var(--mono);font-size:8px;letter-spacing:.12em;color:var(--texto-3);
+  text-transform:uppercase;display:block;margin-top:2px}
+
+.pnav{flex:none;padding:12px 20px;border-top:1px solid var(--fio);display:flex;
+  align-items:center;justify-content:space-between;gap:8px}
+.pnav span{font-family:var(--mono);font-size:9.5px;color:var(--texto-3)}
+.pnav button{border:1px solid var(--fio);border-radius:8px;padding:7px 11px;font-size:11.5px;
+  font-weight:600;color:var(--texto-2);transition:.16s}
+.pnav button:hover{color:#fff;border-color:var(--pc)}
+.pnav button.travado{opacity:.4;cursor:not-allowed}
+.pnav button.travado:hover{color:var(--texto-2);border-color:var(--fio)}
+
+/* modo descida: o trecho da Atração, que não tem posto nenhum */
+.posto.descida{--pc:var(--c-atracao)}
+.descida-corpo{flex:1;padding:22px 20px;display:flex;flex-direction:column;gap:14px;justify-content:center}
+.descida-corpo .grande{font-size:17px;font-weight:800;line-height:1.35;letter-spacing:-.02em}
+.descida-corpo p{margin:0;font-size:12px;line-height:1.55;color:var(--texto-2)}
+.descida-corpo .marca{font-family:var(--mono);font-size:9px;letter-spacing:.18em;color:var(--c-atracao)}
+
+.selo{position:absolute;right:24px;top:20px;z-index:5;font-family:var(--mono);font-size:8.5px;
+  letter-spacing:.14em;color:var(--texto-3);border:1px dashed var(--fio-2);border-radius:6px;padding:5px 9px}
+
+@media (prefers-reduced-motion: reduce){
+  *{transition-duration:.001ms !important;animation-duration:.001ms !important}
+}

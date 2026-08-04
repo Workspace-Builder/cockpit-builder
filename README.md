@@ -14,33 +14,61 @@ Duas coisas convivem aqui, de propósito:
 | o que | onde | estado |
 |---|---|---|
 | board legado | `index.html` | **no ar** em `cockpit.easybuilder.com.br` |
-| app novo | `src/` | esqueleto de navegação, sem conteúdo |
+| app novo | `src/` | navegação + 3 telas próprias, ainda sem o conteúdo dos 36 passos |
 
 O app novo já entrega:
 
-- **a estrutura** — árvore de pastas e páginas em Postgres, criar, renomear,
-  duplicar, excluir, buscar, navegar (com deep-link e botão voltar);
+- **a estrutura** — árvore de pastas e páginas em `dados/*.json`, criar,
+  renomear, duplicar, excluir, buscar, navegar (com deep-link e botão voltar);
 - **os dois documentos do board legado portados pro canvas** — Onboarding
-  (43 nós) e O Método 10k (56 nós), com React Flow, vindos do banco;
+  (43 nós) e O Método 10k (56 nós), com React Flow, gaveta do nó, colar imagem,
+  guias de alinhamento e Ctrl+Z;
+- **as 8 animações do Método vivas** — Timeline, Flywheel, Furadeira, Balde
+  Furado, Dois Balcões, 80/20, Doze Meses e Serviço→Solução
+  (`src/components/canvas/animacoes/`);
+- **a Obra** (`src/components/obra/`) — a torre desenhada em SVG: 4 pilares,
+  36 andares, e dentro do andar os três entregáveis (aula, ferramenta, IA) com
+  a marca do 80/20 editável na própria tela;
+- **o Motor de Tijolos** (`src/components/motor/`) — a roda do funil
+  antiprospecção em página inteira, com o arsenal por setor. Mesma geometria do
+  legado, outro enquadramento que o nó do canvas;
 - página sem nó abre **canvas em branco** — folha livre pra desenhar o fluxo,
   não maquete tracejada.
 
-Falta portar 6 das 7 animações do Método (a Timeline já está viva) e o conteúdo
-dos 36 passos, que depende do gate.
+Falta portar 3 widgets menores do Método (abas da busca SEO, carrossel do
+Instagram, conta do 10k) e o conteúdo dos 36 passos, que depende do gate.
 
 ## Rodar
 
 ```bash
 npm install
-cp .env.example .env.local
-npm run db:up          # Postgres no Docker, porta 5436
-npm run db:migrate     # cria as tabelas e a árvore inicial
-npm run db:importar    # carrega os 99 nós do board legado
 npm run dev            # http://localhost:3970
 ```
 
+Sem banco, sem Docker, sem `.env`: os dados moram versionados em `dados/` — ver
+[docs/ARQUITETURA.md](./docs/ARQUITETURA.md) §6. Editou, commitou, é isso.
+
 Node 22 (`.nvmrc`). Gates: `npm run typecheck`, `npm run lint`, `npm run build`.
-Banco: `npm run db:psql` abre o psql; `npm run db:down` desliga o container.
+
+## Publicar pro aluno
+
+```bash
+npm run publicadas             # lista o que está ligado
+npm run publicadas obra        # liga uma tela  (--tirar obra desliga)
+npm run build:aluno            # HTML estático em out/
+```
+
+O editor **nunca vai pro ar** — roda local. O que o aluno abre é esta build:
+HTML puro, sem servidor, com a escrita removida do bundle (não escondida:
+removida). Quais telas entram sai de `dados/publicadas.json` — hoje O Método
+10k, a Obra, o Motor de Tijolos, o Onboarding e mais duas páginas.
+
+Despublicar tira a página da build, **não** do host: se o deploy for
+incremental, o HTML antigo continua respondendo na mesma URL. Só vale quando a
+pasta publicada é substituída inteira.
+
+Onde essa build vai ficar hospedada ainda não foi decidido; ver
+[docs/ARQUITETURA.md](./docs/ARQUITETURA.md) §9.
 
 ## Onde começar a ler
 
@@ -57,6 +85,7 @@ mundo — inclusive pasta, que leva as páginas junto. É decisão consciente
 enquanto o app é interno e roda local; no dia em que a URL for pro aluno, é a
 primeira coisa a fechar.
 
-O banco é local (Docker). Em produção vai ser o Postgres do Railway, junto com
-o domínio `cockpit.easybuilder.com.br` — que **tem** que ir junto: é ele que faz
-a sessão do Easy Builder viajar pros iframes embutidos no board.
+Os dados moram em `dados/*.json`, versionados no próprio repositório — não em
+banco. Quem edita roda `npm run dev` local e commita o resultado; "a equipe vê
+o que foi criado" é `git pull`, não um servidor compartilhado. Ver
+[docs/ARQUITETURA.md](./docs/ARQUITETURA.md) §6 e §9 para o porquê.

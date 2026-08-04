@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>O Trilho · C — Mapa</title>
+<link rel="stylesheet" href="base.css">
+<style>
+  /* -------------------------------------------------------------------------
+     PISTA C — MAPA SERPENTEANTE (visto de cima)
+     A rota costura a tela em três faixas e volta ao início por baixo. A curva de
+     retorno NÃO é enfeite: ela é o trecho da Atração — o único sem parada.
+     Ganha o ciclo inteiro visível de uma vez; perde a cena de estrada.
+     ------------------------------------------------------------------------- */
+  .palco{background:
+    radial-gradient(700px 420px at 46% 48%, rgba(78,125,246,.07), transparent 68%),
+    linear-gradient(180deg,#0b0f17,#0c1018)}
+  .arena{flex:1;display:grid;place-items:center;min-height:0;padding:4px 16px 40px}
+  svg.mapa{width:100%;height:100%;max-width:1060px;overflow:visible}
+
+  .grade{stroke:rgba(255,255,255,.032);stroke-width:1}
+  .base{fill:none;stroke:#1a2233;stroke-width:30;stroke-linecap:round}
+  .seg{fill:none;stroke-width:28;stroke-linecap:butt;opacity:.4;transition:opacity .25s}
+  .seg.on{opacity:.9}
+  .tracejo{fill:none;stroke:rgba(255,255,255,.28);stroke-width:2;stroke-dasharray:12 16}
+  .retorno{fill:none;stroke:var(--c-atracao);stroke-width:22;opacity:.16;stroke-linecap:round;cursor:pointer}
+  .retorno-tr{fill:none;stroke:var(--c-atracao);stroke-width:2;stroke-dasharray:10 12;opacity:.6;
+    pointer-events:none}
+  .chev{fill:rgba(255,255,255,.30)}
+
+  .no{cursor:pointer}
+  .no .disco{stroke:#0c1018;stroke-width:2.5;transition:.2s}
+  .no .num{font-family:var(--mono);font-size:13px;font-weight:800;fill:#0c1018;
+    text-anchor:middle;pointer-events:none}
+  .no .casa{opacity:.55;transition:.22s}
+  .no:hover .casa,.no.on .casa{opacity:1}
+  .no .aro{fill:none;stroke-width:2.5;opacity:0;transition:.22s}
+  .no.on .aro{opacity:.85}
+  .no .rot{font-size:11.5px;font-weight:700;fill:var(--texto);text-anchor:middle;opacity:0;
+    transition:.2s;pointer-events:none;paint-order:stroke;stroke:#0c1018;stroke-width:4px;
+    stroke-linejoin:round}
+  .no.on .rot{opacity:1}
+  .no .ped{font-family:var(--mono);font-size:7.5px;letter-spacing:.1em;fill:#f26a43;
+    text-anchor:middle;opacity:.8;pointer-events:none}
+
+  .faixaNome{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.24em;
+    text-transform:uppercase;opacity:.8;pointer-events:none;
+    paint-order:stroke;stroke:#0c1018;stroke-width:4px;stroke-linejoin:round}
+  .voltaTag{font-family:var(--mono);font-size:10px;letter-spacing:.14em;fill:var(--c-atracao);
+    text-anchor:middle;pointer-events:none}
+  .voltaSub{font-family:var(--mono);font-size:8px;letter-spacing:.09em;fill:var(--texto-3);
+    text-anchor:middle;pointer-events:none}
+
+  #moto{transition:transform .6s cubic-bezier(.42,.02,.18,1)}
+  #moto .roda{fill:none;stroke:#eef2fb;stroke-width:2.6}
+  #moto .quadro{fill:none;stroke:#eef2fb;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+  #moto .corpo{fill:none;stroke:var(--c-posicionamento);stroke-width:3;stroke-linecap:round}
+  #moto .cabeca{fill:var(--c-posicionamento)}
+  #moto .rastro{fill:rgba(0,0,0,.45)}
+</style>
+</head>
+<body>
+
+<div class="tela">
+  <div class="palco">
+    <div class="topo">
+      <span class="kick">COCKPIT BUILDER · WIREFRAME · PERSPECTIVA C</span>
+      <h1>O Trilho <em>— mapa</em></h1>
+      <p class="lede">A rota inteira numa tela: 11 paradas costurando três faixas e voltando ao km 01
+        por baixo. A curva de retorno é o trecho da Atração — o pedaço sem parada.</p>
+    </div>
+
+    <span class="selo">DADO REAL · CHECKLIST PROPOSTO</span>
+
+    <div class="arena">
+      <svg class="mapa" id="svg" viewBox="0 0 960 660" aria-label="Mapa do ciclo"></svg>
+    </div>
+
+    <div class="hud">
+      <div class="hitem"><span class="hk">ODÔMETRO</span><b id="hOdo">0/11</b></div>
+      <div class="hitem"><span class="hk">VOLTA</span><b id="hVolta">1</b></div>
+      <div class="hitem bag"><span class="hk">BAGAGEIRO</span><div id="hBag"></div></div>
+    </div>
+
+    <div class="dica">
+      clique numa parada · <kbd>←</kbd><kbd>→</kbd> anda no ciclo<br>
+      <kbd>1</kbd>…<kbd>6</kbd> pula de trecho
+    </div>
+  </div>
+
+  <aside class="posto" id="painel">
+    <div class="pcab">
+      <span class="pkm" id="pKm">01</span>
+      <div><h2 id="pNome">—</h2><span class="ptrecho" id="pTrecho">—</span></div>
+      <span class="ped" id="pPed">—</span>
+    </div>
+    <p class="psub" id="pSub"></p>
+
+    <div class="bomba">
+      <div class="tanque"><div class="nivel" id="pNivel"></div><div class="lit" id="pLitros">0/0</div></div>
+      <div class="lado">
+        <p class="btit">⛽ Abastecer <span class="ph">checklist proposto · subtask #9</span></p>
+        <div id="pItens"></div>
+        <div class="gate" id="pGate"></div>
+      </div>
+    </div>
+
+    <div class="prat">
+      <p class="btit">🧰 Prateleira do posto <span class="ph" id="pArsN"></span></p>
+      <div id="pArs"></div>
+    </div>
+
+    <div class="pnav">
+      <button id="bAnt">← km anterior</button>
+      <span id="pPos">—</span>
+      <button id="bProx">próximo km →</button>
+    </div>
+  </aside>
+</div>
+
+<script src="dados.js"></script>
+<script>
+(function(){
+"use strict";
+var T=window.TRILHO, F=T.FASES, P=T.POSTOS, N=P.length;
+var ns='http://www.w3.org/2000/svg';
+var svg=document.getElementById('svg');
+function el(t,a){var e=document.createElementNS(ns,t);for(var k in a)e.setAttribute(k,a[k]);return e;}
+
+// a serpente: 3 faixas com meia-volta nas pontas
+var D='M110 132 H790 A76 76 0 0 1 790 284 H110 A76 76 0 0 0 110 436 H790';
+// o retorno por baixo = o trecho da Atração
+var DR='M790 436 C 906 462 906 566 786 588 C 700 602 262 602 206 586 '+
+       'C 82 552 44 474 44 336 C 44 194 62 132 110 132';
+
+var linha=null, retorno=null, LT=0, nos=[];
+
+/** cada posto ocupa uma fatia igual da rota; o trecho ocupa a soma das dele. */
+function fatia(i){ return LT*(i+0.5)/N; }
+function faixaDoTrecho(k){
+  var idx=[]; P.forEach(function(p,i){ if(p.f===k) idx.push(i); });
+  if(!idx.length) return null;
+  return [LT*idx[0]/N, LT*(idx[idx.length-1]+1)/N];
+}
+function pAt(l){ return linha.getPointAtLength(Math.max(0,Math.min(LT,l))); }
+function tanAt(l){
+  var a=pAt(l-4), b=pAt(l+4);
+  return Math.atan2(b.y-a.y,b.x-a.x)*180/Math.PI;
+}
+
+function desenhar(){
+  // grade de fundo — dá senso de mapa sem competir com a rota
+  for(var gx=40;gx<960;gx+=40) svg.appendChild(el('line',{x1:gx,y1:60,x2:gx,y2:620,class:'grade'}));
+  for(var gy=60;gy<620;gy+=40) svg.appendChild(el('line',{x1:40,y1:gy,x2:920,y2:gy,class:'grade'}));
+
+  // retorno primeiro: fica por baixo de tudo
+  retorno=el('path',{d:DR,class:'retorno',id:'ret'});
+  retorno.addEventListener('click',function(){T.trecho(0);});
+  svg.appendChild(retorno);
+  svg.appendChild(el('path',{d:DR,class:'retorno-tr'}));
+
+  linha=el('path',{d:D,class:'base',id:'rota'});
+  svg.appendChild(linha);
+  LT=linha.getTotalLength();
+
+  // os 5 trechos coloridos, recortados por dasharray
+  F.forEach(function(f,k){
+    var r=faixaDoTrecho(k); if(!r) return;
+    svg.appendChild(el('path',{d:D,class:'seg',id:'sg'+k,stroke:f.c,
+      'stroke-dasharray':(r[1]-r[0]).toFixed(1)+' 99999','stroke-dashoffset':(-r[0]).toFixed(1)}));
+  });
+  svg.appendChild(el('path',{d:D,class:'tracejo'}));
+
+  // setas de sentido
+  for(var s=40;s<LT;s+=64){
+    var p=pAt(s), a=tanAt(s);
+    svg.appendChild(el('path',{d:'M-4.5 -4.5 L4.5 0 L-4.5 4.5 Z',class:'chev',
+      transform:'translate('+p.x.toFixed(1)+','+p.y.toFixed(1)+') rotate('+a.toFixed(1)+')'}));
+  }
+
+  // Nome do trecho pintado ao longo da rota e ancorado na DIVISA entre trechos.
+  // A divisa nunca cai em cima de parada (parada mora no meio da fatia), então
+  // nenhum rótulo disputa espaço com casa — que era o que estava acontecendo.
+  F.forEach(function(f,k){
+    var r=faixaDoTrecho(k); if(!r) return;
+    var t=el('text',{class:'faixaNome',fill:f.c});
+    t.style.textAnchor='start';
+    var tp=el('textPath',{startOffset:(r[0]+16).toFixed(1),dy:-27});
+    tp.setAttribute('href','#rota');
+    tp.setAttributeNS('http://www.w3.org/1999/xlink','href','#rota');
+    tp.textContent=f.n;
+    t.appendChild(tp); svg.appendChild(t);
+  });
+
+  // rótulo do retorno — por DENTRO da curva, senão ele fica em cima do tracejado
+  var pr=retorno.getPointAtLength(retorno.getTotalLength()*0.5);
+  var a1=el('text',{class:'voltaTag',x:pr.x.toFixed(1),y:(pr.y-34).toFixed(1)});
+  a1.textContent='↻ ATRAÇÃO · A DESCIDA'; svg.appendChild(a1);
+  var a2=el('text',{class:'voltaSub',x:pr.x.toFixed(1),y:(pr.y-19).toFixed(1)});
+  a2.textContent='NENHUM PASSO CICLA AQUI — VOCÊ ANDA SEM ACELERAR'; svg.appendChild(a2);
+
+  // as 11 paradas
+  P.forEach(function(p,i){
+    var f=F[p.f], pt=pAt(fatia(i));
+    var g=el('g',{class:'no',id:'no'+i,tabindex:'0',role:'button',
+      'aria-label':'Parada '+p.km+': '+p.t});
+
+    // a casa/posto, acima da rota
+    var casa=el('g',{class:'casa',transform:'translate('+pt.x.toFixed(1)+','+(pt.y-30).toFixed(1)+')'});
+    casa.appendChild(el('rect',{x:-15,y:-20,width:30,height:20,rx:2.5,fill:f.c,'fill-opacity':.22,
+      stroke:f.c,'stroke-width':1.4}));
+    casa.appendChild(el('path',{d:'M-19 -20 L0 -32 L19 -20 Z',fill:f.c,'fill-opacity':.5}));
+    casa.appendChild(el('rect',{x:-4,y:-11,width:8,height:11,fill:f.c,'fill-opacity':.75}));
+    if(!p.gate){
+      casa.appendChild(el('path',{d:'M20 -32 L20 -4',stroke:f.c,'stroke-width':1.4}));
+      casa.appendChild(el('path',{d:'M20 -32 h13 v9 h-13 z',fill:f.c,'fill-opacity':.6}));
+    }
+    g.appendChild(casa);
+
+    g.appendChild(el('circle',{class:'aro',cx:pt.x.toFixed(1),cy:pt.y.toFixed(1),r:21,stroke:f.c}));
+    g.appendChild(el('circle',{class:'disco',cx:pt.x.toFixed(1),cy:pt.y.toFixed(1),r:15,fill:f.c}));
+    var n=el('text',{class:'num',x:pt.x.toFixed(1),y:(pt.y+4.6).toFixed(1)});
+    n.textContent=(p.km<10?'0':'')+p.km; g.appendChild(n);
+
+    if(p.gate){
+      var pe=el('text',{class:'ped',x:pt.x.toFixed(1),y:(pt.y+30).toFixed(1)});
+      pe.textContent='⛔ PEDÁGIO'; g.appendChild(pe);
+    }
+    var r=el('text',{class:'rot',x:pt.x.toFixed(1),y:(pt.y+(p.gate?44:32)).toFixed(1)});
+    r.textContent=p.t; g.appendChild(r);
+
+    g.addEventListener('click',function(){T.ir(i);});
+    g.addEventListener('keydown',function(e){
+      if(e.key==='Enter'||e.key===' '){e.preventDefault();T.ir(i);}
+    });
+    svg.appendChild(g); nos[i]=g;
+  });
+
+  var moto=el('g',{id:'moto'});
+  moto.innerHTML=
+    '<ellipse class="rastro" cx="0" cy="3" rx="24" ry="5"/>'+
+    '<circle class="roda" cx="-15" cy="-9" r="8.5"/>'+
+    '<circle class="roda" cx="15" cy="-9" r="8.5"/>'+
+    '<path class="quadro" d="M-15 -9 L-5 -19 L7 -19 L15 -9"/>'+
+    '<path class="quadro" d="M-7 -19 L-3 -26 L6 -26"/>'+
+    '<path class="quadro" d="M8 -19 L15 -28 M11 -28 L19 -28"/>'+
+    '<path class="corpo" d="M-1 -26 L2 -36"/>'+
+    '<path class="corpo" d="M2 -34 L15 -28"/>'+
+    '<path class="corpo" d="M-1 -26 L3 -17"/>'+
+    '<circle class="cabeca" cx="3.5" cy="-40" r="5"/>';
+  svg.appendChild(moto);
+}
+
+function porMoto(p,dir){
+  document.getElementById('moto').setAttribute('transform',
+    'translate('+p.x.toFixed(1)+','+(p.y+16).toFixed(1)+') scale('+dir+',1)');
+}
+
+function mover(i){
+  var l=fatia(i), p=pAt(l), a=tanAt(l);
+  porMoto(p, Math.abs(a)>90 ? -1 : 1);   // vira o personagem no sentido da rota
+}
+
+function marcar(i){
+  P.forEach(function(_,k){ nos[k].classList.toggle('on',k===i); });
+  F.forEach(function(_,k){
+    var s=document.getElementById('sg'+k);
+    if(s) s.classList.toggle('on', P[i].f===k);
+  });
+  retorno.style.opacity='.16';
+}
+
+function descida(){
+  P.forEach(function(_,k){ nos[k].classList.remove('on'); });
+  F.forEach(function(_,k){ var s=document.getElementById('sg'+k); if(s) s.classList.remove('on'); });
+  retorno.style.opacity='.42';
+  var lr=retorno.getTotalLength();
+  var p=retorno.getPointAtLength(lr*0.5);
+  var b=retorno.getPointAtLength(lr*0.5+6);
+  porMoto(p, b.x < p.x ? -1 : 1);
+}
+
+T.iniciar({desenhar:desenhar,mover:mover,marcar:marcar,descida:descida});
+})();
+</script>
+</body>
+</html>

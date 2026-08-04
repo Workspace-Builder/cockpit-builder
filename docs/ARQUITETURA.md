@@ -1,26 +1,29 @@
 # Arquitetura — Cockpit Builder
 
 Como o app novo está montado e por que cada escolha foi feita.
-Atualizado em 2026-07-30.
+Atualizado em 2026-08-03.
 
 ---
 
 ## 1. A stack, e por que essa
 
-Next.js 16 · React 19 · TypeScript · Tailwind 4 · **Postgres 18** (`pg` cru) ·
-zustand · lucide-react.
+Next.js 16 · React 19 · TypeScript · Tailwind 4 · zustand · lucide-react. Sem
+banco: os dados moram em `dados/*.json`, versionados no repositório (§6).
 
-É o padrão da casa. Auditados quatro projetos da Builder House, existem duas
-variantes:
+É o padrão da casa, mais fino ainda. Auditados quatro projetos da Builder House,
+existem duas variantes:
 
 | variante | forma | quem usa |
 |---|---|---|
 | **A** — SaaS pesado | Next + FastAPI + Celery/Redis + Clerk + Sentry | designbuilder2.0, workspace-builder |
 | **B** — app fino | Next fullstack, sem Python | área de membros (QG), easy-builder |
 
-O Cockpit é **B**: Next fullstack, Postgres acessado com `pg` cru e SQL numerado
-em `migrations/`, exatamente como a área de membros. Não tem job assíncrono nem
-fila, então FastAPI + Celery seria carregar infra que ninguém usa.
+O Cockpit começou como **B** com Postgres (`pg` cru, SQL numerado em
+`migrations/`, igual à área de membros) e emagreceu ainda mais em 2026-08-03: o
+escopo é pequeno, um editor por vez, sem concorrência real — um banco de
+verdade não estava pagando o custo que cobrava (container, migration,
+`DATABASE_URL`). Não tem job assíncrono nem fila, então FastAPI + Celery seria
+carregar infra que ninguém usa.
 
 Estrutura de pastas, `services/`, `stores/`, `app/(grupo)/` e os gates
 `lint` + `typecheck` seguem os quatro projetos, pra quem troca de repo não
@@ -59,14 +62,16 @@ vez de "voltar pra página anterior".
 ## 4. Onde mora o quê
 
 ```
-docker-compose.yml       # Postgres 18 local, porta 5436
-migrations/              # SQL numerado: 001 árvore · 003 nós e arestas
-dados/legado.json        # o board legado extraído (fonte do importador)
+dados/
+  arvore.json            # pastas + páginas + checkpoints — A verdade
+  paginas/<id>.json       # nós, arestas e gavetas de cada página
+  oitenta-vinte.json     # marcações 80/20 do entregável
+  passo-entregaveis.json # edições sobre a lista dos 36 passos
+  legado.json · esteira.json  # scrape bruto, histórico — não lido pelo app
 scripts/
-  migrate.mjs            # aplica o que falta, registra em cockpit.migration
   serve-legacy.mjs       # sobe o index.html em :3980 pra extrair
   extrair-imagens.mjs    # base64 → arquivo, dedupe por hash
-  importar-legado.mjs    # JSON → Postgres
+  figjam-para-esteira.mjs # Figma → dados/esteira.json (transform puro)
 src/
   app/
     page.tsx             # raiz: manda pra 1ª página (no servidor)
@@ -78,8 +83,8 @@ src/
     palco/               # Palco: canvas quando há nós, reservado quando não há
     canvas/              # BoardCanvas · NoDoBoard · animacoes/
   lib/
-    db.ts                # pool do Postgres (server-only)
-    queries.ts           # o único lugar com SQL
+    dados.ts             # ler/gravar/remover em `dados/` (server-only)
+    queries.ts           # o único lugar que toca `dados/`
     model.ts             # os tipos — a espinha
     ids.ts               # id curto que cabe na URL
     passos.ts            # ORDEM 0: a lista única dos 36 passos (vazia)
@@ -90,16 +95,16 @@ src/
 ### O caminho do dado
 
 ```
-Postgres → lib/queries.ts → RSC (page.tsx) → prop → componente cliente
+dados/*.json → lib/queries.ts → RSC (page.tsx) → prop → componente cliente
                 ↑                                        │
           app/actions.ts ←──── Server Action ────────────┘
                 │
           revalidatePath("/", "layout")
 ```
 
-Sem rota de API e sem cache no cliente. A árvore aparece na barra lateral de
-**todas** as rotas, então a invalidação é do layout inteiro, não da página que
-mudou.
+Sem rota de API e sem cache no cliente — mudou só a caixinha da esquerda
+(era Postgres). A árvore aparece na barra lateral de **todas** as rotas, então
+a invalidação é do layout inteiro, não da página que mudou.
 
 ## 5. Decisões tomadas
 
@@ -109,20 +114,21 @@ página — e effect que chama `setState` gera render em cascata (o lint da casa
 barra isso). O `key={id}` na rota remonta a casca e zera vista e item
 selecionado sem effect nenhum.
 
-**5.2 O banco cresce por necessidade, não por previsão.** Começou com a árvore
-(`pasta`, `pagina`, `vista`) e ganhou `no` e `aresta` quando houve conteúdo real
-pra guardar. Os 36 passos ainda não têm tabela porque ainda não têm forma
-definida — isso é a Ordem 0, travada nas Decisões 1-4. Modelar tabela pra dado
-que ainda não existe é chute que vira `ALTER TABLE`.
+**5.2 O formato dos dados cresce por necessidade, não por previsão.** Começou
+com a árvore (`arvore.json`) e ganhou `paginas/<id>.json` quando houve conteúdo
+real pra guardar. Os 36 passos ainda moram em código (`passos.ts`), não em
+`dados/`, porque ainda não têm forma definida — isso é a Ordem 0, travada nas
+Decisões 1-4. Formalizar um arquivo pra dado que ainda não existe é chute que
+vira migração de formato.
 
-**5.3 Pasta fechada não vai pro banco.** É preferência de quem está olhando: se
-fosse dado compartilhado, fechar uma pasta fecharia pra todo mundo. Mora no
+**5.3 Pasta fechada não vai pra `dados/`.** É preferência de quem está olhando:
+se fosse dado compartilhado, fechar uma pasta fecharia pra todo mundo. Mora no
 `useUiStore`, em memória. O mesmo vale pro filtro da busca.
 
 **5.4 Server Actions, não rotas de API.** Uma camada a menos pra manter, e o
-SQL nunca chega perto do bundle. `lib/db.ts` e `lib/queries.ts` são
-`server-only`: importar de um componente cliente vira erro de build, não
-credencial vazada.
+acesso a `dados/` nunca chega perto do bundle do cliente. `lib/dados.ts` e
+`lib/queries.ts` são `server-only`: importar de um componente cliente vira
+erro de build, não credencial vazada.
 
 **5.5 Excluir é em dois toques, não `confirm()`.** O diálogo nativo trava a
 aba, não dá pra estilizar e some do fluxo de teste automatizado. Excluir pasta
@@ -176,28 +182,53 @@ sem resolver. `scripts/extrair-imagens.mjs` grava cada uma em
 (o print do Behance aparece nas duas partes do funil e virou um arquivo só).
 O dump caiu de 1,80 MB pra 0,16 MB.
 
-## 6. O banco
+## 6. `dados/` — o banco é o repositório
 
-Postgres 18 em `docker-compose.yml`, porta **5436** no host (5432 é o padrão e
-5434 é do workspace-builder, que roda na mesma máquina).
+**Mudou em 2026-08-03.** Até então a árvore morava em Postgres (decisão de
+2026-07-30, revertendo o `localStorage` de antes — ver AGENTS.md). O motivo do
+Postgres era legítimo (`localStorage` é por navegador; "a equipe vê o que foi
+criado" não tinha resposta), mas o preço era alto pro que o escopo pedia: um
+container só pra rodar local, migration numerada, `DATABASE_URL`, tudo isso
+pra um editor por vez, sem concorrência de verdade e sem login.
 
-```bash
-npm run db:up        # sobe o container
-npm run db:migrate   # aplica o que falta
-npm run db:psql      # abre o psql dentro do container
+A resposta que sobrou pra "a equipe vê o que foi criado" não foi voltar pro
+navegador — foi **git**. `dados/*.json` é a fonte da verdade, versionada no
+próprio repositório:
+
+```
+dados/
+  arvore.json             # pastas + páginas + checkpoints
+  paginas/<id>.json        # nós, arestas e gavetas de cada página
+  oitenta-vinte.json      # marcações 80/20 do entregável
+  passo-entregaveis.json  # edições sobre a lista dos 36 passos
 ```
 
-Cinco tabelas no schema `cockpit`:
+Editar é rodar `npm run dev` local — as Server Actions gravam direto nesses
+arquivos — e **commitar** o resultado. "A equipe vê o que foi criado" vira
+`git pull`, não sincronização em tempo real: se duas pessoas editarem ao mesmo
+tempo sem dar pull uma da outra, o desencontro aparece como merge de git, não
+como corrupção de dado.
 
-```
-pasta ─< pagina ─< vista
-            └────< no ─< aresta
-```
+`lib/dados.ts` concentra a leitura/escrita (`ler`/`gravar`/`remover`), sempre
+**síncrona** — `readFileSync`/`writeFileSync`. Não é preguiça: Node só tem uma
+thread de JS, e uma chamada síncrona não cede o controle no meio de si mesma.
+É o que substitui o `pg_advisory_xact_lock` que existia antes pra proteger o
+teto do 80/20 — com leitura+escrita atômica por natureza, duas Server Actions
+não conseguem entrelaçar e ler o mesmo estado antes de uma delas gravar.
 
-`ON DELETE CASCADE` em toda a cadeia: apagar uma pasta leva páginas, vistas, nós
-e conectores. Migration é arquivo numerado em `migrations/`, aplicado por
-`scripts/migrate.mjs`, que registra o que já rodou em `cockpit.migration`.
-**Não edite migration já aplicada** — crie a próxima.
+Não há mais chave estrangeira nem `ON DELETE CASCADE`: excluir página remove
+o arquivo `paginas/<id>.json` explicitamente em `queries.ts`; excluir nó
+filtra as arestas e a gaveta dele do mesmo canvas na mesma escrita. A cascata
+virou código, não constraint — ver `excluirPasta`, `excluirPagina` e
+`excluirNo` em `lib/queries.ts`.
+
+Nó e aresta não carregam mais um id global de banco: como cada página é o seu
+próprio arquivo, uma função que recebe só o id (`estiloNo`, `excluirAresta`,
+`marcarItem`...) precisa **achar** em qual página ele mora antes de gravar —
+`acharPaginaDoNo`/`acharPaginaDaAresta`/`acharPaginaDaAba`/`acharPaginaDoItem`
+varrem os arquivos de `dados/paginas/`. São no máximo algumas páginas; varrer
+todas a cada escrita é mais barato que manter um índice separado que possa
+dessincronizar.
 
 ## 7. O board legado, portado
 
@@ -265,22 +296,77 @@ a simulação roda no relógio dela, não no do React.
 - **autenticação** — decisão consciente: quem tem o link cria, renomeia e apaga
   página de todo mundo. Enquanto o app for interno, o custo é baixo; no dia em
   que o aluno receber a URL, é a primeira coisa a fechar
-- **banco em produção** — hoje só local; em prod é Postgres do Railway
+- **publicação pro aluno** — hoje o app só serve quem edita, local. Virar
+  página pública (HTML exportado, sem escrita, sem este servidor) é discussão
+  em aberto, não iniciada nesta mudança
 
 ## 9. Deploy
 
-Hoje: `index.html` no GitHub Pages, domínio `cockpit.easybuilder.com.br`.
+Hoje: `index.html` no GitHub Pages, domínio `cockpit.easybuilder.com.br`. O app
+novo (`src/`) ainda não foi publicado em lugar nenhum — quem usa roda
+`npm run dev` local.
 
-**O banco já decidiu o futuro disto:** GitHub Pages serve arquivo estático e não
-tem como falar com Postgres. Quando o app novo assumir, o domínio vai junto pro
-Railway — e *tem* que ir, veja a restrição abaixo.
+### O modo aluno (2026-08-03)
 
-**Restrição que não pode ser quebrada:** `cockpit.easybuilder.com.br` e
-`app.easybuilder.com.br` compartilham o mesmo site registrável, e é por isso que
-a sessão do Easy Builder viaja pro iframe embutido no board. Em `github.io` ou
-`localhost` seria cross-site e quebraria. Qualquer host serve — desde que o
-domínio custom continue.
+**A decisão:** o editor NUNCA vai pro ar. Roda local, na máquina de quem edita.
+O que vai pro ar é uma build separada, só de leitura, gerada do mesmo código.
 
-Quando o app novo assumir: Railway com `output: "standalone"`, igual à área de
-membros (o `next.config.ts` já está assim), + Postgres do Railway com a mesma
-`DATABASE_URL` e as mesmas migrations.
+```bash
+npm run build          # EDITOR — standalone, tudo sob demanda, escrita ligada
+npm run build:aluno    # PUBLICADO — HTML estático em out/, escrita impossível
+```
+
+**O bloqueio que definiu o desenho:** `output: "export"` e Server Action não
+convivem — e o problema não é a ação ser *chamada*, é ela *existir* no grafo.
+O Next varre o manifesto e aborta o build se achar uma, mesmo com a UI toda
+escondida. E `actions.ts` está importado no topo de 8 componentes de tela.
+Esconder botão não resolveria nada.
+
+Por isso a tranca mora no **bundler**, não na UI: `turbopack.resolveAlias`
+troca `@/app/actions` por [`src/lib/acoes-vazias.ts`](../src/lib/acoes-vazias.ts)
+quando `MODO=aluno`. No bundle publicado `actions.ts` simplesmente não entra —
+não há escrita possível nem por caminho que a tela não mostra. O stub é tipado
+`satisfies typeof import("@/app/actions")`, então **criar uma ação nova e
+esquecer dele quebra o `npm run typecheck`**, que já é gate.
+
+`PODE_EDITAR` ([`src/lib/modo.ts`](../src/lib/modo.ts)) é a segunda camada, e só
+serve pro aluno não ver botão morto — é acabamento, não tranca. Sendo constante
+de build, o bundler poda os ramos em vez de levá-los junto.
+
+**O que publicar é um gesto:** `dados/publicadas.json` lista os ids que viram
+HTML, e `generateStaticParams` lê dali. Página nova nasce rascunho; ela só vai
+pro ar quando alguém escreve o id nessa lista. A barra lateral e o índice da
+raiz filtram pela mesma lista — sem isso o aluno veria link pra página não
+publicada e levaria 404.
+
+**O que mudou de comportamento, e o preço:** `?v=` e `?andar=` eram resolvidos
+no servidor. Não dá mais — ler `searchParams` força render por requisição, e no
+estático não há requisição. Passaram pro cliente via
+[`useParametroDaUrl`](../src/lib/useParametroDaUrl.ts) (`useSyncExternalStore`,
+mesmo padrão do Motor). O custo é uma piscada curta: o checkpoint da URL acende
+depois da hidratação, não no primeiro quadro.
+
+**Página a página, literalmente, não dá.** Os chunks em `_next/static/*` têm
+hash e são compartilhados entre rotas; subir só `out/p/onboarding/` quebra na
+primeira mudança de bundle, e quebra em silêncio. O que existe é escolher
+QUAIS páginas entram (a whitelist) e subir a pasta inteira, atômico.
+
+**Defeito conhecido, não resolvido:** o exportador grava os payloads de
+prefetch RSC como pasta aninhada (`__next.p/$d$id.txt`) e o cliente os pede
+com ponto (`__next.p.$d$id.txt`). Dá 404 no console. Verificado que NÃO quebra
+a tela — 176 nós renderizam, checkpoint da URL funciona, gaveta abre — mas
+some com o prefetch e ainda não foi testado com duas páginas publicadas. Next
+16.2.12.
+
+**Quando o app novo assumir o domínio,** falta decidir onde a build do aluno
+mora. Hoje `cockpit.easybuilder.com.br` serve o `index.html` legado da raiz do
+repo, e o export colidiria com ele (`out/index.html` vs `index.html`). Duas
+saídas: `basePath: '/app'` + um `.nojekyll` na raiz (obrigatório — o Jekyll do
+Pages engole qualquer pasta que comece com `_`, e `_next/` sumiria inteiro), ou
+um subdomínio próprio. **Não decidido.**
+
+**Restrição que não pode ser quebrada, se e quando algo for pro ar:**
+`cockpit.easybuilder.com.br` e `app.easybuilder.com.br` compartilham o mesmo
+site registrável, e é por isso que a sessão do Easy Builder viaja pro iframe
+embutido no board. Em `github.io` ou `localhost` seria cross-site e quebraria.
+Qualquer host serve — desde que o domínio custom continue.

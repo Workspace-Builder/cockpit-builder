@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>O Trilho · A — Velódromo</title>
+<link rel="stylesheet" href="base.css">
+<style>
+  /* -------------------------------------------------------------------------
+     PISTA A — VELÓDROMO
+     A roda continua sendo a roda: mesma geometria do flywheel atual, só que
+     inclinada. O que era "setor clicável" virou trecho de pista, e a faísca que
+     girava no anel de momentum virou o personagem.
+     A elipse (rx > ry) é a perspectiva inteira: o que está embaixo está na
+     frente e cresce; o que está em cima está no fundo e encolhe.
+     ------------------------------------------------------------------------- */
+  .palco{background:
+    radial-gradient(680px 300px at 50% 62%, rgba(78,125,246,.10), transparent 70%),
+    radial-gradient(900px 500px at 50% 118%, rgba(255,255,255,.045), transparent 60%),
+    linear-gradient(180deg,#0b0f17 0%,#0c1018 46%,#0e1420 100%)}
+  .arena{flex:1;display:grid;place-items:center;min-height:0;padding:0 10px 44px}
+  svg.pista{width:100%;height:100%;max-width:1000px;overflow:visible}
+
+  .asfalto{fill:none;stroke:#1a2233;stroke-width:56;stroke-linecap:butt}
+  .sombra{fill:none;stroke:rgba(0,0,0,.55);stroke-width:64;filter:blur(9px)}
+  .faixa{fill:none;stroke-width:54;stroke-linecap:butt;opacity:.34;transition:opacity .25s}
+  .faixa.on{opacity:.78}
+  .borda{fill:none;stroke-width:1.5;opacity:.55}
+  .miolinha{fill:none;stroke:rgba(255,255,255,.30);stroke-width:2.5;stroke-dasharray:18 20}
+  .chev{fill:rgba(255,255,255,.34)}
+
+  .marco{cursor:pointer}
+  .marco .placa{stroke-width:1.5;transition:.2s}
+  .marco .num{font-family:var(--mono);font-weight:800;fill:#0c1018;pointer-events:none}
+  .marco .predio{transition:.25s}
+  .marco .nome{font-size:11px;font-weight:700;fill:var(--texto);pointer-events:none;
+    paint-order:stroke;stroke:#0c1018;stroke-width:4px;stroke-linejoin:round}
+  .marco:hover .predio{opacity:1}
+  .marco .predio{opacity:.55}
+  .marco.on .predio{opacity:1}
+  .marco .aro{fill:none;stroke-width:2;opacity:0;transition:.25s}
+  .marco.on .aro{opacity:.9}
+  .marco .bandeira{opacity:.75}
+
+  .rotulo{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.2em;
+    text-transform:uppercase;text-anchor:middle;pointer-events:none;opacity:.72}
+  .rotulo.sec{font-size:8px;letter-spacing:.14em;fill:var(--texto-3);opacity:.9}
+
+  #moto{transition:transform .62s cubic-bezier(.42,.02,.18,1)}
+  #moto .roda{fill:none;stroke:#eef2fb;stroke-width:2.6}
+  #moto .quadro{fill:none;stroke:#eef2fb;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+  #moto .corpo{fill:none;stroke:var(--c-posicionamento);stroke-width:3;stroke-linecap:round}
+  #moto .cabeca{fill:var(--c-posicionamento)}
+  #moto .rastro{fill:rgba(255,255,255,.10)}
+
+  .miolo{position:absolute;left:50%;top:53%;transform:translate(-50%,-50%);text-align:center;
+    pointer-events:none;z-index:2}
+  .miolo .k{font-family:var(--mono);font-size:9px;letter-spacing:.3em;color:var(--texto-3);display:block}
+  .miolo .tese{font-size:23px;font-weight:800;letter-spacing:-.025em;line-height:1.25;margin-top:8px}
+  .miolo .tese b{color:var(--c-execucao)}
+  .miolo .sub{margin-top:9px;font-family:var(--mono);font-size:10px;color:var(--texto-3);letter-spacing:.05em}
+
+  .btrodar{position:absolute;right:24px;top:64px;z-index:5;border:1px solid var(--fio);
+    border-radius:9px;padding:8px 13px;font-size:12px;font-weight:600;color:var(--texto-2);
+    background:rgba(12,16,24,.8);display:flex;align-items:center;gap:8px;transition:.16s}
+  .btrodar:hover{color:#fff;border-color:var(--c-posicionamento)}
+  .btrodar i{width:7px;height:7px;border-radius:50%;background:var(--texto-3);display:block}
+  .btrodar.on i{background:var(--c-posicionamento);box-shadow:0 0 9px var(--c-posicionamento)}
+</style>
+</head>
+<body>
+
+<div class="tela">
+  <div class="palco">
+    <div class="topo">
+      <span class="kick">COCKPIT BUILDER · WIREFRAME · PERSPECTIVA A</span>
+      <h1>O Trilho <em>— velódromo</em></h1>
+      <p class="lede">A roda do flywheel continua inteira: o que mudou é que ela deitou e virou
+        pista. Cada volta é um cliente. Os 11 postos são o que você faz; o arsenal mora dentro deles.</p>
+    </div>
+
+    <span class="selo">DADO REAL · CHECKLIST PROPOSTO</span>
+    <button class="btrodar" id="btRodar"><i></i> dar uma volta</button>
+
+    <div class="arena">
+      <svg class="pista" id="svg" viewBox="0 0 940 700" aria-label="Velódromo do ciclo"></svg>
+    </div>
+
+    <div class="miolo">
+      <span class="k">A TESE</span>
+      <div class="tese">O builder pensa,<br><b>o sistema constrói.</b></div>
+      <div class="sub">11 postos · 6 trechos · 1 volta por cliente</div>
+    </div>
+
+    <div class="hud">
+      <div class="hitem"><span class="hk">ODÔMETRO</span><b id="hOdo">0/11</b></div>
+      <div class="hitem"><span class="hk">VOLTA</span><b id="hVolta">1</b></div>
+      <div class="hitem bag"><span class="hk">BAGAGEIRO</span><div id="hBag"></div></div>
+    </div>
+
+    <div class="dica">
+      clique num posto · <kbd>←</kbd><kbd>→</kbd> anda no ciclo<br>
+      <kbd>1</kbd>…<kbd>6</kbd> pula de trecho
+    </div>
+  </div>
+
+  <!-- ===================== painel: idêntico nas 3 perspectivas ============ -->
+  <aside class="posto" id="painel">
+    <div class="pcab">
+      <span class="pkm" id="pKm">01</span>
+      <div><h2 id="pNome">—</h2><span class="ptrecho" id="pTrecho">—</span></div>
+      <span class="ped" id="pPed">—</span>
+    </div>
+    <p class="psub" id="pSub"></p>
+
+    <div class="bomba">
+      <div class="tanque"><div class="nivel" id="pNivel"></div><div class="lit" id="pLitros">0/0</div></div>
+      <div class="lado">
+        <p class="btit">⛽ Abastecer <span class="ph">checklist proposto · subtask #9</span></p>
+        <div id="pItens"></div>
+        <div class="gate" id="pGate"></div>
+      </div>
+    </div>
+
+    <div class="prat">
+      <p class="btit">🧰 Prateleira do posto <span class="ph" id="pArsN"></span></p>
+      <div id="pArs"></div>
+    </div>
+
+    <div class="pnav">
+      <button id="bAnt">← km anterior</button>
+      <span id="pPos">—</span>
+      <button id="bProx">próximo km →</button>
+    </div>
+  </aside>
+</div>
+
+<script src="dados.js"></script>
+<script>
+(function(){
+"use strict";
+var T = window.TRILHO, F = T.FASES, P = T.POSTOS;
+
+/* ---- geometria da elipse -------------------------------------------------
+   O trecho não tem fatia igual: ele ocupa o tanto de pista que os postos dele
+   pedem. Execução tem 5 paradas e fica com o arco da frente; Gestão tem 1 e
+   ocupa um sopro. Atração tem ZERO — e é justamente por isso que ela vira a
+   descida lá no fundo, o pedaço em que a moto anda sem acelerar.            */
+var CX=470, CY=320, RX=352, RY=172;
+var PESO=[1.9, 2.0, 1.3, 4.2, 2.0, 1.3];      // por trecho, ~= nº de postos
+var INICIO=296.15;                             // põe a Execução na frente (t≈90°)
+
+var soma=PESO.reduce(function(a,b){return a+b;},0);
+var SPAN=PESO.map(function(w){return 360*w/soma;});
+var T0=[], acc=0;
+SPAN.forEach(function(s,i){ T0[i]=INICIO-acc; acc+=s; });
+
+function pt(t){var a=t*Math.PI/180;return[CX+RX*Math.cos(a), CY+RY*Math.sin(a)];}
+function fm(p){return p[0].toFixed(1)+' '+p[1].toFixed(1);}
+function arco(t0,t1){
+  var p0=pt(t0), p1=pt(t1);
+  var la=Math.abs(t1-t0)>180?1:0, sw=t1>t0?1:0;
+  return 'M'+fm(p0)+'A'+RX+' '+RY+' 0 '+la+' '+sw+' '+fm(p1);
+}
+/** profundidade: quem está embaixo está na frente e cresce. */
+function esc(t){ return 0.68 + 0.46*((Math.sin(t*Math.PI/180)+1)/2); }
+/** normal da elipse, apontando pra fora — é por ela que prédio e rótulo saem. */
+function nor(t){
+  var a=t*Math.PI/180, nx=Math.cos(a)/RX, ny=Math.sin(a)/RY;
+  var m=Math.hypot(nx,ny); return [nx/m, ny/m];
+}
+/** ângulo do posto: dentro do trecho, com folga nas pontas. */
+function angDoPosto(i){
+  var f=P[i].f;
+  var irmaos=P.filter(function(p){return p.f===f;});
+  var j=irmaos.indexOf(P[i]);
+  return T0[f] - SPAN[f]*(j+1)/(irmaos.length+1);
+}
+
+var el=function(t,a){var e=document.createElementNS('http://www.w3.org/2000/svg',t);
+  for(var k in a) e.setAttribute(k,a[k]); return e;};
+var svg=document.getElementById('svg');
+var marcos=[];
+
+function desenhar(){
+  // sombra no chão — sem ela a elipse flutua e a perspectiva não fecha
+  svg.appendChild(el('ellipse',{cx:CX,cy:CY+16,rx:RX,ry:RY,class:'sombra'}));
+
+  // asfalto: uma volta inteira, cinza, por baixo de tudo
+  svg.appendChild(el('ellipse',{cx:CX,cy:CY,rx:RX,ry:RY,class:'asfalto'}));
+
+  // os 6 trechos, cada um com a cor da fase
+  F.forEach(function(f,i){
+    var d=arco(T0[i], T0[i]-SPAN[i]);
+    var g=el('g',{class:'trecho',id:'tr'+i});
+    g.appendChild(el('path',{d:d,class:'faixa',stroke:f.c,id:'fx'+i}));
+    svg.appendChild(g);
+  });
+
+  // linha do meio: é o que faz ler como estrada, e não como donut
+  svg.appendChild(el('ellipse',{cx:CX,cy:CY,rx:RX,ry:RY,class:'miolinha'}));
+
+  // setas de sentido — a energia passando adiante
+  F.forEach(function(f,i){
+    var n=Math.max(2, Math.round(SPAN[i]/22));
+    for(var j=1;j<=n;j++){
+      var t=T0[i]-SPAN[i]*j/(n+1);
+      var p=pt(t), s=esc(t);
+      var ang=Math.atan2(-RY*Math.cos(t*Math.PI/180), RX*Math.sin(t*Math.PI/180))*180/Math.PI;
+      var c=el('path',{d:'M-5 -5 L5 0 L-5 5 Z',class:'chev',
+        transform:'translate('+p[0].toFixed(1)+','+p[1].toFixed(1)+') rotate('+ang.toFixed(1)+') scale('+s.toFixed(2)+')'});
+      svg.appendChild(c);
+    }
+  });
+
+  // rótulo de cada trecho, do lado de fora
+  F.forEach(function(f,i){
+    var t=T0[i]-SPAN[i]/2, p=pt(t), n=nor(t);
+    var x=p[0]+n[0]*66, y=p[1]+n[1]*104;
+    var g=el('text',{x:x.toFixed(1),y:y.toFixed(1),class:'rotulo',fill:f.c});
+    g.textContent=f.n.toUpperCase();
+    svg.appendChild(g);
+    if(i===0){
+      var s=el('text',{x:x.toFixed(1),y:(y+13).toFixed(1),class:'rotulo sec'});
+      s.textContent='↓ DESCIDA · SEM PARADA';
+      s.style.cursor='pointer';
+      s.addEventListener('click',function(){T.trecho(0);});
+      svg.appendChild(s);
+    }
+    if(i===5){
+      var v=el('text',{x:x.toFixed(1),y:(y+13).toFixed(1),class:'rotulo sec'});
+      v.textContent='↻ FECHA A VOLTA';
+      svg.appendChild(v);
+    }
+  });
+
+  // os 11 postos — desenhados de trás pra frente, senão o fundo cobre a frente
+  var ordem=P.map(function(_,i){return i;}).sort(function(a,b){
+    return pt(angDoPosto(a))[1] - pt(angDoPosto(b))[1];
+  });
+
+  ordem.forEach(function(i){
+    var p=P[i], f=F[p.f], t=angDoPosto(i), pos=pt(t), s=esc(t), n=nor(t);
+    var g=el('g',{class:'marco',id:'mc'+i,tabindex:'0',role:'button',
+      'aria-label':'Posto '+p.km+': '+p.t});
+
+    // o prédio fica do lado de fora da pista, e cresce pra cima
+    var bx=pos[0]+n[0]*40*s, by=pos[1]+n[1]*40*s;
+    var pd=el('g',{class:'predio',
+      transform:'translate('+bx.toFixed(1)+','+by.toFixed(1)+') scale('+s.toFixed(2)+')'});
+    pd.appendChild(el('rect',{x:-17,y:-30,width:34,height:30,rx:3,fill:f.c,'fill-opacity':.22,
+      stroke:f.c,'stroke-width':1.4}));
+    // cobertura do posto (a marquise) — é o que faz ler "posto", não "caixa"
+    pd.appendChild(el('rect',{x:-23,y:-40,width:46,height:7,rx:2.5,fill:f.c,'fill-opacity':.5}));
+    pd.appendChild(el('rect',{x:-19,y:-33,width:2.5,height:8,fill:f.c,'fill-opacity':.5}));
+    pd.appendChild(el('rect',{x:16.5,y:-33,width:2.5,height:8,fill:f.c,'fill-opacity':.5}));
+    // a bomba
+    pd.appendChild(el('rect',{x:-6,y:-21,width:12,height:21,rx:2,fill:'#0c1018',
+      stroke:f.c,'stroke-width':1.2}));
+    pd.appendChild(el('rect',{x:-3,y:-18,width:6,height:5,rx:1,fill:f.c,'fill-opacity':.75}));
+    if(!p.gate){ // km 11 é o único acostamento: ganha bandeira de volta cumprida
+      pd.appendChild(el('path',{d:'M22 -40 L22 -14',stroke:f.c,'stroke-width':1.4}));
+      pd.appendChild(el('path',{d:'M22 -40 h14 v9 h-14 z',fill:f.c,'fill-opacity':.55,class:'bandeira'}));
+    }
+    g.appendChild(pd);
+
+    // a placa com o número fica NA pista: o número é a navegação
+    var w=27*s, h=21*s;
+    g.appendChild(el('rect',{class:'placa',x:(pos[0]-w/2).toFixed(1),y:(pos[1]-h/2).toFixed(1),
+      width:w.toFixed(1),height:h.toFixed(1),rx:(5*s).toFixed(1),fill:f.c,stroke:'#0c1018'}));
+    var num=el('text',{class:'num',x:pos[0].toFixed(1),y:(pos[1]+4.2*s).toFixed(1),
+      'text-anchor':'middle','font-size':(12*s).toFixed(1)});
+    num.textContent=(p.km<10?'0':'')+p.km;
+    g.appendChild(num);
+    g.appendChild(el('rect',{class:'aro',x:(pos[0]-w/2-5).toFixed(1),y:(pos[1]-h/2-5).toFixed(1),
+      width:(w+10).toFixed(1),height:(h+10).toFixed(1),rx:(8*s).toFixed(1),stroke:f.c}));
+
+    // o nome só aparece no posto ativo — 11 nomes de uma vez viram sopa
+    var lx=pos[0]+n[0]*40*s, ly=pos[1]+n[1]*40*s - 48*s;
+    var nome=el('text',{class:'nome',x:lx.toFixed(1),y:ly.toFixed(1),'text-anchor':'middle',
+      id:'nm'+i,opacity:0});
+    nome.textContent=p.t;
+    g.appendChild(nome);
+
+    g.addEventListener('click',function(){T.ir(i);});
+    g.addEventListener('keydown',function(e){
+      if(e.key==='Enter'||e.key===' '){e.preventDefault();T.ir(i);}
+    });
+    svg.appendChild(g);
+    marcos[i]=g;
+  });
+
+  // o personagem
+  var moto=el('g',{id:'moto'});
+  moto.innerHTML =
+    '<ellipse class="rastro" cx="0" cy="2" rx="26" ry="5"/>'+
+    '<circle class="roda" cx="-15" cy="-9" r="8.5"/>'+
+    '<circle class="roda" cx="15" cy="-9" r="8.5"/>'+
+    '<path class="quadro" d="M-15 -9 L-5 -19 L7 -19 L15 -9"/>'+
+    '<path class="quadro" d="M-7 -19 L-3 -26 L6 -26"/>'+
+    '<path class="quadro" d="M8 -19 L15 -28 M11 -28 L19 -28"/>'+
+    '<path class="corpo" d="M-1 -26 L2 -36"/>'+
+    '<path class="corpo" d="M2 -34 L15 -28"/>'+
+    '<path class="corpo" d="M-1 -26 L3 -17"/>'+
+    '<circle class="cabeca" cx="3.5" cy="-40" r="5"/>';
+  svg.appendChild(moto);
+}
+
+/* A moto corre na faixa de DENTRO; os postos ficam na de fora. Sem essa
+   separação o personagem some atrás do prédio toda vez que para. */
+function porMoto(t){
+  var p=pt(t), s=esc(t)*1.18, n=nor(t);
+  var x=p[0]-n[0]*14, y=p[1]-n[1]*14;
+  var dir=Math.sin(t*Math.PI/180)>=0?1:-1;   // embaixo anda pra direita
+  document.getElementById('moto').setAttribute('transform',
+    'translate('+x.toFixed(1)+','+y.toFixed(1)+') scale('+(s*dir).toFixed(2)+','+s.toFixed(2)+')');
+}
+function mover(i){ porMoto(angDoPosto(i)); }
+
+function marcar(i){
+  P.forEach(function(p,k){
+    marcos[k].classList.toggle('on',k===i);
+    document.getElementById('nm'+k).setAttribute('opacity', k===i?1:0);
+    document.getElementById('fx'+p.f).classList.toggle('on', P[i].f===p.f);
+  });
+  F.forEach(function(_,k){
+    if(!P.some(function(p){return p.f===k;})) document.getElementById('fx'+k).classList.remove('on');
+  });
+}
+
+function descida(){
+  F.forEach(function(_,k){ document.getElementById('fx'+k).classList.toggle('on',k===0); });
+  P.forEach(function(_,k){ marcos[k].classList.remove('on');
+    document.getElementById('nm'+k).setAttribute('opacity',0); });
+  porMoto(T0[0]-SPAN[0]/2);
+}
+
+T.iniciar({desenhar:desenhar, mover:mover, marcar:marcar, descida:descida});
+
+/* ---- a volta automática: o flywheel girando sem ninguém empurrar --------- */
+var timer=null, bt=document.getElementById('btRodar');
+bt.onclick=function(){
+  if(timer){clearInterval(timer);timer=null;bt.classList.remove('on');return;}
+  bt.classList.add('on');
+  timer=setInterval(function(){T.prox();},1500);
+};
+if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) bt.style.display='none';
+})();
+</script>
+</body>
+</html>

@@ -15,9 +15,9 @@ duas gramáticas no mesmo arquivo. Exceção: o que a plataforma impõe
 
 | você quer | mexe em |
 |---|---|
-| mudar tabela / adicionar coluna | `migrations/00N-…sql` **novo** — nunca edite um já aplicado |
-| mudar a árvore inicial | `migrations/002-seed-arvore.sql` (ou pela interface, que é o normal) |
-| escrever ou ler do banco | `src/lib/queries.ts` — **o único lugar com SQL** |
+| mudar o formato de um arquivo em `dados/` | `src/lib/queries.ts` + `src/lib/dados.ts` |
+| mudar a árvore inicial | `dados/arvore.json` (ou pela interface, que é o normal) |
+| escrever ou ler os dados | `src/lib/queries.ts` — **o único lugar que toca `dados/`** |
 | expor uma escrita pra interface | `src/app/actions.ts` |
 | mudar o formato de uma página, passo ou vista | `src/lib/model.ts` |
 | conteúdo dos 36 passos | `src/lib/passos.ts` — **e só ali** |
@@ -34,7 +34,7 @@ transição (AGENTS.md):
 
 ```
 index.html · CNAME · *.mp4 · assets/ · plano-4-pilares.html   ← o board LEGADO
-src/ · migrations/ · scripts/ · public/ · docs/ · mockups/    ← o app NOVO
+src/ · dados/ · scripts/ · public/ · docs/ · mockups/          ← o app NOVO
 ```
 
 O legado precisa ficar **na raiz**: é de lá que o GitHub Pages serve
@@ -53,13 +53,13 @@ sair — não antes, senão o board no ar perde os prints.
 8020 e checklist são filtros. Página com cópia própria dos passos é bug de
 arquitetura, não atalho.
 
-**2. Semente ≠ verdade.** `002-seed-arvore.sql` é o ponto de partida. Depois que
-o app roda, a verdade é o banco — e a migration é idempotente (`ON CONFLICT DO
-NOTHING`) justamente pra não desfazer renome que alguém já fez pela interface.
+**2. Não tem semente separada da verdade.** `dados/arvore.json` já É o estado
+atual, direto — sem passo de migration nem seed pra reconciliar. Editar pela
+interface ou editar o JSON na mão dão no mesmo resultado; commitar é publicar.
 
-**3. Store guarda preferência, não dado.** Desde que a árvore foi pro Postgres,
-`useUiStore` tem só busca e pasta fechada. Se a informação interessa a outra
-pessoa, ela é dado e vai pro banco; se é de quem está olhando, fica no store.
+**3. Store guarda preferência, não dado.** `useUiStore` tem só busca e pasta
+fechada. Se a informação interessa a outra pessoa, ela é dado e vai pra
+`dados/`; se é de quem está olhando, fica no store.
 
 **4. Nada de `setState` dentro de `useEffect`.** O lint da casa barra (regra
 `react-hooks/set-state-in-effect`). Se apareceu a vontade, quase sempre o
@@ -74,7 +74,7 @@ chamada, passada direto pra `useAlgumStore(...)`, trava a aba com loop de
 render. Sempre dentro de `useMemo`.
 
 **7. Escrita passa por Server Action.** Componente cliente não chama `queries.ts`
-direto — `db.ts` e `queries.ts` são `server-only` e o build quebra se tentar.
+direto — `dados.ts` e `queries.ts` são `server-only` e o build quebra se tentar.
 
 **8. Tracejado significa espaço reservado.** É a convenção visual do board
 (BLUEPRINT.md §3) e do wireframe: contorno tracejado = ainda não existe.

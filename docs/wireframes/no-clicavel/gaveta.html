@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cockpit Builder · a gaveta do nó</title>
+<!-- ---------------------------------------------------------------------------
+     Wireframe da subtarefa #5 — o nó clicável.
+
+     Nós reais de index.html (ob-*), entregáveis de src/lib/passos.ts, e os
+     depoimentos são os PNGs de verdade em public/assets/onboarding/.
+
+     Duas direções que mandam no arquivo:
+
+     1. O fluxograma é do Figma e as cores das formas são 1:1 — mexer ali é
+        mexer em significado. Então a gaveta não compete: ela é um popover, e o
+        cabeçalho VESTE a forma do nó que abriu.
+
+     2. Acabamento macOS: material translúcido com vibrancy, bico apontando pro
+        nó, barra de abas com a ativa levantada, separadores de meio pixel,
+        sombra em duas camadas.
+
+     Nada persiste: recarregou, zera.
+     --------------------------------------------------------------------------- -->
+<style>
+:root{
+  /* o canvas é a mesa; o popover é grafite neutro, como no macOS escuro */
+  --mesa:#080b11;
+  --vidro:rgba(30,32,37,.72); --vidro-2:rgba(38,41,47,.9);
+  --fio:rgba(255,255,255,.09); --fio-2:rgba(255,255,255,.16); --fio-3:rgba(255,255,255,.05);
+  --tinta:#f2f3f6; --tinta-2:#9ea3ad; --tinta-3:#6b707b;
+  --sinal:#4e7df6; --ok:#54c98a; --alerta:#f5b23f; --erro:#e5484d;
+  --t-aula:#2b8cff; --t-ia:#9e6cf2; --t-ferram:#54c98a; --t-link:#f5b23f; --t-img:#33c6d6;
+
+  /* Segoe UI Variable é o parente próximo do SF no Windows 11 */
+  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI Variable Text",
+         "Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono","Cascadia Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  --pop:0 0 0 .5px rgba(255,255,255,.16),0 10px 26px rgba(0,0,0,.46),0 34px 70px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--mesa);color:var(--tinta);
+  font-family:var(--sans);overflow:hidden;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(78,125,246,.45);border-radius:6px}
+
+.app{display:flex;flex-direction:column;height:100%}
+
+/* ── barra do topo ───────────────────────────────────────────────────────── */
+.topo{flex:none;display:flex;align-items:center;gap:16px;height:52px;padding:0 16px;
+  background:rgba(22,24,28,.82);backdrop-filter:blur(30px) saturate(1.7);
+  border-bottom:.5px solid var(--fio-2)}
+.logo{display:flex;align-items:baseline;gap:7px;flex:none}
+.logo b{font-size:13px;font-weight:600;letter-spacing:-.01em}
+.logo span{font-family:var(--mono);font-size:8.5px;letter-spacing:.2em;color:var(--tinta-3)}
+
+/* segmentado do macOS: trilho afundado, pastilha ativa levantada */
+.seg{display:flex;background:rgba(0,0,0,.26);border-radius:8px;padding:2px;
+  box-shadow:inset 0 0 0 .5px rgba(255,255,255,.08)}
+.seg button{padding:5px 13px;border-radius:6px;font-size:12.5px;font-weight:500;
+  color:var(--tinta-2);transition:color .12s}
+.seg button:hover{color:var(--tinta)}
+.seg button.on{background:var(--vidro-2);color:var(--tinta);font-weight:600;
+  box-shadow:0 0 0 .5px rgba(255,255,255,.14),0 1px 2px rgba(0,0,0,.4)}
+
+.lado{margin-left:auto;display:flex;align-items:center;gap:9px}
+.lado .rot{font-family:var(--mono);font-size:8.5px;letter-spacing:.18em;color:var(--tinta-3)}
+.lado .seg button{min-width:30px;text-align:center;padding:5px 8px}
+.lado .seg .auto{padding:5px 11px;font-family:var(--mono);font-size:9px;letter-spacing:.12em}
+
+/* ── palco ───────────────────────────────────────────────────────────────── */
+.palco{flex:1;position:relative;overflow:hidden;background:
+  radial-gradient(1000px 520px at 50% 34%,#101725,var(--mesa) 72%)}
+.palco::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:radial-gradient(rgba(150,175,220,.085) 1px,transparent 1px);
+  background-size:30px 30px}
+
+.mapa{position:absolute;left:50%;top:50%;width:1180px;height:620px;
+  transform:translate(-50%,-50%) scale(var(--k,1))}
+#fios{position:absolute;inset:0;width:1180px;height:620px;overflow:visible;z-index:1}
+#fios path{fill:none;stroke:#4a586f;stroke-width:2.2}
+#fios path.tr{stroke-dasharray:7 6;stroke:#303b4d}
+
+/* ── formas: 1:1 com src/app/globals.css ─────────────────────────────────── */
+.no{position:absolute;z-index:2;cursor:pointer;transition:opacity .22s,filter .22s}
+.fx{display:grid;place-items:center;width:100%;height:100%;text-align:center;
+  font-weight:600;font-size:15px;line-height:1.3;padding:12px 18px;white-space:pre-line;
+  box-shadow:0 14px 30px -20px #000;transition:box-shadow .2s,transform .2s}
+.fx-doc{border-radius:10px;background:#ffc7c2;color:#1e1e1e}
+.fx-act{border-radius:10px;background:#9747ff;color:#fff}
+.fx-in{background:#14ae5c;color:#fff;clip-path:polygon(11% 0,100% 0,89% 100%,0 100%);padding:12px 34px}
+.fx-reg{background:#ffc7c2;color:#1e1e1e;clip-path:polygon(11% 0,100% 0,89% 100%,0 100%);padding:12px 34px}
+.fx-db{background:#ffcd29;color:#1e1e1e;border-radius:50%/13%;padding-top:24px;position:relative}
+.fx-db::before{content:"";position:absolute;left:0;right:0;top:0;height:26%;border-radius:50%;
+  background:#ffda5c;border-bottom:1px solid rgba(0,0,0,.13)}
+.fico{display:flex;flex-direction:column;align-items:center;gap:11px;height:100%}
+.fico .disc{width:88px;height:88px;border-radius:50%;display:grid;place-items:center;font-size:32px;
+  border:1px solid rgba(255,255,255,.14);box-shadow:0 14px 30px -20px #000;transition:box-shadow .2s,transform .2s}
+.fico .lbl{font-size:13.5px;font-weight:600;text-align:center;line-height:1.25}
+.fesq{height:100%;background:rgba(30,32,37,.86);border:.5px solid var(--fio-2);border-radius:12px;
+  box-shadow:0 14px 30px -20px #000;display:flex;flex-direction:column;overflow:hidden;
+  transition:box-shadow .2s,transform .2s}
+.fesq b{padding:11px 13px;font-size:13px;font-weight:600;border-bottom:.5px solid var(--fio)}
+.fesq .ec{flex:1;display:grid;place-items:center;background:rgba(0,0,0,.26)}
+.no:hover .fx,.no:hover .disc,.no:hover .fesq{transform:translateY(-1px)}
+
+.no.aberto{z-index:40}
+.no.aberto .fx,.no.aberto .disc,.no.aberto .fesq{
+  box-shadow:0 0 0 3px rgba(78,125,246,.5),0 0 0 1px var(--sinal),0 14px 30px -20px #000}
+.mapa.abr .no:not(.aberto){opacity:.6;filter:saturate(.7)}
+
+/* ── O POPOVER ───────────────────────────────────────────────────────────── */
+.gaveta{position:absolute;width:352px;z-index:30;cursor:default;border-radius:13px;
+  background:var(--vidro);backdrop-filter:blur(34px) saturate(1.9);box-shadow:var(--pop);
+  animation:abre .2s cubic-bezier(.2,.8,.28,1)}
+@keyframes abre{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
+/* o bico: é assim que um popover do macOS diz de quem ele é */
+.gaveta::after{content:"";position:absolute;width:18px;height:10px;
+  background:rgba(46,49,55,.94);filter:drop-shadow(0 0 .5px rgba(255,255,255,.3))}
+.gaveta[data-dir="b"]::after{top:-9.5px;left:calc(50% - 9px);clip-path:polygon(50% 0,100% 100%,0 100%)}
+.gaveta[data-dir="t"]::after{bottom:-9.5px;left:calc(50% - 9px);clip-path:polygon(50% 100%,100% 0,0 0)}
+.gaveta[data-dir="r"]::after{left:-13.5px;top:calc(50% - 9px);width:10px;height:18px;
+  clip-path:polygon(0 50%,100% 100%,100% 0)}
+.gaveta[data-dir="l"]::after{right:-13.5px;top:calc(50% - 9px);width:10px;height:18px;
+  clip-path:polygon(100% 50%,0 100%,0 0)}
+
+/* título */
+.gcab{display:flex;align-items:center;gap:9px;padding:11px 12px 9px}
+.selo-forma{flex:none;width:30px;height:20px;display:grid;place-items:center}
+.selo-forma .fx{font-size:0;padding:0;box-shadow:none;border-radius:4px}
+.selo-forma .fx-in,.selo-forma .fx-reg{clip-path:polygon(22% 0,100% 0,78% 100%,0 100%)}
+.selo-forma .fx-db{border-radius:50%/16%;padding:0}
+.selo-forma .disco{width:20px;height:20px;border-radius:50%;border:1px solid rgba(255,255,255,.22)}
+.selo-forma .placa{width:30px;height:20px;border-radius:5px;background:rgba(255,255,255,.1);
+  border:.5px solid var(--fio-2)}
+.gcab b{flex:1;min-width:0;font-size:14px;font-weight:600;letter-spacing:-.012em;line-height:1.2;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gcab .fechar{flex:none;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.09);
+  color:var(--tinta-2);font-size:12px;line-height:1;display:grid;place-items:center;transition:.12s}
+.gcab .fechar:hover{background:rgba(255,255,255,.18);color:var(--tinta)}
+
+/* ── barra de abas, estilo navegador ─────────────────────────────────────── */
+.abas{display:flex;align-items:center;gap:3px;padding:0 8px 8px;overflow-x:auto;scrollbar-width:none}
+.abas::-webkit-scrollbar{display:none}
+.aba{flex:none;display:flex;align-items:center;gap:6px;height:27px;padding:0 11px;border-radius:7px;
+  font-size:12.5px;font-weight:500;color:var(--tinta-2);white-space:nowrap;transition:.12s}
+.aba:hover{background:rgba(255,255,255,.06);color:var(--tinta)}
+.aba.on{background:var(--vidro-2);color:var(--tinta);font-weight:600;
+  box-shadow:0 0 0 .5px rgba(255,255,255,.15),0 1px 2px rgba(0,0,0,.45)}
+.aba .nome{outline:none}
+.aba .cont{font-family:var(--mono);font-size:9px;color:var(--tinta-3)}
+.aba.on .cont{color:var(--tinta-2)}
+.aba .fecha{width:15px;height:15px;border-radius:50%;font-size:11px;line-height:1;
+  color:var(--tinta-3);display:none;place-items:center}
+.aba.on .fecha{display:grid}
+.aba .fecha:hover{background:rgba(255,255,255,.16);color:var(--tinta)}
+.novaAba{flex:none;width:27px;height:27px;border-radius:7px;color:var(--tinta-3);font-size:15px;
+  display:grid;place-items:center}
+.novaAba:hover{background:rgba(255,255,255,.08);color:var(--tinta)}
+
+.corpo{border-top:.5px solid var(--fio);padding:9px}
+
+/* ── aba lista: os entregáveis ───────────────────────────────────────────── */
+.lista{display:flex;flex-direction:column;gap:6px}
+.item{position:relative;display:flex;gap:10px;padding:9px 10px;border-radius:9px;
+  background:rgba(255,255,255,.045);box-shadow:inset 0 0 0 .5px var(--fio);transition:.14s}
+.item:hover{background:rgba(255,255,255,.075)}
+.item .ic{flex:none;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;
+  color:#fff;background:var(--tc);box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.item .ic svg{width:15px;height:15px;display:block}
+.item .tx{flex:1;min-width:0;padding-right:2px}
+.olho{display:flex;align-items:center;gap:6px;margin-bottom:2px}
+.olho .tp{font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:.16em;color:var(--tc)}
+.marca{font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:.06em;
+  border-radius:4px;padding:1.5px 5px;white-space:nowrap}
+.marca.m80{color:#0b1710;background:var(--ok)}
+.marca.mpre{color:#1a1204;background:var(--alerta)}
+.item .nm{font-size:13px;font-weight:500;line-height:1.3;outline:none;word-break:break-word;
+  letter-spacing:-.008em}
+.item .ur{font-family:var(--mono);font-size:10px;color:var(--tinta-3);outline:none;margin-top:2px;
+  word-break:break-all;line-height:1.4}
+.item .nm:empty::before{content:"Nome do entregável";color:var(--tinta-3);font-weight:400}
+.item .ur:empty::before{content:"colar link";color:#4a4f59}
+.item .nm:focus,.item .ur:focus{color:#fff}
+.item img{width:100%;border-radius:6px;display:block;margin-top:6px}
+
+/* 80/20 = anel aceso, igual ao painel do andar da Obra.
+   Comece aqui = trilho na lateral. Eixos diferentes: dizem coisas diferentes. */
+.item.oitenta{box-shadow:0 0 0 1.5px var(--ok),0 0 22px -8px rgba(84,201,138,.7)}
+.item.pre{padding-left:15px}
+.item.pre::before{content:"";position:absolute;left:0;top:9px;bottom:9px;width:3px;
+  border-radius:0 3px 3px 0;background:var(--alerta)}
+
+.acoes{position:absolute;top:7px;right:7px;display:flex;gap:3px;opacity:0;transition:opacity .12s}
+.item:hover .acoes,.acoes:focus-within{opacity:1}
+.acoes button{width:23px;height:21px;border-radius:6px;font-family:var(--mono);font-size:9px;
+  font-weight:700;color:var(--tinta-2);background:rgba(60,63,70,.9);
+  box-shadow:0 0 0 .5px var(--fio-2),0 1px 2px rgba(0,0,0,.4);transition:.12s}
+.acoes button:hover{background:rgba(80,84,92,.95);color:#fff}
+.acoes .b80.on{background:var(--ok);color:#0b1710}
+.acoes .bpre.on{background:var(--alerta);color:#1a1204}
+.acoes button.travado{opacity:.3;cursor:not-allowed}
+.acoes .x{font-size:12px}
+.acoes .x:hover{background:var(--erro);color:#fff}
+
+/* ── aba galeria: o carrossel de depoimentos ─────────────────────────────── */
+.galeria{display:flex;flex-direction:column;gap:9px}
+.quadro{position:relative;height:212px;border-radius:9px;overflow:hidden;background:rgba(0,0,0,.34);
+  box-shadow:inset 0 0 0 .5px var(--fio);display:grid;place-items:center}
+.quadro img{max-width:100%;max-height:100%;display:block;object-fit:contain}
+.quadro .vaziox{font-size:12px;color:var(--tinta-3);text-align:center;padding:0 26px;line-height:1.5}
+.nav{position:absolute;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;
+  background:rgba(20,21,24,.72);backdrop-filter:blur(12px);color:#fff;font-size:13px;
+  box-shadow:0 0 0 .5px rgba(255,255,255,.2),0 2px 8px rgba(0,0,0,.5);
+  display:grid;place-items:center;opacity:0;transition:opacity .14s}
+.quadro:hover .nav,.nav:focus-visible{opacity:1}
+.nav.ant{left:8px} .nav.prox{right:8px}
+.apagar{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;
+  background:rgba(20,21,24,.72);backdrop-filter:blur(12px);color:#fff;font-size:13px;line-height:1;
+  box-shadow:0 0 0 .5px rgba(255,255,255,.2),0 2px 8px rgba(0,0,0,.5);
+  display:grid;place-items:center;opacity:0;transition:opacity .14s}
+.quadro:hover .apagar,.apagar:focus-visible{opacity:1}
+.apagar:hover{background:var(--erro)}
+
+.pontos{display:flex;justify-content:center;gap:6px}
+.pontos i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.22);
+  transition:.16s;cursor:pointer}
+.pontos i.on{background:var(--tinta);transform:scale(1.15)}
+
+.legenda{font-size:12.5px;font-weight:500;line-height:1.4;outline:none;letter-spacing:-.008em;
+  padding:0 2px;min-height:18px}
+.legenda:empty::before{content:"Quem falou, e o que provou";color:var(--tinta-3);font-weight:400}
+.legenda:focus{color:#fff}
+
+/* ── adicionar ───────────────────────────────────────────────────────────── */
+.mais{display:flex;align-items:center;justify-content:center;gap:6px;height:34px;border-radius:9px;
+  color:var(--tinta-2);font-size:12.5px;font-weight:500;
+  box-shadow:inset 0 0 0 .5px var(--fio-2);transition:.12s}
+.mais:hover{background:rgba(255,255,255,.06);color:var(--tinta)}
+.escolha{display:flex;gap:5px}
+.escolha button{flex:1;height:38px;border-radius:9px;display:grid;place-items:center;color:var(--tc);
+  background:rgba(255,255,255,.05);box-shadow:inset 0 0 0 .5px var(--fio-2);transition:.12s}
+.escolha button:hover{background:color-mix(in srgb,var(--tc) 20%,transparent);
+  box-shadow:inset 0 0 0 .5px var(--tc)}
+.escolha button svg{width:16px;height:16px}
+.escolha.tipoAba button{font-size:12.5px;font-weight:500;color:var(--tinta-2)}
+.escolha.tipoAba button:hover{background:rgba(255,255,255,.09);color:var(--tinta);
+  box-shadow:inset 0 0 0 .5px var(--fio-2)}
+
+.rodape{display:flex;justify-content:space-between;padding:7px 12px 9px;
+  font-family:var(--mono);font-size:8.5px;letter-spacing:.06em;color:#4d525c;
+  border-top:.5px solid var(--fio-3)}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topo">
+    <div class="logo"><b>🏗 Cockpit Builder</b><span>OBRA 10K</span></div>
+    <nav class="seg" id="paginas" aria-label="Página"></nav>
+    <div class="lado">
+      <span class="rot">ABRE PARA</span>
+      <div class="seg" id="pad" role="group" aria-label="Por onde a gaveta abre"></div>
+    </div>
+  </header>
+  <main class="palco"><div class="mapa" id="mapa"><svg id="fios"></svg></div></main>
+</div>
+
+<script>
+/* Ícones em SVG, não emoji: emoji muda de desenho por sistema operacional e a
+   consistência entre os cinco vai embora. */
+const SVG={
+  aula:'<svg viewBox="0 0 16 16" fill="currentColor"><path d="M5.3 3.4v9.2l7.7-4.6z"/></svg>',
+  ia:'<svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1.3l1.5 4.5 4.5 1.5-4.5 1.5L8 13.3 6.5 8.8 2 7.3l4.5-1.5z"/></svg>',
+  ferram:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M8 1.8l5.2 3v6.4L8 14.2l-5.2-3V4.8z"/><circle cx="8" cy="8" r="2"/></svg>',
+  link:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6.7 9.3a2.7 2.7 0 010-3.8l1.5-1.5a2.7 2.7 0 013.8 3.8l-.8.8"/><path d="M9.3 6.7a2.7 2.7 0 010 3.8l-1.5 1.5a2.7 2.7 0 01-3.8-3.8l.8-.8"/></svg>',
+  img:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><rect x="2" y="3.2" width="12" height="9.6" rx="1.8"/><path d="M2.4 11l3.3-3.3 2.4 2.4 2-2 3.5 3.5"/><circle cx="5.9" cy="6.3" r=".95" fill="currentColor" stroke="none"/></svg>',
+};
+const TIPOS=[
+  {k:'aula',  rot:'AULA',      cor:'var(--t-aula)'},
+  {k:'ia',    rot:'IA',        cor:'var(--t-ia)'},
+  {k:'ferram',rot:'FERRAMENTA',cor:'var(--t-ferram)'},
+  {k:'link',  rot:'LINK',      cor:'var(--t-link)'},
+  {k:'img',   rot:'IMAGEM',    cor:'var(--t-img)'},
+];
+const tipo=k=>TIPOS.find(t=>t.k===k)||TIPOS[2];
+
+/* Marcar tudo é o mesmo que não marcar nada: 80/20 para em 2 (igual TETO_8020
+   em src/lib/model.ts) e o imprescindível para em 1. */
+const TETO={oitenta:2, pre:1};
+const ZAP='../../../public/assets/onboarding/';
+
+/* Toda gaveta nasce com as duas abas padrão. O + cria outras em runtime. */
+const abasPadrao=(itens=[],fotos=[])=>([
+  {nome:'Ferramentas', kind:'lista',   itens},
+  {nome:'Depoimentos', kind:'galeria', itens:fotos, i:0},
+]);
+
+const PAGINAS={
+  onboarding:{rotulo:'Onboarding',nos:[
+    {id:'contrato', tipo:'doc',x:40, y:230,w:220,h:100,txt:'Faz um contrato'},
+    {id:'briefing', tipo:'in', x:320,y:220,w:250,h:120,txt:'Preencher Briefing',
+      abas:abasPadrao([
+        {k:'aula',nome:'Briefing Página de Vendas',url:'forms.clickup.com/…',oitenta:true},
+        {k:'ferram',nome:'Pasta do cliente no Drive',url:'drive.google.com/…',pre:true},
+      ],[
+        {src:ZAP+'zap-leonardo.png',cap:'Leonardo · copy inteira da página em 10 minutos'},
+        {src:ZAP+'zap-rafael.png',  cap:'Rafael Moreno · EB + Easy Copy + Easy Image'},
+        {src:ZAP+'zap-anderson.png',cap:'Anderson · Easy Copy + processos do Setup'},
+        {src:ZAP+'zap-geral.png',   cap:'Comunidade · “adiantou demais aq”'},
+      ])},
+    {id:'pagamento',tipo:'act',x:640,y:230,w:220,h:100,txt:'Solicitar Pagamento'},
+    {id:'clickup',  tipo:'act',x:920,y:230,w:240,h:100,txt:'Criar Tarefa\nno ClickUp'},
+    {id:'gdrive',   tipo:'db', x:340,y:460,w:210,h:105,txt:'Google Drive'},
+    {id:'nf',       tipo:'doc',x:640,y:470,w:220,h:90, txt:'Nota Fiscal'},
+    {id:'planilha', tipo:'reg',x:920,y:470,w:240,h:90, txt:'Planilha\nFinanceira'},
+  ],arestas:[['contrato','r','briefing','l'],['briefing','r','pagamento','l'],
+             ['pagamento','r','clickup','l'],['pagamento','b','nf','t'],
+             ['clickup','b','planilha','t'],['briefing','b','gdrive','t',1]]},
+
+  metodo:{rotulo:'Método 10k',nos:[
+    {id:'behance',  tipo:'fico',x:60, y:220,w:170,h:150,txt:'Behance',    emo:'🎨',cor:'#4e7df6'},
+    {id:'instagram',tipo:'fico',x:290,y:220,w:170,h:150,txt:'Instagram',  emo:'📸',cor:'#f26a43',
+      abas:abasPadrao([
+        {k:'aula',nome:'Reels N3 + SEO',url:'easybuilder.club/…'},
+        {k:'ia',  nome:'IA 07 Copy Carrossel',url:'app.easybuilder.com.br/…',oitenta:true},
+        {k:'ferram',nome:'Obra · Pilar 02',url:'/p/obra'},
+      ],[
+        {src:ZAP+'zap-geral.png', cap:'Comunidade · o que o posicionamento trouxe'},
+        {src:ZAP+'zap-rafael.png',cap:'Rafael Moreno · cliente veio pelo perfil'},
+      ])},
+    {id:'linkbio',  tipo:'fico',x:520,y:220,w:170,h:150,txt:'Link na bio',emo:'🔗',cor:'#33c6d6'},
+    {id:'qualif',   tipo:'fico',x:750,y:220,w:170,h:150,txt:'Qualificação',emo:'🎯',cor:'#54c98a'},
+    {id:'balde', tipo:'fesq',x:60, y:440,w:340,h:160,txt:'Balde Furado'},
+    {id:'conta', tipo:'fesq',x:440,y:440,w:340,h:160,txt:'A conta do 10k'},
+    {id:'pilar2',tipo:'act', x:830,y:460,w:260,h:120,txt:'PILAR 02\nVALOR PERCEBIDO'},
+  ],arestas:[['behance','r','instagram','l'],['instagram','r','linkbio','l'],
+             ['linkbio','r','qualif','l'],['instagram','b','pilar2','t',1]]},
+};
+/* nó sem abas declaradas nasce com as duas padrão, vazias */
+for(const P of Object.values(PAGINAS))
+  for(const n of P.nos) if(!n.abas) n.abas=abasPadrao();
+
+const MAPA_W=1180, MAPA_H=620, GAP=16, GW=352;
+let pagina='onboarding', dir='auto', aberto=null, modo=null;   // modo: 'item' | 'aba' | null
+
+const $mapa=document.getElementById('mapa'), $fios=document.getElementById('fios'),
+      $palco=document.querySelector('.palco');
+const aba=()=>aberto.abas[aberto.ativa??0];
+
+/* ── barra do topo ───────────────────────────────────────────────────────── */
+for(const[k,v]of Object.entries(PAGINAS)){
+  const b=document.createElement('button');b.textContent=v.rotulo;b.dataset.p=k;
+  b.onclick=()=>{pagina=k;fechar();desenha();pinta()};
+  document.getElementById('paginas').appendChild(b);
+}
+const SETA={auto:'AUTO',t:'↑',b:'↓',l:'←',r:'→'};   // AUTO primeiro: é o repouso
+for(const c of Object.keys(SETA)){
+  const b=document.createElement('button');b.textContent=SETA[c];b.dataset.d=c;
+  b.title=c==='auto'?'Escolhe o lado com espaço':'Abre para '+SETA[c];
+  if(c==='auto')b.classList.add('auto');
+  b.onclick=()=>{dir=c;pinta();const g=$mapa.querySelector('.gaveta');if(g)posiciona(g,aberto)};
+  document.getElementById('pad').appendChild(b);
+}
+
+/* ── mapa ────────────────────────────────────────────────────────────────── */
+function desenha(){
+  const P=PAGINAS[pagina];
+  [...$mapa.querySelectorAll('.no')].forEach(e=>e.remove());
+  for(const n of P.nos){
+    const el=document.createElement('div');
+    el.className='no';el.id='no-'+n.id;el.tabIndex=0;
+    el.style.cssText=`left:${n.x}px;top:${n.y}px;width:${n.w}px;height:${n.h}px`;
+    el.innerHTML=corpo(n);
+    el.onclick=e=>{e.stopPropagation();abrir(n)};
+    el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();abrir(n)}};
+    $mapa.appendChild(el);
+  }
+  fios(P);
+}
+function corpo(n){
+  if(n.tipo==='fico')return `<div class="fico"><div class="disc" style="background:color-mix(in srgb,${n.cor} 26%,#1e2025);border-color:color-mix(in srgb,${n.cor} 55%,transparent)">${n.emo}</div><span class="lbl">${n.txt}</span></div>`;
+  if(n.tipo==='fesq')return `<div class="fesq"><b>${n.txt}</b><div class="ec">${balde()}</div></div>`;
+  return `<div class="fx fx-${n.tipo}">${n.txt}</div>`;
+}
+const balde=()=>`<svg width="118" height="70" viewBox="0 0 118 70"><path d="M32 14h54l-8 42H40z" fill="none" stroke="#6b707b" stroke-width="2"/><rect x="28" y="8" width="62" height="7" rx="3" fill="#4a586f"/><circle cx="50" cy="34" r="2.8" fill="#f26a43"/><circle cx="65" cy="42" r="2.8" fill="#f26a43"/><path d="M50 38v8M65 46v6" stroke="#f26a43" stroke-width="1.6" stroke-linecap="round"/></svg>`;
+
+function fios(P){
+  const pt=(n,l)=>({t:[n.x+n.w/2,n.y],b:[n.x+n.w/2,n.y+n.h],
+                    l:[n.x,n.y+n.h/2],r:[n.x+n.w,n.y+n.h/2]}[l]);
+  const by=id=>P.nos.find(n=>n.id===id);
+  let d=`<defs><marker id="pta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5"
+    markerHeight="6.5" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#4a586f"/></marker></defs>`;
+  for(const[a,la,b,lb,tr]of P.arestas){
+    const[x1,y1]=pt(by(a),la),[x2,y2]=pt(by(b),lb);
+    const m=(la==='r'||la==='l')?(x1+x2)/2:(y1+y2)/2;
+    d+=`<path d="${la==='r'||la==='l'?`M${x1} ${y1}H${m}V${y2}H${x2}`:`M${x1} ${y1}V${m}H${x2}V${y2}`}"
+      class="${tr?'tr':''}" marker-end="url(#pta)"/>`;
+  }
+  $fios.innerHTML=d;
+}
+
+/* ── popover ─────────────────────────────────────────────────────────────── */
+function abrir(n){
+  const mesmo=aberto&&aberto.id===n.id;
+  fechar();
+  if(mesmo)return;
+  aberto=n; n.ativa=n.ativa??0;
+  const el=document.getElementById('no-'+n.id);
+  el.classList.add('aberto');$mapa.classList.add('abr');
+  const g=document.createElement('div');g.className='gaveta';
+  g.onclick=e=>e.stopPropagation();
+  el.appendChild(g);
+  pintaGaveta(g);
+}
+function fechar(){
+  aberto=null;modo=null;
+  $mapa.classList.remove('abr');
+  $mapa.querySelectorAll('.aberto').forEach(e=>e.classList.remove('aberto'));
+  $mapa.querySelectorAll('.gaveta').forEach(e=>e.remove());
+}
+/* Redesenha e reposiciona junto: trocar de aba muda a altura, e altura
+   diferente pode mudar qual lado ainda cabe. */
+function pintaGaveta(g){
+  g=g||$mapa.querySelector('.gaveta');
+  if(!g||!aberto)return;
+  const a=aba();
+  g.innerHTML='';
+  g.appendChild(cabecalho());
+  g.appendChild(barraAbas());
+  const c=document.createElement('div');c.className='corpo';
+  c.appendChild(a.kind==='galeria'?galeria():lista());
+  g.appendChild(c);
+  const r=document.createElement('div');r.className='rodape';
+  r.innerHTML=`<span>${a.itens.length} ${a.itens.length===1?'ITEM':'ITENS'}</span><span>CTRL+V</span>`;
+  g.appendChild(r);
+  posiciona(g,aberto);
+}
+
+/* o cabeçalho veste a forma do nó — a gramática do fluxograma continua aqui */
+function cabecalho(){
+  const n=aberto, d=document.createElement('div');d.className='gcab';
+  const forma=n.tipo==='fico'
+      ? `<span class="disco" style="background:color-mix(in srgb,${n.cor} 34%,#1e2025);border-color:color-mix(in srgb,${n.cor} 62%,transparent)"></span>`
+    : n.tipo==='fesq' ? `<span class="placa"></span>`
+    : `<span class="fx fx-${n.tipo}" style="width:30px;height:20px"></span>`;
+  d.innerHTML=`<span class="selo-forma">${forma}</span>
+    <b>${n.txt.replace(/\n/g,' ')}</b><button class="fechar" title="Fechar">×</button>`;
+  d.querySelector('.fechar').onclick=fechar;
+  return d;
+}
+
+function barraAbas(){
+  const n=aberto, bar=document.createElement('div');bar.className='abas';
+  n.abas.forEach((a,i)=>{
+    const b=document.createElement('button');
+    b.className='aba'+(i===n.ativa?' on':'');
+    b.title='Dois cliques renomeia';
+    b.innerHTML=`<span class="nome">${a.nome}</span><span class="cont">${a.itens.length}</span>`
+      +(n.abas.length>1?'<span class="fecha" title="Remover aba">×</span>':'');
+    b.onclick=e=>{
+      if(e.target.classList.contains('fecha')){
+        n.abas.splice(i,1);n.ativa=Math.max(0,Math.min(n.ativa,n.abas.length-1));
+        modo=null;pintaGaveta();return;
+      }
+      n.ativa=i;modo=null;pintaGaveta();
+    };
+    b.ondblclick=e=>{                       // renomear no lugar, como no navegador
+      e.stopPropagation();
+      const nm=b.querySelector('.nome');
+      nm.contentEditable='true';nm.focus();
+      document.getSelection().selectAllChildren(nm);
+      nm.onblur=()=>{a.nome=nm.textContent.trim()||'Sem nome';nm.contentEditable='false';pintaGaveta()};
+      nm.onkeydown=ev=>{if(ev.key==='Enter'){ev.preventDefault();nm.blur()}};
+    };
+    bar.appendChild(b);
+  });
+  const mais=document.createElement('button');
+  mais.className='novaAba';mais.textContent='+';mais.title='Nova aba';
+  mais.onclick=()=>{modo=modo==='aba'?null:'aba';pintaGaveta()};
+  bar.appendChild(mais);
+  return bar;
+}
+
+/* ── aba lista ───────────────────────────────────────────────────────────── */
+function lista(){
+  const a=aba(), box=document.createElement('div');box.className='lista';
+  a.itens.forEach((v,i)=>box.appendChild(linha(a,v,i)));
+  if(modo==='aba'){box.appendChild(escolhaDeAba());return box}
+
+  if(modo==='item'){
+    const e=document.createElement('div');e.className='escolha';
+    for(const t of TIPOS){
+      const b=document.createElement('button');
+      b.innerHTML=SVG[t.k];b.style.setProperty('--tc',t.cor);b.title=t.rot;
+      b.onclick=()=>{a.itens.push({k:t.k,nome:'',url:''});modo=null;pintaGaveta();
+        $mapa.querySelector('.item:last-of-type .nm')?.focus()};
+      e.appendChild(b);
+    }
+    box.appendChild(e);
+  }else{
+    const m=document.createElement('button');m.className='mais';m.textContent='+  Adicionar';
+    m.onclick=()=>{modo='item';pintaGaveta()};
+    box.appendChild(m);
+  }
+  return box;
+}
+
+function linha(a,v,i){
+  const t=tipo(v.k), el=document.createElement('div');
+  el.className='item'+(v.oitenta?' oitenta':'')+(v.pre?' pre':'');
+  el.style.setProperty('--tc',t.cor);
+  el.innerHTML=`<span class="ic">${SVG[t.k]}</span>
+    <div class="tx">
+      <div class="olho"><span class="tp">${t.rot}</span>
+        ${v.oitenta?'<span class="marca m80">80/20</span>':''}
+        ${v.pre?'<span class="marca mpre">COMECE AQUI</span>':''}</div>
+      <div class="nm" contenteditable spellcheck="false">${v.nome||''}</div>
+      ${v.k==='img'&&v.src?`<img src="${v.src}" alt="">`
+        :`<div class="ur" contenteditable spellcheck="false">${v.url||''}</div>`}
+    </div>
+    <div class="acoes">
+      <button class="b80${v.oitenta?' on':''}" title="Marcar como 80/20">80</button>
+      <button class="bpre${v.pre?' on':''}" title="Marcar como imprescindível">!</button>
+      <button class="x" title="Remover">×</button>
+    </div>`;
+  el.querySelector('.ic').onclick=()=>{
+    v.k=TIPOS[(TIPOS.findIndex(x=>x.k===v.k)+1)%TIPOS.length].k;pintaGaveta()};
+  const marcar=(campo,btn)=>{
+    if(!v[campo]&&a.itens.filter(x=>x[campo]).length>=TETO[campo]){
+      btn.classList.add('travado');btn.disabled=true;return}
+    btn.onclick=()=>{v[campo]=!v[campo];pintaGaveta()};
+  };
+  marcar('oitenta',el.querySelector('.b80'));
+  marcar('pre',el.querySelector('.bpre'));
+  el.querySelector('.x').onclick=()=>{a.itens.splice(i,1);pintaGaveta()};
+  el.querySelector('.nm').oninput=e=>v.nome=e.target.textContent;
+  const ur=el.querySelector('.ur');if(ur)ur.oninput=e=>v.url=e.target.textContent;
+  return el;
+}
+
+/* ── aba galeria: o carrossel de depoimentos ─────────────────────────────── */
+function galeria(){
+  const a=aba(), box=document.createElement('div');box.className='galeria';
+  a.i=a.itens.length?Math.max(0,Math.min(a.i??0,a.itens.length-1)):0;
+  const foto=a.itens[a.i];
+
+  const q=document.createElement('div');q.className='quadro';
+  q.innerHTML=foto?`<img src="${foto.src}" alt="${foto.cap||''}">`
+                  :`<span class="vaziox">Cole um print aqui com Ctrl+V</span>`;
+  if(a.itens.length>1){
+    const ant=document.createElement('button');ant.className='nav ant';ant.textContent='‹';
+    ant.title='Anterior';ant.onclick=()=>{a.i=(a.i-1+a.itens.length)%a.itens.length;pintaGaveta()};
+    const prox=document.createElement('button');prox.className='nav prox';prox.textContent='›';
+    prox.title='Próximo';prox.onclick=()=>{a.i=(a.i+1)%a.itens.length;pintaGaveta()};
+    q.append(ant,prox);
+  }
+  if(foto){
+    const rm=document.createElement('button');rm.className='apagar';rm.textContent='×';
+    rm.title='Remover este print';
+    rm.onclick=()=>{a.itens.splice(a.i,1);a.i=Math.max(0,a.i-1);pintaGaveta()};
+    q.appendChild(rm);
+  }
+  box.appendChild(q);
+
+  if(a.itens.length>1){
+    const p=document.createElement('div');p.className='pontos';
+    a.itens.forEach((_,j)=>{
+      const d=document.createElement('i');if(j===a.i)d.className='on';
+      d.title='Depoimento '+(j+1);
+      d.onclick=()=>{a.i=j;pintaGaveta()};p.appendChild(d);
+    });
+    box.appendChild(p);
+  }
+  if(foto){
+    const cap=document.createElement('div');cap.className='legenda';
+    cap.contentEditable='true';cap.spellcheck=false;cap.textContent=foto.cap||'';
+    cap.oninput=e=>foto.cap=e.target.textContent;
+    box.appendChild(cap);
+  }
+  if(modo==='aba'){box.appendChild(escolhaDeAba());return box}
+
+  const add=document.createElement('button');add.className='mais';
+  add.textContent='+  Colar print';add.title='Ctrl+V cola o print da área de transferência';
+  add.onclick=()=>add.blur();     // quem cola é o Ctrl+V; o botão só diz que dá
+  box.appendChild(add);
+  return box;
+}
+
+/* Duas espécies de aba: uma lista de entregáveis, ou uma galeria de prints. */
+function escolhaDeAba(){
+  const e=document.createElement('div');e.className='escolha tipoAba';
+  for(const[kind,rot]of[['lista','Lista'],['galeria','Galeria']]){
+    const b=document.createElement('button');b.textContent=rot;
+    b.onclick=()=>{
+      aberto.abas.push({nome:kind==='lista'?'Nova lista':'Nova galeria',kind,itens:[],i:0});
+      aberto.ativa=aberto.abas.length-1;modo=null;pintaGaveta();
+    };
+    e.appendChild(b);
+  }
+  return e;
+}
+
+/* ── posição ─────────────────────────────────────────────────────────────── */
+function posiciona(g,n){
+  const gh=g.offsetHeight;
+  const cand={
+    b:{x:n.x+n.w/2-GW/2, y:n.y+n.h+GAP},
+    t:{x:n.x+n.w/2-GW/2, y:n.y-GAP-gh},
+    r:{x:n.x+n.w+GAP,    y:n.y+n.h/2-gh/2},
+    l:{x:n.x-GAP-GW,     y:n.y+n.h/2-gh/2},
+  };
+  let d=dir;
+  if(d==='auto'){
+    const PREF={b:1, t:1.15, r:1.3, l:1.35};   // baixo primeiro: é uma gaveta
+    let melhor=null;
+    for(const k of ['b','t','r','l']){
+      const p=(fora(cand[k],gh)*3+colide(cand[k],gh,n))*PREF[k];
+      if(melhor===null||p<melhor.p)melhor={k,p};
+      if(p===0)break;
+    }
+    d=melhor.k;
+  }
+  g.dataset.dir=d;
+  g.style.left=(cand[d].x-n.x)+'px';
+  g.style.top =(cand[d].y-n.y)+'px';
+}
+function fora(c,gh){
+  const dx=Math.max(0,-c.x)+Math.max(0,c.x+GW-MAPA_W);
+  const dy=Math.max(0,-c.y)+Math.max(0,c.y+gh-MAPA_H);
+  return dx*gh+dy*GW;
+}
+function colide(c,gh,eu){
+  let a=0;
+  for(const o of PAGINAS[pagina].nos){
+    if(o.id===eu.id)continue;
+    const w=Math.min(c.x+GW,o.x+o.w)-Math.max(c.x,o.x);
+    const h=Math.min(c.y+gh,o.y+o.h)-Math.max(c.y,o.y);
+    if(w>0&&h>0)a+=w*h;
+  }
+  return a;
+}
+
+/* Ctrl+V vai pra aba aberta: na galeria vira print, na lista vira item.
+   Dentro de um campo em edição, colar continua sendo colar texto. */
+addEventListener('paste',e=>{
+  if(!aberto||document.activeElement?.isContentEditable)return;
+  const a=aba();
+  for(const it of e.clipboardData.items){
+    if(it.type.startsWith('image/')){
+      e.preventDefault();
+      const r=new FileReader();
+      r.onload=()=>{
+        if(a.kind==='galeria'){a.itens.push({src:r.result,cap:''});a.i=a.itens.length-1}
+        else a.itens.push({k:'img',nome:'',src:r.result});
+        pintaGaveta();
+      };
+      r.readAsDataURL(it.getAsFile());
+      return;
+    }
+  }
+  const txt=e.clipboardData.getData('text').trim();
+  if(a.kind==='lista'&&/^https?:\/\//.test(txt)){
+    e.preventDefault();
+    a.itens.push({k:'link',nome:'',url:txt});pintaGaveta();
+  }
+});
+
+function pinta(){
+  document.querySelectorAll('[data-p]').forEach(b=>b.classList.toggle('on',b.dataset.p===pagina));
+  document.querySelectorAll('[data-d]').forEach(b=>b.classList.toggle('on',b.dataset.d===dir));
+}
+function escala(){
+  $mapa.style.setProperty('--k',
+    Math.max(.4,Math.min(1,($palco.clientWidth-56)/MAPA_W,($palco.clientHeight-44)/MAPA_H)));
+}
+
+addEventListener('resize',escala);
+addEventListener('keydown',e=>{
+  if(document.activeElement?.isContentEditable){
+    if(e.key==='Escape')document.activeElement.blur();
+    return;
+  }
+  if(e.key==='Escape')return fechar();
+  if(!aberto)return;
+  const a=aba();
+  if(a.kind!=='galeria'||a.itens.length<2)return;
+  if(e.key==='ArrowRight'){a.i=(a.i+1)%a.itens.length;pintaGaveta()}
+  if(e.key==='ArrowLeft') {a.i=(a.i-1+a.itens.length)%a.itens.length;pintaGaveta()}
+});
+$palco.addEventListener('click',fechar);
+desenha();pinta();escala();
+</script>
+</body>
+</html>

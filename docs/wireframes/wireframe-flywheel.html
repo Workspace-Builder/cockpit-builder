@@ -3,280 +3,685 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Cockpit Builder — Wireframe da página O Trilho (flywheel)</title>
+<title>Cockpit Builder — O Motor de Tijolos (wireframe)</title>
+<!-- ===========================================================================
+     TELA ÚNICA DO FLYWHEEL — roda, alicerce e modal. Mais nada.
+     Escopo: "a roda do funil anti-prospecção com o arsenal completo mapeado por
+     pilar/setor". Camada de venda e faixa de ICP saíram: não existem no produto
+     e não estão no escopo.
+
+     A RODA VEIO DO LEGADO, VERBATIM. Mesma geometria (R_IN 236 / R_OUT 398 /
+     anel 418-452), mesma textura de tijolo, mesmo anel de chevrons, mesma
+     faísca de 9s do index.html. Portado, não refeito.
+
+     O QUE MUDOU
+     · trilho lateral → MODAL. O trilho abria por cima e tapava o setor que
+       você acabou de clicar; o modal centraliza e a roda continua legível atrás.
+     · cada tijolo agora carrega o PILAR de origem (campo `p`), e o modal
+       agrupa por ele. É isso que "mapeado por pilar/setor" quer dizer:
+       o SETOR é onde o tijolo é usado, o PILAR é de onde ele vem.
+     · o modal fecha com a conferência do setor: quantos tijolos têm pilar
+       mapeado e quantos não têm. Buraco fica na tela, não numa planilha.
+
+     ARQUIVO ÚNICO: CSS, dado e script aqui dentro.
+     =========================================================================== -->
 <style>
   :root{
-    --fundo:#0c1018; --fundo-2:#111826; --painel:#141c2b; --painel-2:#182130;
-    --texto:#eef2fb; --texto-2:#9aa7be; --texto-3:#5d6a83;
-    --fio:rgba(255,255,255,.09); --fio-2:rgba(255,255,255,.17);
-    --azul:#4e7df6; --verde:#54c98a; --ambar:#f5b23f; --laranja:#f26a43;
-    --ciano:#33c6d6; --roxo:#9e6cf2;
+    --ground:#0c1018; --ground-2:#111826; --panel:#141c2b; --panel-2:#182130;
+    --ink:#eef2fb; --ink-dim:#9aa7be; --ink-faint:#5d6a83;
+    --label:#f3f6fd; --hair:rgba(255,255,255,.09); --hair-2:rgba(255,255,255,.05);
+    --c-atracao:#f5b23f; --c-venda:#f26a43; --c-gestao:#33c6d6;
+    --c-execucao:#4e7df6; --c-qualidade:#9e6cf2; --c-posicionamento:#54c98a;
+    --p1:#4e7df6; --p2:#54c98a; --p3:#33c6d6; --p4:#f5b23f;
+    --shadow:0 24px 60px -24px rgba(0,0,0,.75);
+    --mono:ui-monospace,"SF Mono","JetBrains Mono","Cascadia Mono",Menlo,Consolas,monospace;
     --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
   }
   *{box-sizing:border-box}
-  html,body{margin:0;height:100%;overflow:hidden;background:var(--fundo);
-    color:var(--texto);font-family:var(--sans);font-size:14px}
+  html,body{margin:0;min-height:100%;background:var(--ground);color:var(--ink);
+    font-family:var(--sans);font-size:14px;-webkit-font-smoothing:antialiased}
   button{font:inherit;color:inherit;cursor:pointer;background:none;border:none}
 
-  .tela{display:flex;height:100%}
-  .palco{flex:1;position:relative;display:grid;place-items:center;min-width:0;
-    background:radial-gradient(900px 600px at 50% 40%,rgba(78,125,246,.07),transparent 62%)}
+  .app{position:relative;max-width:1180px;margin:0 auto;
+    padding:20px clamp(16px,3vw,34px) 28px;display:flex;flex-direction:column;gap:20px;
+    min-height:100vh}
+  .app::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.5;z-index:0;
+    background-image:linear-gradient(var(--hair-2) 1px,transparent 1px),
+                     linear-gradient(90deg,var(--hair-2) 1px,transparent 1px);
+    background-size:46px 46px;mask-image:radial-gradient(circle at 50% 40%,#000,transparent 78%)}
+  .app>*{position:relative;z-index:1}
 
-  /* ---------- a roda gigante ---------- */
-  .roda{position:relative;width:min(74vh,680px);aspect-ratio:1}
-  .roda svg{width:100%;height:100%;overflow:visible}
-  .fatia{cursor:pointer;transition:opacity .18s}
-  .fatia .preenche{opacity:.30;transition:opacity .2s}
-  .fatia:hover .preenche{opacity:.55}
-  .fatia.on .preenche{opacity:.92}
-  .fatia .borda{fill:none;stroke-width:1.5}
-  .fatia.on .borda{stroke-width:3}
-  .num{font-family:var(--mono);font-size:20px;font-weight:700;pointer-events:none}
-  .rot{font-size:13px;font-weight:700;fill:var(--texto);pointer-events:none;
-    text-transform:uppercase;letter-spacing:.06em}
+  /* sem título, sem kicker, sem lede, sem legenda: o título da página já diz o
+     nome, e repetir aqui rouba a tela da roda — que é o assunto */
+  .btn{position:absolute;right:clamp(16px,3vw,34px);top:20px;z-index:5;
+    display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;
+    letter-spacing:.04em;color:var(--ink);background:var(--panel);border:1px solid var(--hair);
+    border-radius:999px;padding:9px 15px;transition:border-color .2s}
+  .btn:hover{border-color:color-mix(in srgb,var(--c-execucao) 50%,var(--hair))}
+  .btn .dot{width:8px;height:8px;border-radius:50%;background:var(--c-gestao);
+    box-shadow:0 0 10px var(--c-gestao)}
+  .btn[aria-pressed="false"] .dot{background:var(--ink-faint);box-shadow:none}
+  .btn:focus-visible,.sector:focus-visible{outline:2px solid var(--c-gestao);outline-offset:3px}
 
-  /* miolo: o que o flywheel PROMETE */
-  .miolo{position:absolute;inset:0;margin:auto;width:42%;height:42%;display:flex;
+  /* ---------------------------------------------------------------------
+     O PALCO — a roda ocupa a tela inteira. Ao abrir um setor ela ENCOLHE e
+     ANDA PRA ESQUERDA pra dar lugar ao modal, em vez de ser coberta por ele.
+     Sem backdrop de propósito: o setor que você clicou continua aceso e à
+     vista, e o caminho de volta é óbvio.
+     --------------------------------------------------------------------- */
+  /* overflow:hidden porque o modal fica estacionado FORA da direita enquanto
+     fechado — sem isto ele empurra a largura do documento e nasce uma barra de
+     rolagem horizontal na página inteira */
+  .stage{position:relative;flex:1;display:grid;place-items:center;min-height:min(76vh,720px);
+    overflow:hidden}
+  .wheelBox{position:relative;width:min(92vw,76vh,680px);aspect-ratio:1/1;
+    filter:drop-shadow(var(--shadow));
+    transition:transform .52s cubic-bezier(.22,1,.36,1)}
+  .stage.aberto .wheelBox{transform:translateX(-31%) scale(.66)}
+  #wheel{width:100%;height:100%;display:block;overflow:visible}
+  .hub{position:absolute;inset:0;margin:auto;width:44%;height:44%;display:flex;
     flex-direction:column;align-items:center;justify-content:center;text-align:center;
-    gap:6px;pointer-events:none}
-  .miolo .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.28em;color:var(--texto-3)}
-  .miolo .n{font-size:44px;font-weight:800;letter-spacing:-.03em;line-height:1}
-  .miolo .s{font-size:11.5px;color:var(--texto-2);line-height:1.4;max-width:22ch}
+    pointer-events:none;gap:.5em}
+  .hub-eyebrow{font-family:var(--mono);font-size:clamp(8px,1vw,10px);letter-spacing:.36em;
+    color:var(--ink-faint)}
+  .hub-thesis{font-size:clamp(14px,2.1vw,23px);font-weight:500;line-height:1.16;color:var(--ink)}
+  .hub-thesis b{font-weight:800;
+    background:linear-gradient(92deg,var(--c-atracao),var(--c-posicionamento));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .hub-sub{font-family:var(--mono);font-size:clamp(8px,1vw,10px);letter-spacing:.06em;
+    color:var(--ink-dim);font-variant-numeric:tabular-nums}
+  .loopTag{position:absolute;top:-6px;left:50%;transform:translateX(-50%);font-family:var(--mono);
+    font-size:11px;letter-spacing:.08em;color:var(--ground);font-weight:700;
+    background:linear-gradient(92deg,var(--c-posicionamento),var(--c-atracao));
+    padding:5px 12px;border-radius:999px;white-space:nowrap;transition:transform .26s ease;
+    box-shadow:0 6px 20px -6px color-mix(in srgb,var(--c-atracao) 70%,transparent)}
 
-  /* a seta do ciclo: o que faz ser flywheel e não pizza */
-  .giro{position:absolute;left:50%;top:-14px;transform:translateX(-50%);
-    font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--fundo);
-    background:linear-gradient(92deg,var(--verde),var(--ambar));
-    padding:5px 13px;border-radius:99px;font-weight:700;white-space:nowrap}
+  /* ---------------------------------------------------------------------
+     DESTAQUE DO SETOR CLICADO
+     Acender o escolhido sozinho não resolve — a roda toda já é colorida, e
+     mais brilho no meio de brilho não vira contraste. O que destaca é APAGAR
+     OS OUTROS: com os cinco vizinhos em 26%, o escolhido salta sem precisar
+     de efeito nenhum.
+     --------------------------------------------------------------------- */
+  .sector{cursor:pointer}
+  .sfill{transition:opacity .3s ease}
+  .sedge{transition:stroke-width .2s,opacity .3s}
+  .slabel,.sindex,.scount,.course{transition:opacity .3s}
+  .sector .sfill{opacity:.78}
+  .sector:hover .sfill,.sector.pulsing .sfill{opacity:1}
 
-  /* ---------- painel da etapa ---------- */
-  .etapa{width:392px;flex:none;border-left:1px solid var(--fio);
-    background:rgba(16,22,34,.96);display:flex;flex-direction:column}
-  .cab{padding:20px 22px 16px;border-bottom:1px solid var(--fio);position:relative}
-  .cab .idx{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:9px;
-    font-family:var(--mono);font-weight:800;font-size:14px;color:#0c1018}
-  .cab h2{margin:11px 0 0;font-size:23px;font-weight:800;letter-spacing:-.02em}
-  .cab .papel{margin:7px 0 0;font-size:12.5px;line-height:1.5;color:var(--texto-2)}
+  #wheel.temSel .sector:not(.active) .sfill{opacity:.26}
+  #wheel.temSel .sector:not(.active) .sedge{opacity:.28}
+  #wheel.temSel .sector:not(.active) .slabel,
+  #wheel.temSel .sector:not(.active) .sindex,
+  #wheel.temSel .sector:not(.active) .scount{opacity:.3}
+  #wheel.temSel .sector:not(.active):hover .sfill{opacity:.5}
 
-  /* recebe / entrega — a corrente de energia */
-  .corrente{display:flex;gap:9px;padding:14px 22px;border-bottom:1px solid var(--fio)}
-  .corrente div{flex:1;border:1px solid var(--fio);border-radius:10px;padding:9px 11px}
-  .corrente .k{font-family:var(--mono);font-size:8.5px;letter-spacing:.16em;color:var(--texto-3);
-    display:block;margin-bottom:4px}
-  .corrente .v{font-size:11.5px;line-height:1.35;color:var(--texto)}
+  .sector.active .sfill{opacity:1}
+  .sector.active .sedge{stroke-width:4}
+  .sector.active .slabel{fill:#fff}
+  /* o anel externo marca a fatia escolhida na borda da roda — é o que se vê
+     antes de ler o rótulo */
+  .marcaSel{fill:none;stroke-width:7;stroke-linecap:round;opacity:0;
+    transition:opacity .3s;pointer-events:none}
+  .marcaSel.on{opacity:.95}
+  .slabel{font-family:var(--sans);font-weight:800;letter-spacing:.03em;fill:var(--label)}
+  .sindex{font-family:var(--mono);font-weight:700}
+  .scount{font-family:var(--mono);fill:var(--label);opacity:.7}
+  .course{stroke-linecap:round;fill:none}
+  .chev{fill:none;stroke-linecap:round;stroke-linejoin:round}
 
-  .corpo{flex:1;overflow:auto;padding:16px 22px}
-  .tit{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;color:var(--texto-3);
-    text-transform:uppercase;margin:0 0 10px}
-  .passo{display:flex;gap:10px;align-items:flex-start;padding:9px 11px;border-radius:9px;
-    background:rgba(255,255,255,.03);border:1px solid var(--fio);margin-bottom:7px}
-  .passo .p{font-family:var(--mono);font-size:9px;color:var(--texto-3);padding-top:2px;min-width:16px}
-  .passo b{font-size:12.5px;font-weight:700;display:block}
-  .passo .sub{font-size:11px;color:var(--texto-2);line-height:1.35;margin-top:2px}
-  .tag{display:inline-block;font-family:var(--mono);font-size:8px;letter-spacing:.1em;
-    padding:2px 5px;border-radius:4px;border:1px solid currentColor;color:var(--ambar);margin-left:6px}
+  /* ---------- alicerce ---------- */
+  .foundation{background:
+      repeating-linear-gradient(90deg,transparent 0 92px,var(--hair-2) 92px 93px),
+      repeating-linear-gradient(0deg,transparent 0 30px,var(--hair-2) 30px 31px),
+      linear-gradient(180deg,#20283a,#28324a);
+    border:1px solid var(--hair);border-radius:16px;padding:16px clamp(16px,2.4vw,26px) 18px}
+  .found-head{display:flex;align-items:baseline;gap:12px;margin-bottom:13px;flex-wrap:wrap}
+  .found-label{font-family:var(--mono);font-weight:800;letter-spacing:.24em;font-size:12px}
+  .found-sub{font-size:12px;color:var(--ink-dim)}
+  .found-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(184px,1fr));gap:11px}
+  .fcard{background:color-mix(in srgb,#8a97b0 8%,var(--panel));border:1px solid var(--hair);
+    border-radius:11px;padding:12px 13px}
+  .fcard .fh{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+  .fcard .fh .ico{width:17px;height:17px;color:#8a97b0}
+  .fcard .fh .ico svg{width:100%;height:100%;stroke:currentColor;stroke-width:1.7;fill:none}
+  .fcard .fh b{font-size:13px}
+  .fcard .fitems{display:flex;flex-wrap:wrap;gap:5px}
+  .chip{font-family:var(--mono);font-size:10px;color:var(--ink-dim);background:var(--panel-2);
+    border:1px solid var(--hair);border-radius:6px;padding:3px 7px}
 
-  .arsenal{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
-  .chip{font-family:var(--mono);font-size:9.5px;padding:4px 8px;border-radius:6px;
-    border:1px solid var(--fio);color:var(--texto-2);background:rgba(255,255,255,.03)}
+  /* ---------- o modal do setor: chega pela direita, no vão que a roda abriu ---------- */
+  .modal{position:absolute;right:0;top:50%;width:min(460px,46%);max-height:88%;
+    transform:translate(112%,-50%);opacity:0;pointer-events:none;z-index:20;
+    background:linear-gradient(180deg,var(--panel),var(--panel-2));
+    border:1px solid var(--hair);border-radius:18px;overflow:hidden;box-shadow:var(--shadow);
+    display:flex;flex-direction:column;--secc:var(--c-execucao);
+    transition:transform .52s cubic-bezier(.22,1,.36,1),opacity .34s}
+  .modal.on{opacity:1;pointer-events:auto;transform:translate(0,-50%)}
+  /* 1 · o cabeçalho VESTE a cor da fase. Antes só o quadradinho do índice era
+     colorido, e os seis modais eram indistinguíveis de relance. */
+  .m-top{position:relative;display:flex;align-items:center;gap:14px;padding:20px;
+    border-bottom:1px solid var(--hair);overflow:hidden;
+    background:linear-gradient(100deg,color-mix(in srgb,var(--secc) 26%,transparent),
+                                      color-mix(in srgb,var(--secc) 5%,transparent) 62%,transparent)}
+  /* 2 · o número da fase, gigante e quase invisível, carimba o modal */
+  .m-top::after{content:attr(data-n);position:absolute;right:52px;top:50%;
+    transform:translateY(-50%);font-family:var(--mono);font-size:96px;font-weight:800;
+    color:var(--secc);opacity:.13;line-height:1;pointer-events:none;letter-spacing:-.04em}
+  .m-idx{font-family:var(--mono);font-weight:800;font-size:20px;width:48px;height:48px;flex:none;
+    display:grid;place-items:center;border-radius:12px;color:#0c1018;background:var(--secc);
+    box-shadow:0 8px 22px -8px var(--secc);position:relative;z-index:1}
+  .m-top h2{margin:0;font-size:23px;font-weight:800;letter-spacing:-.015em;position:relative;z-index:1}
+  .m-top .cnt{font-family:var(--mono);font-size:11px;color:var(--secc);letter-spacing:.06em;
+    position:relative;z-index:1}
+  .m-close{margin-left:auto;width:32px;height:32px;flex:none;border:1px solid var(--hair);
+    border-radius:9px;color:var(--ink-dim);font-size:14px;display:grid;place-items:center;
+    position:relative;z-index:1;background:rgba(12,16,24,.5)}
+  .m-close:hover{color:var(--ink)}
 
-  .rodape{padding:13px 22px;border-top:1px solid var(--fio);display:flex;
-    align-items:center;justify-content:space-between;gap:10px}
-  .rodape span{font-family:var(--mono);font-size:10px;color:var(--texto-3)}
-  .rodape button{border:1px solid var(--fio);border-radius:8px;padding:7px 13px;
-    font-size:12px;font-weight:600;color:var(--texto-2)}
-  .rodape button:hover{color:#fff;border-color:var(--azul)}
+  /* 3 · o papel da fase vira frase, não legenda de rodapé */
+  .m-role{margin:0;padding:15px 20px 15px 18px;font-size:14px;line-height:1.5;color:var(--ink);
+    border-bottom:1px solid var(--hair);border-left:3px solid var(--secc);
+    background:color-mix(in srgb,var(--secc) 5%,transparent)}
 
-  .dica{position:absolute;left:26px;bottom:22px;font-family:var(--mono);font-size:10px;
-    letter-spacing:.06em;color:var(--texto-3)}
-  .dica kbd{border:1px solid var(--fio-2);border-radius:4px;padding:2px 5px;margin:0 2px}
+  /* 4 · a composição da fase: do que ela é feita, numa barra só */
+  .m-comp{padding:14px 20px;border-bottom:1px solid var(--hair)}
+  .barra{display:flex;height:9px;border-radius:99px;overflow:hidden;gap:2px;margin-bottom:9px}
+  .barra i{display:block;background:var(--secc);transition:flex-grow .4s}
+  .comp-leg{display:flex;flex-wrap:wrap;gap:6px 13px}
+  .comp-leg span{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:9.5px;
+    letter-spacing:.08em;color:var(--ink-dim);text-transform:uppercase}
+  .comp-leg .pt{width:8px;height:8px;border-radius:2px;background:var(--secc)}
+  .comp-leg b{color:var(--ink);font-size:11px}
+  .m-body{overflow-y:auto;padding:16px 20px}
+  .m-body::-webkit-scrollbar{width:8px}
+  .m-body::-webkit-scrollbar-thumb{background:var(--hair);border-radius:99px}
+
+  .grupo{margin-bottom:16px}
+  .gh{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+  .gh .bola{width:9px;height:9px;border-radius:50%;flex:none;background:var(--gc)}
+  .gh b{font-size:12px;font-weight:700}
+  .gh .qt{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--ink-faint)}
+  .gh.orfao b{color:var(--ink-dim)}
+
+  /* 5 · os tijolos entram em cascata. É a diferença entre "uma lista apareceu"
+     e "a fase está sendo montada na sua frente" — custo: um animation-delay. */
+  .tij{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:9px;margin-bottom:6px;
+    background:color-mix(in srgb,var(--gc) 8%,var(--panel));
+    border:1px solid color-mix(in srgb,var(--gc) 20%,transparent);border-left:3px solid var(--gc);
+    opacity:0;animation:sobe .34s cubic-bezier(.22,1,.36,1) forwards}
+  @keyframes sobe{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){.tij{opacity:1;animation:none}}
+  .tij .ico{width:18px;height:18px;flex:none;color:var(--gc)}
+  .tij .ico svg{width:100%;height:100%;stroke:currentColor;stroke-width:1.7;fill:none}
+  .tij .bn{font-size:12.5px;line-height:1.25;font-weight:500}
+  .tij .bt{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--ink-faint);margin-top:2px;display:block}
+  .tij .loop{margin-left:auto;font-family:var(--mono);font-size:9px;color:var(--c-posicionamento);
+    white-space:nowrap}
+
+  .m-pe{padding:12px 20px;border-top:1px solid var(--hair);background:rgba(255,255,255,.02);
+    font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);display:flex;
+    align-items:center;gap:8px;flex-wrap:wrap}
+  .m-pe b{color:var(--ink-dim)}
+  .m-pe .alerta{color:var(--c-venda)}
+  .m-nav{margin-left:auto;display:flex;gap:6px}
+  .m-nav button{border:1px solid var(--hair);border-radius:8px;padding:6px 10px;font-size:11px;
+    color:var(--ink-dim);font-family:var(--sans)}
+  .m-nav button:hover{color:var(--ink);border-color:var(--secc)}
+
+  @media (max-width:900px){
+    /* sem vão lateral pra abrir: a roda sobe e encolhe, o modal vem de baixo */
+    .stage{min-height:auto}
+    .wheelBox{width:min(92vw,440px)}
+    .stage.aberto .wheelBox{transform:translateY(-14%) scale(.52)}
+    .modal{width:100%;max-height:70%;left:0;right:0;top:auto;bottom:0;
+      transform:translateY(112%);border-radius:18px 18px 0 0}
+    .modal.on{transform:translateY(0)}
+    .hub{width:52%}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.001ms !important}}
 </style>
 </head>
 <body>
 
-<div class="tela">
-  <div class="palco">
-    <div class="roda">
-      <div class="giro">↻ cada volta custa menos que a anterior</div>
-      <svg id="svg" viewBox="0 0 1000 1000" aria-label="Flywheel"></svg>
-      <div class="miolo">
-        <span class="k">O CICLO</span>
-        <span class="n" id="mNum">11</span>
-        <span class="s" id="mSub">passos que rodam a cada cliente — os outros 25 você constrói uma vez</span>
+<div class="app">
+
+  <button class="btn" id="btnMotion" aria-pressed="true"><span class="dot"></span>Movimento</button>
+
+  <main class="stage" id="stage">
+    <div class="wheelBox">
+      <svg id="wheel" viewBox="0 0 1000 1000" role="group" aria-label="Flywheel da metodologia"></svg>
+      <div class="hub">
+        <div class="hub-eyebrow">A TESE</div>
+        <div class="hub-thesis">O builder pensa,<br><b>o sistema constrói.</b></div>
+        <div class="hub-sub" id="hubSub">6 fases · 1 volante</div>
       </div>
-    </div>
-    <div class="dica">clique numa fase · ou <kbd>1</kbd>…<kbd>6</kbd> · <kbd>←</kbd><kbd>→</kbd> anda no ciclo</div>
-  </div>
-
-  <aside class="etapa">
-    <div class="cab">
-      <span class="idx" id="eIdx">01</span>
-      <h2 id="eNome">Atração</h2>
-      <p class="papel" id="ePapel"></p>
+      <div class="loopTag" id="loopTag" title="A entrega vira o próximo lead">↻ ciclo virtuoso</div>
     </div>
 
-    <div class="corrente">
-      <div><span class="k">RECEBE DE</span><span class="v" id="eRec"></span></div>
-      <div><span class="k">ENTREGA PRA</span><span class="v" id="eEnt"></span></div>
+    <div class="modal" id="modal" role="dialog" aria-labelledby="mNome">
+      <div class="m-top">
+        <span class="m-idx" id="mIdx">01</span>
+        <div><h2 id="mNome">—</h2><span class="cnt" id="mCnt">—</span></div>
+        <button class="m-close" id="mClose" aria-label="Fechar">✕</button>
+      </div>
+      <p class="m-role" id="mRole"></p>
+      <div class="m-comp" id="mComp"></div>
+      <div class="m-body" id="mBody"></div>
+      <div class="m-pe" id="mPe"></div>
     </div>
+  </main>
 
-    <div class="corpo">
-      <p class="tit">O que você faz aqui</p>
-      <div id="ePassos"></div>
-      <p class="tit" style="margin-top:20px">Com o que você faz</p>
-      <div class="arsenal" id="eArsenal"></div>
+  <section class="foundation" aria-label="Alicerce">
+    <div class="found-head">
+      <span class="found-label">ALICERCE</span>
+      <span class="found-sub">envolve o ciclo inteiro — não é etapa, é base</span>
     </div>
+    <div class="found-grid" id="foundGrid"></div>
+  </section>
 
-    <div class="rodape">
-      <button id="ant">← anterior</button>
-      <span id="ePos">fase 1 de 6</span>
-      <button id="prox">próxima →</button>
-    </div>
-  </aside>
 </div>
 
 <script>
 (function(){
 "use strict";
+var SVGNS="http://www.w3.org/2000/svg";
+var CX=500, CY=500;
+var R_IN=236, R_OUT=398, R_MOM_IN=418, R_MOM_OUT=452, GAP=2.2;   // legado, verbatim
 
-/* =========================================================
-   O DADO — as duas camadas que o repo já tem
-   · passos: lib/passos.ts filtrado por cicloPos (o que se FAZ)
-   · arsenal: lib/flywheel.ts, bricks por fase (COM O QUE se faz)
-   O papel/recebe/entrega é o que transforma pizza em flywheel.
-   ========================================================= */
-var FASES=[
- {n:'Atração', cor:'var(--ambar)',
-  papel:'Leads chegam sem prospecção ativa — posicionamento, portfólio e conteúdo fazem o trabalho.',
-  recebe:'Prova social da volta anterior',
-  entrega:'Conversas que já chegam aquecidas',
-  passos:[], arsenal:['02 · ICP e Posicionamento','08 · Copy Ads','Template Portfólio','Anti Prospecção','Comunidade Behance']},
+var ICONS={
+  ia:'M8 8h8v8H8z M10 4.5v3.5 M14 4.5v3.5 M10 16v3.5 M14 16v3.5 M4.5 10h3.5 M4.5 14h3.5 M16 10h3.5 M16 14h3.5',
+  tool:'M4 5h6.5v6.5H4z M13.5 12.5H20V19h-6.5z M13.5 5H20v5h-6.5z M4 14.5h6.5V19H4z',
+  setup:'M9 4.5h6v3H9z M7 6h2 M15 6h2 M7 6v14h10V6 M9.5 11h5 M9.5 14.5h5',
+  curso:'M3 17.5h18 M6 17.5v-2.2a6 6 0 0 1 12 0v2.2 M11 6v3 M13 6v3 M9 9h6',
+  comunidade:'M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M15.5 10.5a2.4 2.4 0 1 0 0-4.8 M4 19a5 5 0 0 1 10 0 M14.5 15a4.6 4.6 0 0 1 5.5 4',
+  mentoria:'M12 4l2.3 4.8 5.2.6-3.8 3.6 1 5.2-4.7-2.6-4.7 2.6 1-5.2-3.8-3.6 5.2-.6z',
+  suporte:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4z M7 7l2.6 2.6 M17 7l-2.6 2.6 M7 17l2.6-2.6 M17 17l-2.6-2.6',
+  bonus:'M4.5 11h15v8.5h-15z M4 8h16v3H4z M12 8v11.5 M12 8C10.5 4 7.5 4.5 7.5 6.4S10 9 12 8 M12 8c1.5-4 4.5-3.5 4.5-1.6S14 9 12 8z',
+  processo:'M4 12a8 8 0 0 1 13.5-5.8L20 8 M20 4v4h-4 M20 12a8 8 0 0 1-13.5 5.8L4 16 M4 20v-4h4'
+};
+var NAT={ia:'IA',tool:'Ferramenta',setup:'Setup',curso:'Curso',comunidade:'Comunidade',
+         mentoria:'Mentoria',suporte:'Suporte',bonus:'Bônus',processo:'Processo'};
 
- {n:'Venda', cor:'var(--laranja)',
-  papel:'Qualquer pessoa vende como o Lorenzi. A IA investiga o lead e conduz a conversa até o sim.',
-  recebe:'Lead que já sabe quem você é',
-  entrega:'Projeto fechado e escopo claro',
-  passos:[{p:1,t:'Atendimento',s:'Investiga antes de dar preço.',k:1},
-          {p:2,t:'Proposta profissional',s:'Amador no zap derruba o ticket na hora.',k:1}],
-  arsenal:['01 · Análise Estratégica','03 · Atendimento e Negociação','04 · Webson Vendedor','Proposta comercial','Contrato']},
+/* Os 4 pilares — de src/lib/passos.ts. O SETOR diz onde o tijolo é usado;
+   o PILAR diz de onde ele vem. É esse cruzamento que o escopo pede. */
+var PILARES={
+  1:{n:'Pilar 01 · Entrega de alto valor', c:'var(--p1)'},
+  2:{n:'Pilar 02 · Valor percebido',       c:'var(--p2)'},
+  3:{n:'Pilar 03 · Gestão e eficiência',   c:'var(--p3)'},
+  4:{n:'Pilar 04 · Ambiente e mentalidade',c:'var(--p4)'},
+  0:{n:'Sem pilar mapeado',                c:'#5d6a83'}
+};
 
- {n:'Gestão', cor:'var(--ciano)',
-  papel:'A entrada do projeto, processualizada. Briefing, contrato, pastas, financeiro — nada se perde.',
-  recebe:'Escopo fechado',
-  entrega:'Projeto pronto pra execução, sem retrabalho',
-  passos:[{p:3,t:'Onboarding do cliente',s:'Todo projeto entra pelo mesmo trilho.',k:1}],
-  arsenal:['Formulários de briefing','Gestão ClickUp','Pasta modelo (Drive)','Planilha financeira']},
-
- {n:'Execução', cor:'var(--azul)',
-  papel:'O coração. O sistema constrói o que é mecânico — 3× mais rápido — e devolve o tempo pro que importa.',
-  recebe:'Briefing completo',
-  entrega:'Página pronta pra revisão',
-  passos:[{p:4,t:'Estratégia da página',s:'Decidido antes de abrir ferramenta.',k:1},
-          {p:5,t:'Copy',s:'O texto que vende.',k:1},
-          {p:6,t:'Design',s:'Arquétipo, paleta, tipografia. Nunca do zero.',k:1},
-          {p:7,t:'Código e efeitos',s:'O acabamento que separa página de página cara.',k:1},
-          {p:8,t:'Implementação técnica',s:'',k:1}],
-  arsenal:['05 · Estrutura de Sites','06 · Easy Copy','09 · Diretor Criativo','10 · Easy Image','Extensão EB · 1.000+ componentes']},
-
- {n:'Qualidade', cor:'var(--verde)',
-  papel:'O gate. A página só sai quando passa — é o que protege preço e reputação.',
-  recebe:'Página construída',
-  entrega:'Entrega que o cliente mostra pros outros',
-  passos:[{p:9,t:'Qualidade antes de enviar',s:'O gate: só sai quando passa.',k:1},
-          {p:10,t:'Entregar no prazo',s:'Prazo cumprido é reputação composta.',k:1}],
-  arsenal:['12 · Analisador de Páginas','Checklist de entrega']},
-
- {n:'Posicionamento', cor:'var(--roxo)',
-  papel:'A entrega vira ativo: depoimento, portfólio, conteúdo. É aqui que a volta seguinte fica mais barata.',
-  recebe:'Cliente satisfeito',
-  entrega:'Prova social que alimenta a Atração — o ciclo fecha',
-  passos:[{p:11,t:'Prova social',s:'Pede hoje, publica essa semana.',k:0}],
-  arsenal:['10 · Easy Image (mockups)','Comunidade Behance','Coleta de depoimento']}
+/* ===========================================================================
+   O DADO — src/lib/flywheel.ts, verbatim, + o campo `p` (pilar de origem).
+   O `p` foi cruzado com passos.ts pelo rótulo do entregável. Onde o tijolo não
+   tem passo correspondente (bônus, comunidade, itens de plataforma), fica p:0 —
+   e o modal mostra isso em vez de esconder.
+   =========================================================================== */
+var PHASES=[
+ {key:'atracao',name:'Atração',varc:'--c-atracao',
+  role:'Leads chegam sem prospecção ativa — posicionamento, portfólio e conteúdo fazem o trabalho por você.',
+  bricks:[
+    {n:'02 · ICP e Posicionamento',t:'ia',p:2},
+    {n:'08 · Copy Builder — Ads',t:'ia',p:2},
+    {n:'07 · Copy Builder — Carrossel',t:'ia',p:2},
+    {n:'10 · Easy Image',t:'ia',p:1},
+    {n:'Template de Portfólio (Behance)',t:'setup',p:2},
+    {n:'Template de Carrossel (Instagram)',t:'setup',p:2},
+    {n:'Comunidade Behance',t:'comunidade',p:0},
+    {n:'Anti Prospecção',t:'curso',p:2},
+    {n:'Easy Sales',t:'curso',p:2},
+    {n:'Indicação de clientes grandes',t:'comunidade',p:4},
+    {n:'Arena Builder (marketplace)',t:'comunidade',p:0},
+    {n:'Rede de contratação interna',t:'comunidade',p:0},
+    {n:'Tools Builder (isca / front-end)',t:'tool',p:0}
+  ]},
+ {key:'venda',name:'Venda',varc:'--c-venda',
+  role:'Qualquer pessoa vende como o Lorenzi. A IA investiga o lead e conduz a conversa até o sim.',
+  bricks:[
+    {n:'01 · Análise Estratégica',t:'ia',p:2},
+    {n:'03 · Atendimento e Negociação',t:'ia',p:2},
+    {n:'04 · Webson Vendedor',t:'ia',p:0},
+    {n:'02 · ICP e Posicionamento',t:'ia',p:2},
+    {n:'Proposta comercial',t:'setup',p:2},
+    {n:'Contrato profissional',t:'setup',p:3},
+    {n:'Easy Sales',t:'curso',p:2}
+  ]},
+ {key:'gestao',name:'Gestão',varc:'--c-gestao',
+  role:'A entrada e a organização do projeto, processualizadas. Briefing, contrato, pastas, financeiro — nada se perde.',
+  bricks:[
+    {n:'Formulários de briefing',t:'setup',p:3},
+    {n:'Formulário de coleta de dados',t:'setup',p:0},
+    {n:'Gestão ClickUp (Setup Builder)',t:'setup',p:3},
+    {n:'Pasta modelo (Google Drive)',t:'setup',p:3},
+    {n:'Fluxograma dos processos',t:'setup',p:0},
+    {n:'Planilha financeira',t:'setup',p:3},
+    {n:'Contrato profissional',t:'setup',p:3},
+    {n:'Proposta comercial',t:'setup',p:2},
+    {n:'Compartilhamento de recursos (equipe)',t:'tool',p:0},
+    {n:'Meus Recursos',t:'tool',p:0}
+  ]},
+ {key:'execucao',name:'Execução',varc:'--c-execucao',
+  role:'O coração. O sistema constrói tudo que é mecânico — 3× mais rápido — e devolve o tempo pro que importa.',
+  bricks:[
+    {n:'05 · Estrutura de Sites',t:'ia',p:1},
+    {n:'06 · Easy Copy',t:'ia',p:1},
+    {n:'09 · Diretor Criativo',t:'ia',p:1},
+    {n:'10 · Easy Image',t:'ia',p:1},
+    {n:'11 · Easy Coder',t:'ia',p:1},
+    {n:'01 · Análise Estratégica',t:'ia',p:2},
+    {n:'Extensão Easy Builder — 1.000+ componentes',t:'tool',p:1},
+    {n:'+180 páginas completas',t:'tool',p:0},
+    {n:'+800 seções',t:'tool',p:0},
+    {n:'+120 códigos & elementos',t:'tool',p:0},
+    {n:'Responsividade automática',t:'tool',p:1},
+    {n:'Templates de IA',t:'tool',p:0},
+    {n:'Backup WordPress (3 cliques)',t:'tool',p:1},
+    {n:'Meus Recursos',t:'tool',p:0},
+    {n:'Novos drops (quinzenal)',t:'tool',p:0},
+    {n:'PageBox — 70+ Figma',t:'tool',p:0},
+    {n:'Arsenal do Web Designer',t:'tool',p:0},
+    {n:'Design Easy',t:'curso',p:1},
+    {n:'Fast Builder / Profissão Web Building',t:'curso',p:0},
+    {n:'Figma Education',t:'bonus',p:0},
+    {n:'Hospedagem VPS',t:'bonus',p:0},
+    {n:'Licenças Elementor',t:'bonus',p:0},
+    {n:'Suporte com desenvolvedores',t:'suporte',p:0}
+  ]},
+ {key:'qualidade',name:'Qualidade',varc:'--c-qualidade',
+  role:'O gate. Otimização, performance, segurança e o olho do Lorenzi garantem que nenhuma página saia abaixo do padrão.',
+  bricks:[
+    {n:'12 · Analisador de Páginas',t:'ia',p:1,note:'o gate que toda página atravessa'},
+    {n:'Easy Optimize',t:'curso',p:1},
+    {n:'11 · Easy Coder (otimização)',t:'ia',p:1},
+    {n:'Responsividade automática',t:'tool',p:1},
+    {n:'Tools Builder (compressor / otimizador)',t:'tool',p:0},
+    {n:'Backup WordPress (ambiente seguro)',t:'tool',p:1},
+    {n:'Suporte com desenvolvedores',t:'suporte',p:0}
+  ]},
+ {key:'posicionamento',name:'Posicionamento',varc:'--c-posicionamento',
+  role:'A entrega vira portfólio, indicação e tráfego gratuito. Fecha o volante e reabastece a Atração.',
+  bricks:[
+    {n:'Template de Portfólio (Figma)',t:'setup',p:2,loop:true},
+    {n:'Template de Carrossel (Instagram)',t:'setup',p:2,loop:true},
+    {n:'07 · Copy Builder — Carrossel',t:'ia',p:2,loop:true},
+    {n:'10 · Easy Image (mockups)',t:'ia',p:1},
+    {n:'02 · ICP e Posicionamento',t:'ia',p:2},
+    {n:'Comunidade Behance',t:'comunidade',p:0},
+    {n:'Coleta de depoimento',t:'processo',p:2}
+  ]}
 ];
 
-var CX=500, CY=500, R_IN=250, R_OUT=430, GAP=2.4, N=FASES.length, PASSO=360/N;
-var atual=0;
+var FOUNDATION=[
+  {g:'Mentalidade',t:'curso',items:['Mentalidade Builder']},
+  {g:'Comunidade',t:'comunidade',items:['WhatsApp','Discord','Community Manager','Monitoria 2×/sem','Networking','Rede de contratação','Arena Builder','Black Builders']},
+  {g:'Mentoria',t:'mentoria',items:['Ao vivo','Gravadas (14+)','Mensal c/ especialista','Execução Lorenzi']},
+  {g:'Suporte',t:'suporte',items:['Suporte normal','Com desenvolvedores']},
+  {g:'Infra & Bônus',t:'bonus',items:['Figma Education','Hospedagem VPS','Licenças Elementor']}
+];
 
-function polar(r,g){var a=(g-90)*Math.PI/180;return[CX+r*Math.cos(a),CY+r*Math.sin(a)];}
-function fmt(p){return p[0].toFixed(1)+' '+p[1].toFixed(1);}
-function anel(ri,ro,a0,a1){
-  var p0=polar(ro,a0),p1=polar(ro,a1),p2=polar(ri,a1),p3=polar(ri,a0);
-  var g=(a1-a0)<=180?0:1;
-  return'M'+fmt(p0)+'A'+ro+' '+ro+' 0 '+g+' 1 '+fmt(p1)+'L'+fmt(p2)+'A'+ri+' '+ri+' 0 '+g+' 0 '+fmt(p3)+'Z';
+/* ---------- helpers (legado) ---------- */
+function cssVar(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+function hexToRgb(h){h=h.replace('#','');if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  return[parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
+function rgba(hex,a){var c=hexToRgb(hex);return'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')';}
+function polar(r,deg){var a=(deg-90)*Math.PI/180;return[CX+r*Math.cos(a),CY+r*Math.sin(a)];}
+function fmt(p){return p[0].toFixed(2)+' '+p[1].toFixed(2);}
+function annular(rIn,rOut,a0,a1){
+  var p0=polar(rOut,a0),p1=polar(rOut,a1),p2=polar(rIn,a1),p3=polar(rIn,a0);
+  var lg=(a1-a0)<=180?0:1;
+  return'M'+fmt(p0)+'A'+rOut+' '+rOut+' 0 '+lg+' 1 '+fmt(p1)+'L'+fmt(p2)+
+        'A'+rIn+' '+rIn+' 0 '+lg+' 0 '+fmt(p3)+'Z';
 }
-function el(t,a){var e=document.createElementNS('http://www.w3.org/2000/svg',t);
-  for(var k in a)e.setAttribute(k,a[k]);return e;}
+function arcLine(r,a0,a1){
+  var p0=polar(r,a0),p1=polar(r,a1);
+  var lg=Math.abs(a1-a0)<=180?0:1, sw=a1>a0?1:0;
+  return'M'+fmt(p0)+'A'+r+' '+r+' 0 '+lg+' '+sw+' '+fmt(p1);
+}
+function el(tag,attrs){var e=document.createElementNS(SVGNS,tag);
+  for(var k in attrs)e.setAttribute(k,attrs[k]);return e;}
+function iconSvg(t){return'<svg viewBox="0 0 24 24"><path d="'+ICONS[t]+'"/></svg>';}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
 
-var svg=document.getElementById('svg');
-FASES.forEach(function(f,i){
-  var a0=i*PASSO+GAP/2, a1=(i+1)*PASSO-GAP/2, meio=(a0+a1)/2;
-  var g=el('g',{class:'fatia',id:'f'+i,tabindex:'0',role:'button','aria-label':f.n});
-  g.appendChild(el('path',{class:'preenche',d:anel(R_IN,R_OUT,a0,a1),fill:f.cor}));
-  g.appendChild(el('path',{class:'borda',d:anel(R_IN,R_OUT,a0,a1),stroke:f.cor}));
+/* ---------- a roda (legado, verbatim) ---------- */
+var svg=document.getElementById('wheel');
+var colors=PHASES.map(function(p){return cssVar(p.varc);});
 
-  var pn=polar(R_IN+34,meio);
-  var n=el('text',{class:'num',x:pn[0],y:pn[1]+7,'text-anchor':'middle',fill:f.cor});
-  n.textContent='0'+(i+1); g.appendChild(n);
-
-  var pr=polar((R_IN+R_OUT)/2+26,meio);
-  var r=el('text',{class:'rot',x:pr[0],y:pr[1]+5,'text-anchor':'middle',
-    transform:'rotate('+(meio>180?meio+90:meio-90)+' '+pr[0]+' '+pr[1]+')'});
-  r.textContent=f.n; g.appendChild(r);
-
-  g.addEventListener('click',function(){abrir(i);});
-  g.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();abrir(i);}});
-  svg.appendChild(g);
+var defs=el('defs',{});
+PHASES.forEach(function(p,i){
+  var g=el('linearGradient',{id:'grad'+i,x1:'0',y1:'0',x2:'0',y2:'1'});
+  g.appendChild(el('stop',{offset:'0',"stop-color":rgba(colors[i],.42)}));
+  g.appendChild(el('stop',{offset:'1',"stop-color":rgba(colors[i],.12)}));
+  defs.appendChild(g);
 });
+var glow=el('filter',{id:'glow',x:'-40%',y:'-40%',width:'180%',height:'180%'});
+glow.appendChild(el('feGaussianBlur',{'in':'SourceGraphic',stdDeviation:'6',result:'b'}));
+var mrg=el('feMerge',{});
+mrg.appendChild(el('feMergeNode',{'in':'b'}));mrg.appendChild(el('feMergeNode',{'in':'SourceGraphic'}));
+glow.appendChild(mrg);defs.appendChild(glow);
+svg.appendChild(defs);
 
-// seta entre fases: a energia passando adiante
-FASES.forEach(function(f,i){
-  var a=(i+1)*PASSO;
-  var p=polar(R_OUT+22,a);
-  var t=el('text',{x:p[0],y:p[1]+5,'text-anchor':'middle','font-size':'15',fill:'var(--texto-3)',
-    transform:'rotate('+a+' '+p[0]+' '+p[1]+')'});
-  t.textContent='▸'; svg.appendChild(t);
+svg.appendChild(el('circle',{cx:CX,cy:CY,r:R_OUT+2,fill:'none',stroke:rgba('#ffffff',.04),'stroke-width':1}));
+
+var gMom=el('g',{id:'gMomentum'});
+gMom.appendChild(el('circle',{cx:CX,cy:CY,r:(R_MOM_IN+R_MOM_OUT)/2,fill:'none',
+  stroke:rgba('#ffffff',.06),'stroke-width':R_MOM_OUT-R_MOM_IN}));
+for(var d=0;d<360;d+=10){
+  var rc=(R_MOM_IN+R_MOM_OUT)/2, s=6;
+  gMom.appendChild(el('path',{class:'chev',
+    d:'M'+fmt(polar(rc-s,d-1.4))+'L'+fmt(polar(rc,d+2.2))+'L'+fmt(polar(rc+s,d-1.4)),
+    stroke:rgba('#9fb0cc',.5),'stroke-width':1.4}));
+}
+svg.appendChild(gMom);
+
+var gSect=el('g',{});
+PHASES.forEach(function(p,i){
+  var a0=i*60+GAP/2, a1=(i+1)*60-GAP/2, mid=i*60+30, col=colors[i];
+  var g=el('g',{class:'sector',id:'sec'+i,tabindex:'0',role:'button',
+    'aria-label':'Fase '+(i+1)+': '+p.name+', '+p.bricks.length+' tijolos'});
+  g.appendChild(el('path',{class:'sfill',d:annular(R_IN,R_OUT,a0,a1),fill:'url(#grad'+i+')',
+    filter:'url(#glow)'}));
+  g.appendChild(el('path',{class:'sedge',d:annular(R_IN,R_OUT,a0,a1),fill:'none',
+    stroke:rgba(col,.9),'stroke-width':1.6}));
+  // coursing de tijolo: é ela que faz ler alvenaria, e não pizza
+  var courses=5;
+  for(var c=1;c<courses;c++){
+    g.appendChild(el('path',{class:'course',d:arcLine(R_IN+(R_OUT-R_IN)*c/courses,a0+.4,a1-.4),
+      stroke:rgba(col,.16),'stroke-width':1}));
+  }
+  for(var c2=0;c2<courses;c2++){
+    var rA=R_IN+(R_OUT-R_IN)*c2/courses, rB=R_IN+(R_OUT-R_IN)*(c2+1)/courses;
+    var off=(c2%2)?3.6:0;
+    for(var an=a0+3.6+off;an<a1-2;an+=7.2){
+      g.appendChild(el('path',{d:'M'+fmt(polar(rA+2,an))+'L'+fmt(polar(rB-2,an)),
+        stroke:rgba(col,.14),'stroke-width':1}));
+    }
+  }
+  var labR=(R_IN+R_OUT)/2+6, bottom=(mid>90&&mid<270), pid='lp'+i;
+  defs.appendChild(el('path',{id:pid,fill:'none',
+    d:bottom?arcLine(labR,a1-1.5,a0+1.5):arcLine(labR,a0+1.5,a1-1.5)}));
+  var lfs=p.name.length>12?14:(p.name.length>8?17:21);
+  var txt=el('text',{class:'slabel','font-size':lfs});
+  var tp=el('textPath',{href:'#'+pid,startOffset:'50%','text-anchor':'middle'});
+  tp.setAttributeNS('http://www.w3.org/1999/xlink','href','#'+pid);
+  tp.textContent=p.name.toUpperCase();
+  txt.appendChild(tp);g.appendChild(txt);
+
+  var ip=polar(R_IN+20,mid);
+  var it=el('text',{class:'sindex',x:ip[0],y:ip[1]+5,'text-anchor':'middle','font-size':'15',
+    fill:rgba(col,.95)});
+  it.textContent='0'+(i+1);g.appendChild(it);
+  var cp=polar(R_OUT-20,mid);
+  var ct=el('text',{class:'scount',x:cp[0],y:cp[1]+4,'text-anchor':'middle','font-size':'12'});
+  ct.textContent=p.bricks.length+'▪';g.appendChild(ct);
+
+  g.addEventListener('click',function(idx){return function(){abrir(idx);};}(i));
+  g.addEventListener('keydown',function(idx){return function(e){
+    if(e.key==='Enter'||e.key===' '){e.preventDefault();abrir(idx);}};}(i));
+  gSect.appendChild(g);
 });
+svg.appendChild(gSect);
+
+svg.appendChild(el('circle',{cx:CX,cy:CY,r:R_IN-4,fill:'none',stroke:rgba('#ffffff',.10),'stroke-width':1.5}));
+svg.appendChild(el('circle',{cx:CX,cy:CY,r:R_IN-10,fill:'none',stroke:rgba('#ffffff',.05),'stroke-width':1}));
+
+// arco que marca a fatia escolhida, colado na borda externa
+var marca=el('path',{class:'marcaSel',id:'marcaSel'});
+svg.appendChild(marca);
+
+var gSpark=el('g',{});
+var sparkR=(R_MOM_IN+R_MOM_OUT)/2, sp=polar(sparkR,0);
+gSpark.appendChild(el('circle',{cx:sp[0],cy:sp[1],r:16,fill:rgba('#ffffff',.18),filter:'url(#glow)'}));
+gSpark.appendChild(el('circle',{cx:sp[0],cy:sp[1],r:7,fill:'#ffffff',filter:'url(#glow)'}));
+svg.appendChild(gSpark);
+
+/* ---------- alicerce (rodapé) ---------- */
+var fg=document.getElementById('foundGrid');
+FOUNDATION.forEach(function(f){
+  var card=document.createElement('div');card.className='fcard';
+  card.innerHTML='<div class="fh"><span class="ico">'+iconSvg(f.t)+'</span><b>'+f.g+'</b></div>'+
+    '<div class="fitems">'+f.items.map(function(i){return'<span class="chip">'+i+'</span>';}).join('')+'</div>';
+  fg.appendChild(card);
+});
+/* ===========================================================================
+   O MODAL — o arsenal do setor, agrupado pelo PILAR de origem.
+   O rodapé fecha a conferência: quantos tijolos ainda não têm pilar. O buraco
+   fica na tela.
+   =========================================================================== */
+var modal=document.getElementById('modal'), stage=document.getElementById('stage');
+var atual=-1;
 
 function abrir(i){
-  atual=i; var f=FASES[i];
-  FASES.forEach(function(_,k){document.getElementById('f'+k).classList.toggle('on',k===i);});
-  document.getElementById('eIdx').textContent='0'+(i+1);
-  document.getElementById('eIdx').style.background=f.cor;
-  document.getElementById('eNome').textContent=f.n;
-  document.getElementById('ePapel').textContent=f.papel;
-  document.getElementById('eRec').textContent=f.recebe;
-  document.getElementById('eEnt').textContent=f.entrega;
-  document.getElementById('ePos').textContent='fase '+(i+1)+' de '+N;
+  var p=PHASES[i], col=colors[i];
+  atual=i;
+  for(var k=0;k<PHASES.length;k++) document.getElementById('sec'+k).classList.toggle('active',k===i);
+  svg.classList.add('temSel');                       // apaga os outros cinco
 
-  var box=document.getElementById('ePassos');
-  box.innerHTML = f.passos.length ? '' :
-    '<div class="passo"><span class="p">—</span><span><b>Nenhum passo cicla aqui</b>'+
-    '<span class="sub">esta fase é efeito das outras: ela acontece porque as anteriores aconteceram.</span></span></div>';
-  f.passos.forEach(function(p){
-    var d=document.createElement('div'); d.className='passo';
-    d.innerHTML='<span class="p">'+p.p+'</span><span><b>'+p.t+
-      (p.k?'<span class="tag">8020</span>':'')+'</b>'+
-      (p.s?'<span class="sub">'+p.s+'</span>':'')+'</span>';
-    box.appendChild(d);
-  });
+  // o arco de seleção, na borda externa da fatia escolhida
+  var mk=document.getElementById('marcaSel');
+  mk.setAttribute('d',arcLine(R_OUT+8,i*60+GAP/2+1,(i+1)*60-GAP/2-1));
+  mk.setAttribute('stroke',col);
+  mk.classList.add('on');
 
-  var ars=document.getElementById('eArsenal'); ars.innerHTML='';
-  f.arsenal.forEach(function(a){
-    var s=document.createElement('span'); s.className='chip'; s.textContent=a; ars.appendChild(s);
+  modal.style.setProperty('--secc',col);
+  var idx='0'+(i+1);
+  document.getElementById('mIdx').textContent=idx;
+  document.getElementById('mIdx').style.background=col;
+  document.querySelector('.m-top').setAttribute('data-n',idx);   // o carimbo gigante
+  document.getElementById('mNome').textContent=p.name;
+  document.getElementById('mCnt').textContent=p.bricks.length+' tijolo'+(p.bricks.length>1?'s':'');
+  document.getElementById('mRole').textContent=p.role;
+
+  // do que a fase é feita — leitura de uma olhada, sem contar linha por linha
+  var porNat={};
+  p.bricks.forEach(function(b){porNat[b.t]=(porNat[b.t]||0)+1;});
+  var nats=Object.keys(porNat).sort(function(a,b){return porNat[b]-porNat[a];});
+  var barra='',leg='';
+  nats.forEach(function(t,k){
+    var op=(1-k*0.13).toFixed(2);
+    barra+='<i style="flex-grow:'+porNat[t]+';opacity:'+op+'"></i>';
+    leg+='<span><span class="pt" style="opacity:'+op+'"></span><b>'+porNat[t]+'</b> '+NAT[t]+'</span>';
   });
+  document.getElementById('mComp').innerHTML='<div class="barra">'+barra+'</div>'+
+    '<div class="comp-leg">'+leg+'</div>';
+
+  var ordem=[1,2,3,4,0], h='', n=0;
+  ordem.forEach(function(pl){
+    var lista=p.bricks.filter(function(b){return b.p===pl;});
+    if(!lista.length) return;
+    var pi=PILARES[pl];
+    h+='<div class="grupo" style="--gc:'+pi.c+'">'+
+       '<div class="gh'+(pl===0?' orfao':'')+'"><span class="bola"></span><b>'+pi.n+'</b>'+
+       '<span class="qt">'+lista.length+'</span></div>';
+    lista.forEach(function(b){
+      // a cascata satura em 14 itens: passar disso vira espera, não animação
+      var atraso=Math.min(n++,14)*0.028;
+      h+='<div class="tij" style="animation-delay:'+atraso.toFixed(3)+'s">'+
+         '<span class="ico">'+iconSvg(b.t)+'</span>'+
+         '<span><span class="bn">'+esc(b.n)+'</span><span class="bt">'+NAT[b.t]+
+         (b.note?' · '+b.note:'')+'</span></span>'+
+         (b.loop?'<span class="loop">↻ fecha o ciclo</span>':'')+'</div>';
+    });
+    h+='</div>';
+  });
+  document.getElementById('mBody').innerHTML=h;
+  document.getElementById('mBody').scrollTop=0;
+
+  var semPilar=p.bricks.filter(function(b){return b.p===0;}).length;
+  var comPilar=p.bricks.length-semPilar;
+  document.getElementById('mPe').innerHTML=
+    '<b>'+comPilar+'</b> mapeados a pilar'+
+    (semPilar?' · <span class="alerta">'+semPilar+' sem pilar</span>':' · cobertura completa')+
+    '<span class="m-nav"><button id="mAnt">← '+PHASES[(i+5)%6].name+'</button>'+
+    '<button id="mProx">'+PHASES[(i+1)%6].name+' →</button></span>';
+  document.getElementById('mAnt').onclick=function(){abrir((atual+5)%6);};
+  document.getElementById('mProx').onclick=function(){abrir((atual+1)%6);};
+
+  modal.classList.add('on');stage.classList.add('aberto');
 }
-
-document.getElementById('ant').onclick=function(){abrir((atual-1+N)%N);};
-document.getElementById('prox').onclick=function(){abrir((atual+1)%N);};
+function fechar(){
+  modal.classList.remove('on');stage.classList.remove('aberto');atual=-1;
+  svg.classList.remove('temSel');
+  document.getElementById('marcaSel').classList.remove('on');
+  for(var k=0;k<PHASES.length;k++) document.getElementById('sec'+k).classList.remove('active');
+}
+document.getElementById('mClose').addEventListener('click',fechar);
+// clicar no vazio do palco fecha — a roda continua à vista, então o caminho de
+// volta tem que ser tão barato quanto o de ida
+stage.addEventListener('click',function(e){
+  if(e.target===stage) fechar();
+});
 document.addEventListener('keydown',function(e){
-  if(e.key==='ArrowRight')return abrir((atual+1)%N);
-  if(e.key==='ArrowLeft')return abrir((atual-1+N)%N);
-  var n=parseInt(e.key,10);
-  if(n>=1&&n<=N)abrir(n-1);
+  if(e.key==='Escape') return fechar();
+  if(atual<0) return;
+  if(e.key==='ArrowRight') abrir((atual+1)%6);
+  if(e.key==='ArrowLeft')  abrir((atual+5)%6);
 });
 
-abrir(0);
+/* ---------- animação (legado) ---------- */
+var motion=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+var theta=0,last=0,lastSector=-1;
+var btn=document.getElementById('btnMotion');
+function setMotion(on){
+  motion=on;btn.setAttribute('aria-pressed',on?'true':'false');
+  document.getElementById('gMomentum').style.animation=on?'':'none';
+}
+var style=document.createElement('style');
+style.textContent='#gMomentum{transform-origin:500px 500px;animation:spin 90s linear infinite}'+
+                  '@keyframes spin{to{transform:rotate(360deg)}}';
+document.head.appendChild(style);
+btn.addEventListener('click',function(){setMotion(!motion);});
+if(!motion)setMotion(false);
+
+var loopTag=document.getElementById('loopTag');
+function frame(ts){
+  if(motion){
+    if(!last)last=ts;
+    var dt=(ts-last)/1000;last=ts;
+    theta=(theta+dt*40)%360;                       // 9s por volta
+    var pp=polar(sparkR,theta);
+    gSpark.setAttribute('transform','translate('+(pp[0]-sp[0]).toFixed(2)+','+(pp[1]-sp[1]).toFixed(2)+')');
+    var sec=Math.floor(theta/60)%6;
+    if(sec!==lastSector){
+      var prev=document.getElementById('sec'+lastSector);
+      if(prev&&lastSector!==atual)prev.classList.remove('pulsing');
+      var cur=document.getElementById('sec'+sec);if(cur)cur.classList.add('pulsing');
+      if(sec===0&&lastSector===5){
+        loopTag.style.transform='translateX(-50%) scale(1.12)';
+        setTimeout(function(){loopTag.style.transform='translateX(-50%) scale(1)';},260);
+      }
+      lastSector=sec;
+    }
+  }else last=0;
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+var total=PHASES.reduce(function(s,p){return s+p.bricks.length;},0);
+document.getElementById('hubSub').textContent='6 fases · '+total+' encaixes · 1 volante';
 })();
 </script>
 </body>

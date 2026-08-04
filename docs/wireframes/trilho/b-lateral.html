@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>O Trilho · B — Lateral</title>
+<link rel="stylesheet" href="base.css">
+<style>
+  /* -------------------------------------------------------------------------
+     PISTA B — LATERAL (side-scroller)
+     A roda desenrolada e esticada. A câmera segue o personagem; o fundo anda em
+     três velocidades (morros, cidade, estrada) pra dar profundidade.
+     O preço desta perspectiva: você NUNCA vê o ciclo inteiro. Por isso o
+     minimapa no canto — sem ele isto vira linha do tempo, e linha do tempo não
+     é flywheel.
+     ------------------------------------------------------------------------- */
+  .palco{background:linear-gradient(180deg,#080b12 0%,#0c1018 40%,#101827 100%)}
+  /* a cena é uma FAIXA centrada, não a tela inteira: encostada embaixo, sobrava
+     meia tela morta em cima e o rótulo do posto caía fora do quadro */
+  .cena{flex:1;display:flex;align-items:center;min-height:0;padding:0 0 30px}
+  .rodovia{position:relative;width:100%;height:min(482px,100%);overflow:hidden;
+    border-top:1px solid var(--fio);border-bottom:1px solid var(--fio)}
+  .ceu{position:absolute;inset:0;background:
+    radial-gradient(760px 250px at 46% 80%, rgba(245,178,63,.10), transparent 72%),
+    radial-gradient(500px 200px at 78% 30%, rgba(78,125,246,.07), transparent 70%),
+    linear-gradient(180deg,#070a11 0%,#0b1119 52%,#0f1725 100%)}
+
+  .camada{position:absolute;left:0;top:0;bottom:0;will-change:transform;
+    transition:transform .62s cubic-bezier(.42,.02,.18,1)}
+
+  /* fundo distante */
+  .morros{opacity:.5}
+  .morros i{position:absolute;bottom:130px;background:#141c2b;border-radius:50% 50% 0 0}
+  .cidade{opacity:.7}
+  .cidade i{position:absolute;bottom:132px;background:#0f1622;border-top:1px solid rgba(255,255,255,.05)}
+  .cidade i::after{content:"";position:absolute;inset:8px 6px auto 6px;height:3px;
+    background:repeating-linear-gradient(90deg,rgba(78,125,246,.35) 0 3px,transparent 3px 9px)}
+
+  /* a estrada */
+  .asfalto{position:absolute;left:0;bottom:0;height:132px;background:
+    linear-gradient(180deg,#1c2434 0%,#161d2b 100%);border-top:2px solid rgba(255,255,255,.08)}
+  .miolinha{position:absolute;left:0;bottom:62px;height:3px;
+    background:repeating-linear-gradient(90deg,rgba(255,255,255,.30) 0 26px,transparent 26px 56px)}
+  .chevs{position:absolute;bottom:16px;height:16px;left:0;
+    background:repeating-linear-gradient(90deg,rgba(255,255,255,.13) 0 12px,transparent 12px 46px);
+    -webkit-mask:linear-gradient(90deg,#000 0 60%,transparent);mask:linear-gradient(90deg,#000 0 60%,transparent)}
+
+  /* faixa colorida do trecho: a guia no acostamento */
+  .guia{position:absolute;bottom:126px;height:5px;border-radius:3px;opacity:.55}
+  .trechoNome{position:absolute;bottom:96px;font-family:var(--mono);font-size:10px;font-weight:700;
+    letter-spacing:.3em;text-transform:uppercase;opacity:.5;white-space:nowrap}
+
+  /* trecho da Atração: a descida */
+  .descida{position:absolute;bottom:0;height:132px;background:
+    repeating-linear-gradient(115deg,rgba(245,178,63,.09) 0 12px,transparent 12px 26px);
+    display:flex;align-items:flex-end;justify-content:center;padding-bottom:18px;cursor:pointer}
+  .descida b{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--c-atracao);
+    white-space:nowrap;text-align:center;line-height:1.7}
+  .descida b span{display:block;font-size:8.5px;letter-spacing:.1em;color:var(--texto-3)}
+
+  /* ---- o posto ---- */
+  .marco{position:absolute;bottom:132px;transform:translateX(-50%);cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:0}
+  .predio{position:relative;width:96px;height:88px;opacity:.6;transition:.22s}
+  .marco:hover .predio,.marco.on .predio{opacity:1}
+  .marquise{position:absolute;left:0;right:0;top:0;height:13px;border-radius:4px;
+    background:var(--c);opacity:.55}
+  .marquise::before,.marquise::after{content:"";position:absolute;top:13px;width:4px;height:20px;
+    background:var(--c);opacity:.5}
+  .marquise::before{left:5px} .marquise::after{right:5px}
+  .caixa{position:absolute;left:14px;right:14px;bottom:0;top:26px;border-radius:4px 4px 0 0;
+    background:color-mix(in srgb,var(--c) 20%,transparent);border:1.4px solid var(--c);border-bottom:none}
+  .bombap{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:20px;height:34px;
+    border-radius:3px 3px 0 0;background:#0c1018;border:1.3px solid var(--c);border-bottom:none}
+  .bombap::after{content:"";position:absolute;left:4px;right:4px;top:5px;height:8px;border-radius:2px;
+    background:var(--c);opacity:.8}
+  .bandeirinha{position:absolute;right:-14px;bottom:0;width:2px;height:80px;background:var(--c)}
+  .bandeirinha::after{content:"";position:absolute;left:2px;top:0;width:22px;height:14px;
+    background:var(--c);opacity:.6}
+
+  .placa{position:absolute;bottom:-88px;left:50%;transform:translateX(-50%);
+    font-family:var(--mono);font-size:14px;font-weight:800;color:#0c1018;background:var(--c);
+    padding:5px 9px;border-radius:7px;box-shadow:0 4px 14px rgba(0,0,0,.5);transition:.2s}
+  .marco.on .placa{transform:translateX(-50%) scale(1.18)}
+  .haste{position:absolute;bottom:-56px;left:50%;width:2px;height:56px;background:var(--c);opacity:.4}
+  /* o nome vai ACIMA do prédio: embaixo ele saía do quadro */
+  .nomeL{position:absolute;top:-48px;left:50%;transform:translateX(-50%);white-space:nowrap;
+    font-size:12.5px;font-weight:700;opacity:0;transition:.2s;
+    paint-order:stroke;text-shadow:0 2px 10px #0c1018}
+  .marco.on .nomeL{opacity:1}
+  .pedagio{position:absolute;top:-26px;left:50%;transform:translateX(-50%);white-space:nowrap;
+    font-family:var(--mono);font-size:8px;letter-spacing:.1em;color:#f26a43;opacity:.75}
+
+  /* o portal da volta */
+  .portal{position:absolute;bottom:132px;transform:translateX(-50%);text-align:center}
+  .portal .viga{width:210px;height:16px;border-radius:4px;background:var(--c-atracao);opacity:.45}
+  .portal .txt{margin-top:9px;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;
+    color:var(--c-atracao);white-space:nowrap;line-height:1.8}
+  .portal .txt span{display:block;font-size:8px;color:var(--texto-3);letter-spacing:.1em}
+
+  /* o personagem */
+  #moto{position:absolute;bottom:56px;left:42%;width:0;height:0;z-index:6}
+  #moto svg{position:absolute;left:-34px;bottom:-10px;width:68px;height:60px;overflow:visible}
+  #moto .roda{fill:none;stroke:#eef2fb;stroke-width:2.6}
+  #moto .quadro{fill:none;stroke:#eef2fb;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+  #moto .corpo{fill:none;stroke:var(--c-posicionamento);stroke-width:3;stroke-linecap:round}
+  #moto .cabeca{fill:var(--c-posicionamento)}
+  #moto .rastro{fill:rgba(255,255,255,.09)}
+  .balanco{animation:bal 1.1s ease-in-out infinite alternate}
+  @keyframes bal{from{transform:translateY(0)}to{transform:translateY(-2.5px)}}
+
+  /* minimapa: sem ele isto não é um ciclo, é uma régua */
+  .minimapa{position:absolute;right:22px;top:18px;width:150px;z-index:6;
+    background:rgba(12,16,24,.86);border:1px solid var(--fio);border-radius:12px;padding:11px 12px 9px;
+    backdrop-filter:blur(6px)}
+  .minimapa .mk{font-family:var(--mono);font-size:8px;letter-spacing:.18em;color:var(--texto-3);
+    display:block;margin-bottom:6px}
+  .minimapa svg{width:100%;display:block}
+  .minimapa .mtrilho{fill:none;stroke:rgba(255,255,255,.12);stroke-width:7}
+  .minimapa .mp{transition:r .2s}
+</style>
+</head>
+<body>
+
+<div class="tela">
+  <div class="palco">
+    <div class="topo">
+      <span class="kick">COCKPIT BUILDER · WIREFRAME · PERSPECTIVA B</span>
+      <h1>O Trilho <em>— lateral</em></h1>
+      <p class="lede">A roda desenrolada em rodovia. A câmera anda com o personagem e o fundo tem
+        três velocidades. Ganha cena; perde a visão do ciclo inteiro — daí o minimapa.</p>
+    </div>
+
+    <span class="selo">DADO REAL · CHECKLIST PROPOSTO</span>
+
+    <div class="cena">
+    <div class="rodovia" id="rodovia">
+      <div class="ceu"></div>
+      <div class="camada morros" id="lMorros"></div>
+      <div class="camada cidade" id="lCidade"></div>
+      <div class="camada estrada" id="lEstrada"></div>
+
+      <div id="moto" class="balanco">
+        <svg viewBox="-34 -46 68 56">
+          <ellipse class="rastro" cx="0" cy="2" rx="26" ry="5"/>
+          <circle class="roda" cx="-15" cy="-9" r="8.5"/>
+          <circle class="roda" cx="15" cy="-9" r="8.5"/>
+          <path class="quadro" d="M-15 -9 L-5 -19 L7 -19 L15 -9"/>
+          <path class="quadro" d="M-7 -19 L-3 -26 L6 -26"/>
+          <path class="quadro" d="M8 -19 L15 -28 M11 -28 L19 -28"/>
+          <path class="corpo" d="M-1 -26 L2 -36"/>
+          <path class="corpo" d="M2 -34 L15 -28"/>
+          <path class="corpo" d="M-1 -26 L3 -17"/>
+          <circle class="cabeca" cx="3.5" cy="-40" r="5"/>
+        </svg>
+      </div>
+
+      <div class="minimapa">
+        <span class="mk">O CIRCUITO</span>
+        <svg viewBox="0 0 150 78" id="mini"></svg>
+      </div>
+    </div>
+    </div>
+
+    <div class="hud">
+      <div class="hitem"><span class="hk">ODÔMETRO</span><b id="hOdo">0/11</b></div>
+      <div class="hitem"><span class="hk">VOLTA</span><b id="hVolta">1</b></div>
+      <div class="hitem bag"><span class="hk">BAGAGEIRO</span><div id="hBag"></div></div>
+    </div>
+
+    <div class="dica">
+      clique num posto · <kbd>←</kbd><kbd>→</kbd> anda no ciclo<br>
+      <kbd>1</kbd>…<kbd>6</kbd> pula de trecho
+    </div>
+  </div>
+
+  <aside class="posto" id="painel">
+    <div class="pcab">
+      <span class="pkm" id="pKm">01</span>
+      <div><h2 id="pNome">—</h2><span class="ptrecho" id="pTrecho">—</span></div>
+      <span class="ped" id="pPed">—</span>
+    </div>
+    <p class="psub" id="pSub"></p>
+
+    <div class="bomba">
+      <div class="tanque"><div class="nivel" id="pNivel"></div><div class="lit" id="pLitros">0/0</div></div>
+      <div class="lado">
+        <p class="btit">⛽ Abastecer <span class="ph">checklist proposto · subtask #9</span></p>
+        <div id="pItens"></div>
+        <div class="gate" id="pGate"></div>
+      </div>
+    </div>
+
+    <div class="prat">
+      <p class="btit">🧰 Prateleira do posto <span class="ph" id="pArsN"></span></p>
+      <div id="pArs"></div>
+    </div>
+
+    <div class="pnav">
+      <button id="bAnt">← km anterior</button>
+      <span id="pPos">—</span>
+      <button id="bProx">próximo km →</button>
+    </div>
+  </aside>
+</div>
+
+<script src="dados.js"></script>
+<script>
+(function(){
+"use strict";
+var T=window.TRILHO, F=T.FASES, P=T.POSTOS;
+
+var X0=520, ESP=300;                       // 1º posto e distância entre postos
+var FIM=X0+(P.length-1)*ESP+ESP;           // onde fica o portal da volta
+var W=FIM+560;
+
+var rod=document.getElementById('rodovia');
+var lE=document.getElementById('lEstrada');
+var lC=document.getElementById('lCidade');
+var lM=document.getElementById('lMorros');
+var marcos=[];
+
+function px(i){ return X0+i*ESP; }
+function fim(f){ // faixa x do trecho: do meio-caminho antes ao meio-caminho depois
+  var idx=P.map(function(p,i){return p.f===f?i:-1;}).filter(function(i){return i>=0;});
+  if(!idx.length) return null;
+  return [px(idx[0])-ESP/2, px(idx[idx.length-1])+ESP/2];
+}
+
+function d(cls,estilo,html){
+  var e=document.createElement('div'); e.className=cls;
+  if(estilo) e.setAttribute('style',estilo);
+  if(html) e.innerHTML=html;
+  return e;
+}
+
+function desenhar(){
+  [lE,lC,lM].forEach(function(c){c.style.width=W+'px';});
+
+  // fundo: morros e cidade, só massa — é cenário, não informação
+  for(var i=0;i<26;i++){
+    var w=200+((i*137)%260), h=70+((i*89)%110);
+    lM.appendChild(d('','left:'+(i*260)+'px;width:'+w+'px;height:'+h+'px;position:absolute;'+
+      'bottom:130px;background:#141c2b;border-radius:50% 50% 0 0'));
+  }
+  for(var j=0;j<70;j++){
+    var w2=26+((j*53)%46), h2=40+((j*97)%150);
+    lC.appendChild(d('','left:'+(j*104+((j*31)%40))+'px;width:'+w2+'px;height:'+h2+'px;'+
+      'position:absolute;bottom:132px;background:#0f1622;border-top:1px solid rgba(255,255,255,.05)'));
+  }
+
+  lE.appendChild(d('asfalto','width:'+W+'px'));
+  lE.appendChild(d('miolinha','width:'+W+'px'));
+  lE.appendChild(d('chevs','width:'+W+'px'));
+
+  // trecho da Atração: a descida, antes do km 01 e depois do portal
+  var desc=d('descida','left:0;width:'+(X0-ESP/2)+'px',
+    '<b>↓ DESCIDA · ATRAÇÃO<span>nenhum passo cicla aqui — você anda sem acelerar</span></b>');
+  desc.addEventListener('click',function(){T.trecho(0);});
+  lE.appendChild(desc);
+  lE.appendChild(d('descida','left:'+(FIM+60)+'px;width:400px;opacity:.45',
+    '<b>↓ DESCIDA · ATRAÇÃO<span>a volta 2 começa aqui</span></b>'));
+
+  // guias coloridas + nome de cada trecho
+  F.forEach(function(f,k){
+    var r=fim(k); if(!r) return;
+    lE.appendChild(d('guia','left:'+r[0]+'px;width:'+(r[1]-r[0])+'px;background:'+f.c));
+    var t=d('trechoNome','left:'+r[0]+'px;width:'+(r[1]-r[0])+'px;text-align:center;color:'+f.c);
+    t.textContent=f.n; lE.appendChild(t);
+  });
+
+  // os 11 postos
+  P.forEach(function(p,i){
+    var f=F[p.f];
+    var m=d('marco','left:'+px(i)+'px;--c:'+f.c);
+    m.innerHTML=
+      '<div class="predio">'+
+        '<div class="marquise"></div><div class="caixa"></div><div class="bombap"></div>'+
+        (p.gate?'':'<div class="bandeirinha"></div>')+
+      '</div>'+
+      (p.gate?'<div class="pedagio">⛔ pedágio</div>':'')+
+      '<div class="haste"></div>'+
+      '<div class="placa">'+(p.km<10?'0':'')+p.km+'</div>'+
+      '<div class="nomeL">'+p.t+'</div>';
+    m.addEventListener('click',function(){T.ir(i);});
+    lE.appendChild(m); marcos[i]=m;
+  });
+
+  // o portal: onde a reta vira circuito
+  lE.appendChild(d('portal','left:'+FIM+'px;--c:var(--c-atracao)',
+    '<div class="viga"></div><div class="txt">↻ VOLTA 2 → KM 01<span>a próxima custa menos que esta</span></div>'));
+
+  minimapa();
+}
+
+/* ---- minimapa: a mesma elipse da perspectiva A, em miniatura ------------- */
+function minimapa(){
+  var mv=document.getElementById('mini'), ns='http://www.w3.org/2000/svg';
+  var e=document.createElementNS(ns,'ellipse');
+  e.setAttribute('cx',75); e.setAttribute('cy',39);
+  e.setAttribute('rx',62); e.setAttribute('ry',28);
+  e.setAttribute('class','mtrilho'); mv.appendChild(e);
+  P.forEach(function(p,i){
+    var t=(296-i*(360/P.length))*Math.PI/180;
+    var c=document.createElementNS(ns,'circle');
+    c.setAttribute('cx',(75+62*Math.cos(t)).toFixed(1));
+    c.setAttribute('cy',(39+28*Math.sin(t)).toFixed(1));
+    c.setAttribute('r',2.4); c.setAttribute('class','mp'); c.setAttribute('id','mp'+i);
+    c.setAttribute('fill',F[p.f].c); c.setAttribute('opacity',.45);
+    mv.appendChild(c);
+  });
+}
+
+/* ---- câmera: três velocidades ------------------------------------------- */
+function mover(i){ cam(px(i)); }
+function cam(x){
+  var off=-(x-rod.clientWidth*0.42);
+  lE.style.transform='translateX('+off.toFixed(0)+'px)';
+  lC.style.transform='translateX('+(off*0.55).toFixed(0)+'px)';
+  lM.style.transform='translateX('+(off*0.25).toFixed(0)+'px)';
+}
+
+function marcar(i){
+  P.forEach(function(_,k){
+    marcos[k].classList.toggle('on',k===i);
+    var mp=document.getElementById('mp'+k);
+    mp.setAttribute('r',k===i?5:2.4); mp.setAttribute('opacity',k===i?1:.45);
+  });
+}
+
+function descida(){
+  P.forEach(function(_,k){ marcos[k].classList.remove('on'); });
+  cam(180);
+}
+
+T.iniciar({desenhar:desenhar,mover:mover,marcar:marcar,descida:descida});
+window.addEventListener('resize',function(){ mover(T.estado.atual); });
+})();
+</script>
+</body>
+</html>

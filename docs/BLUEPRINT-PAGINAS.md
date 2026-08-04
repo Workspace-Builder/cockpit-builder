@@ -16,7 +16,7 @@ Não propõe layout visual (isso vem do Figma, subtarefa #8). Propõe **estrutur
 
 1. **Uma página "A Obra"** com os 4 pilares empilhados como andares de um prédio — não 4 páginas separadas.
 2. **"Uma por pilar" vira vista, não página.** O dock (teclas 1-4) enquadra cada pilar. Máquina já existe.
-3. **A tag 8020 é estrutura.** Passo 8020 = viga/laje (não pode pular). Passo não-8020 = acabamento (pula, e o prédio fica menor).
+3. **O 8020 é do entregável, não do andar.** Os 36 andares são obrigatórios; o que se escolhe é por qual dos 3 caminhos entrar (§3, revisto em 2026-07-31).
 4. **O Flywheel não é redundante nem é conteúdo novo** — é a *mesma* lista de passos renderizada como ciclo em vez de prédio.
 5. **O nó clicável abre 3 vagas:** aula · IA · ferramenta (EB / DB / AB). Vaga vazia aparece tracejada e vira backlog visível.
 6. **Uma lista de 36 passos sustenta tudo.** Cada página é uma vista filtrada. Zero conteúdo duplicado.
@@ -97,43 +97,70 @@ incomum (logo, mais autoral). Mas é sua metáfora — decide você. → **Decis
 
 ---
 
-## 3. A tag 8020 = estrutura vs. acabamento
+## 3. O 8020 é do ENTREGÁVEL, não do andar
 
-O §6.2 diz: ordenar tudo do **+8020 pro −8020**, e dar **tag visual** nos imprescindíveis.
+> **Mudou em 2026-07-31 (migration 009).** O que está escrito abaixo substitui a
+> versão anterior desta seção, que marcava 18 dos 36 andares como "estrutura" e
+> os outros 18 como "acabamento". O texto velho está no histórico do git — não
+> foi corrigido em cima, foi trocado, porque a premissa é que caiu.
 
-Dentro da metáfora do prédio isso deixa de ser um selo decorativo e ganha função:
+**A premissa que caiu:** hierarquia entre andares. Dizer que o passo 3 é viga e o
+passo 4 é acabamento ensina ao aluno que metade da obra dá pra deixar pra depois
+— e os 36 passos são obrigatórios. O prédio não pula degrau.
 
-| | é | pode pular? | consequência |
-|---|---|---|---|
-| **8020** | estrutura — pilar, viga, laje | **não** | o andar não fecha, o prédio não sobe |
-| não-8020 | acabamento — revestimento, pintura | sim | prédio de pé, **menor e menos completo** |
+**O que sobrou no lugar.** A escolha existe, mas um nível abaixo. Dentro de um
+andar há até três caminhos — a **aula** que ensina, a **ferramenta** onde se
+executa, a **IA** que acelera — e um ou dois deles é que trazem o resultado.
+Escolher qual é o 80/20 daquele andar.
 
-> Sua frase: *"pode ser um prédio menor mas não tão completo se ela não seguir o
-> passo a passo do pilar."* É exatamente isso — e é o que faz a tag ter dente.
+| | é | quem decide |
+|---|---|---|
+| **80/20** | o caminho que traz o resultado neste andar | quem edita a página, na própria tela |
+| os demais | existem, ajudam, não são por onde começar | — |
 
-**Já existe precedente no código:** cada pilar tem hoje um passo marcado `first:1`
-que renderiza o badge "FAZ PRIMEIRO" ([index.html:3536](index.html#L3536)). O 8020 é
-a generalização disso — de 1 marcado por pilar para N.
+**Teto de dois por andar.** Marcar os três é o mesmo que não marcar nenhum: um
+selo que cobre tudo não escolhe nada. O teto vive em `alternarOitentaVinte`
+([src/lib/queries.ts](../src/lib/queries.ts)) e na UI, que desabilita o terceiro
+botão antes do clique — não como constraint, pelo motivo explicado na migration.
 
-E existe um segundo marcador reaproveitável: `unha:1` → badge "🔨 NA UNHA", usado
-nos passos que **não têm ferramenta nem IA** (ex: "Postura", "Delegar"). Serve pra
-sinalizar honestamente onde o sistema não ajuda.
+**O tamanho real da escolha**, contado na lista dos 36:
+
+| entregáveis no andar | andares | o 80/20 é |
+|---|---|---|
+| 3 | 3 | escolha de verdade |
+| 2 | 8 | escolha de verdade |
+| 1 | 22 | o único caminho — nada a marcar |
+| 0 | 3 | é na unha (`unha:1`) |
+
+Ou seja: **11 andares** têm o que decidir. Nos outros 25, marcar seria carimbar
+o que já é único, e selo em tudo não sinaliza nada.
+
+**Onde o dado mora.** Não em `passos.ts`: é escolha editável, então é banco
+(`cockpit.entregavel_8020`, migration 009). A tabela é uma camada por cima da
+lista dos 36 — linha só existe pra quem foi marcado.
+
+**O que sobrou do campo `e8020`:** relevo no desenho da torre e nada mais. A laje
+do andar marcado continua mais grossa; perdeu o glow e o selo escrito, porque
+espessura é textura de prédio e nome escrito é hierarquia. `passos8020()` foi
+removido junto — filtrar "os que importam" era a própria divergência.
+
+`unha:1` continua como estava: badge "NA UNHA" nos passos que **não têm
+ferramenta nem IA** ("Postura", "Delegar", "Eficiência"). Serve pra sinalizar
+honestamente onde o sistema não ajuda.
 
 ```
    ┌────────────────────────────────────────────────┐
-   │ ███ 1  Estratégia da página          [8020]    │  estrutura — sólido
-   │ ███ 2  Copy                          [8020]    │
-   │ ███ 3  Design                        [8020]    │
-   │ ░░░ 4  Imagem e direção visual                 │  acabamento — tracejado
-   │ ███ 5  Código e efeitos              [8020]    │
-   │ ░░░ 6  Responsividade                          │
+   │ 03 · DESIGN                                    │
+   │ ──────────────────────────────────────────     │
+   │ ▶ AULA · ensina a fazer                        │
+   │   Design Easy                                  │
+   │ ⚙ FERRAMENTA · EB · onde você executa  [80/20] │ ← borda acesa
+   │   Extensão EB · 1.000+ componentes             │
+   │ ✦ IA DE APOIO · o que acelera                  │
+   │   IA 09 Diretor Criativo                       │
    └────────────────────────────────────────────────┘
-     ▲ a barra à esquerda diz se o passo é estrutural
+     ▲ a marca está na VAGA, não no andar
 ```
-
-**O que falta:** quais dos 36 passos são 8020. Isso é curadoria sua, não minha —
-vou levar uma proposta marcada pra você corrigir, não uma pergunta em branco.
-→ **Decisão 4, §8**
 
 ---
 
@@ -181,12 +208,23 @@ atenção com o funil; separados, cada página tem uma pergunta só.
 ### Vistas de "A Obra"
 
 ```
-  ⌂ Tudo    Pilar 01    Pilar 02    Pilar 03    Pilar 04      8020
-   [1]        [2]         [3]         [4]         [5]         [6]
+  ⌂ Tudo    Pilar 01    Pilar 02    Pilar 03    Pilar 04
+   [1]        [2]         [3]         [4]         [5]
 ```
 
-A vista `6 · 8020` é a que entrega o §6.2 de verdade: **enquadra só os passos
-estruturais.** É o "caminho mínimo" — o aluno com pressa vê só o que não pode pular.
+**A vista `8020` saiu daqui** (2026-07-31). Ela enquadraria "só os passos
+estruturais", e passo estrutural deixou de existir — os 36 são obrigatórios
+(§3). O caminho mínimo que sobra não é um subconjunto de andares: é, **dentro de
+cada andar**, o entregável marcado. Isso não é enquadramento de câmera, é o
+conteúdo do painel — e já aparece lá, no andar aberto.
+
+Se um dia fizer falta como tela própria, ela nasce no Trilho e filtra
+`listarOitentaVinte()`, não `e8020`.
+
+> A barra desta página é a **única** barra dela: o dock de baixo não entra na
+> Obra ([AppShell](../src/components/shell/AppShell.tsx)). O dock comanda canvas
+> — checkpoint de enquadramento, arrastar item, "2× clique: zoom no item" — e a
+> Obra não tem canvas: tem câmera própria, comandada por esta barra.
 
 ---
 
@@ -334,8 +372,8 @@ próprio buraco.** A lacuna de aulas deixa de ser planilha e passa a ser visíve
 
 ## 7. O que sustenta tudo: uma lista, N vistas
 
-Prédio, Ciclo e vista 8020 são **três leituras dos mesmos 36 passos**. Se cada
-página tiver sua própria cópia, a segunda edição desincroniza e o projeto apodrece.
+Prédio e Ciclo são **duas leituras dos mesmos 36 passos**. Se cada página tiver
+sua própria cópia, a segunda edição desincroniza e o projeto apodrece.
 
 Então: **um registro por passo, e cada página é um filtro.**
 
@@ -345,7 +383,7 @@ Então: **um registro por passo, e cada página é um filtro.**
   ordem:     3,              // posição no andar
   titulo:    'Design',
   sub:       'Direção com intenção: arquétipo, paleta, tipografia.',
-  e8020:     true,           // estrutura (§3) — não pode pular
+  e8020:     true,           // só relevo no desenho da torre (§3)
   cicloPos:  2,              // posição no flywheel; null = não cicla (§5)
   aula:      {label:'Design Easy',            url:'…'},
   ia:        {label:'IA 09 · Diretor Criativo', url:'…'},
@@ -359,7 +397,7 @@ Então: **um registro por passo, e cada página é um filtro.**
 |---|---|
 | A Obra | agrupa por `pilar`, ordena por `ordem` |
 | vista Pilar 0N | filtra `pilar === N` |
-| vista 8020 | filtra `e8020` |
+| 80/20 do andar | **não sai daqui** — é dado do banco, `listarOitentaVinte()` (§3) |
 | O Ciclo | filtra `cicloPos != null`, ordena por `cicloPos` |
 | painel do nó | lê `aula` · `ia` · `ferram` do registro |
 | checklist | escreve `feito` no registro |
@@ -440,7 +478,7 @@ Três coisas que o desenho mostra e a tabela não:
 | **1** | Os 4 pilares são **1 página com 4 faixas** ou **4 páginas**? | **1 página**, com 4 vistas no dock | O prédio só comunica "falta subir" se estiver inteiro. E "uma por pilar" fica atendido por vista (§4) |
 | **2** | Pilar 04 (Ambiente/mentalidade) é **cobertura** ou **fundação**? | **cobertura** | §6.3 diz "topo, inverte a pirâmide". Mas a tese dele diz "segura os outros três" — a metáfora é sua (§2) |
 | **3** | O Flywheel é **vista** sobre os mesmos passos, **morre**, ou é **página própria com conteúdo próprio**? | **vista** (opção A) | Zero duplicação, e as posições do ciclo *são* os "setores" que a subtarefa #7 pede (§5) |
-| **4** | Quais dos **36 passos** levam a tag 8020? | levo uma proposta marcada pra você corrigir | A curadoria é do método, não do dev (§3) |
+| ~~**4**~~ | ~~Quais dos **36 passos** levam a tag 8020?~~ **RESOLVIDA em 2026-07-31 — e a pergunta caiu junto.** Nenhum: o 8020 desceu pro entregável e virou campo editável na tela (§3, migration 009). O que restava de curadoria — qual dos 3 caminhos marcar nos 11 andares com escolha real — passou a ser um clique no painel, não uma lista pra revisar | — | Hierarquia entre andares ensinava que metade da obra dava pra deixar pra depois |
 | **5** | **DB** (Design Builder) e **AB** (Arena Builder) têm URL? | — | Só EB está no código. Sem URL, o selo não linka (§6) |
 | **6** | Aulas ficam em `easybuilder.club` ou `aulas.easybuilder.com.br`? | — | O código usa `.club`; você falou `aulas.`. Um dos dois está velho |
 | **7** | As **12 IAs** têm link individual, ou tudo cai na home do app? | individual, se existir | Hoje as 12 apontam pro mesmo `app.easybuilder.com.br/` — o aluno cai na home e procura |
@@ -456,7 +494,7 @@ Com o blueprint aprovado, a ordem que minimiza retrabalho:
 | 0 | Extrair os 36 passos do código pra uma lista única (§7) | *(pré-requisito de todas)* | Decisões 1-3 |
 | 1 | Páginas + navegação: sidebar + `VIEWSET` | [#4 `86ajqefwq`](https://app.clickup.com/t/86ajqefwq) | ordem 0 |
 | 2 | Nó clicável: painel de 3 vagas | [#5 `86ajqefwz`](https://app.clickup.com/t/86ajqefwz) | ordem 0 + Decisões 5-7 |
-| 3 | Tag 8020 | [#6 `86ajqefxn`](https://app.clickup.com/t/86ajqefxn) | Decisão 4 |
+| ~~3~~ | ~~Tag 8020~~ **feita em 2026-07-31**, com outro escopo: virou marcação de entregável no painel do andar, com banco e modo de edição (§3) | [#6 `86ajqefxn`](https://app.clickup.com/t/86ajqefxn) | — |
 | 4 | Página do Flywheel (como vista) | [#7 `86ajqefyp`](https://app.clickup.com/t/86ajqefyp) | ordem 0 + Decisão 3 |
 | 5 | Checklists por etapa | [#9 `86ajqefzc`](https://app.clickup.com/t/86ajqefzc) | ordem 2 |
 | 6 | Transpor o Figma | [#8 `86ajqefz3`](https://app.clickup.com/t/86ajqefz3) | Figma chegar |
@@ -476,9 +514,10 @@ Coisas que travam subtarefas e não dependem de mim:
    **pendente e sem responsável**. Sem ela, um terço de cada nó (a vaga AULA) não
    tem destino — a #5 entrega dois terços.
 2. **URLs de DB e AB** (Decisão 5).
-3. **O Figma** — §7 da demanda ainda está com o campo em branco. Trava a #8.
-   Recebi um link de board (`Fluxograma Easy Builder | Oficial`) que é um arquivo
-   **diferente** do que gerou o Onboarding — precisa confirmar se é esse.
+3. ~~**O Figma**~~ — **resolvido em 31/07/2026.** O board
+   [`Fluxograma Easy Builder | Oficial`](https://www.figma.com/board/hMZj1iR2BaRAcbvB4lB0T4/Fluxograma-Easy-Builder--Oficial-)
+   é o mesmo arquivo que gerou o Onboarding — o bloco dele bate nó a nó com o
+   que já estava no board. A #8 deixou de estar travada: ver §12.
 4. **Subir a `DEMANDA-COCKPIT-ELVIS.md` pro repo** (§9 da própria demanda, item
    aberto). Hoje ela só existe local, e é a referência que eu leio.
 
@@ -499,3 +538,65 @@ Execução, Negócio, Venda, Gestão, Mentalidade, Transversais) contra **4 pila
 **Ciclo** — Venda é literalmente o funil anti-prospecção (= o flywheel), e
 Transversais é o arsenal que o §6.6 diz estar na roda. Se você discordar, isso
 volta pra Decisão 3.
+
+---
+
+## 12. A esteira do Setup 6D (subtarefa #8, transpor o Figma)
+
+O board oficial do CEO tem **52.623 × 26.851 px e 301 objetos de topo**, em sete
+blocos. O Onboarding que já estava no Cockpit é o bloco 3 — e é o bloco inteiro,
+não um pedaço dele. O que faltava eram os outros seis:
+
+| # | bloco | objetos de topo | estado |
+|---|---|---|---|
+| 1 | Estrutura de posicionamento e funil | 4 | fora da esteira |
+| 2 | Captação de Clientes (Funil Anti Prospecção) | 32 | fora da esteira |
+| 3 | Onboarding do Cliente | 67 | veio do legado |
+| 4 | Desenvolvimento da Página | 107 | **transposto** |
+| 5 | Ajustes finais | 51 | **transposto** |
+| 6 | Otimização da Página | 16 | **transposto** |
+| 7 | Pós venda e retro-alimentação | 24 | **transposto** |
+
+**Os blocos 3 a 7 são um fluxo só.** O Onboarding termina no terminal
+"Desenvolvimento", que é por onde o bloco 4 começa — e assim até o Pós-venda.
+Por isso a esteira mora numa página só (`onboarding`) e não em cinco: quebrar
+cortaria o fio em cada transição. Os blocos 1 e 2 ficaram de fora porque são
+estratégia, não esteira — e o bloco 1 é uma imagem achatada dentro do próprio
+Figma (`Group 1171276396 1`, 5017×5047, sem vetor por dentro), então ele não tem
+nó nenhum pra virar.
+
+### Como a transposição foi feita
+
+`scripts/figjam-para-esteira.mjs` (gera `dados/esteira.json`) e
+`scripts/importar-esteira.mjs` (grava no banco). `npm run db:esteira` roda os dois.
+
+Três coisas foram **medidas, não estimadas** — e cada uma tem como conferir:
+
+1. **Escala.** `app = figma × 0,5 + (20093, 45)`. Saiu de comparar cinco nós do
+   Onboarding que existem nos dois lados; a razão de largura bate em
+   0,4992..0,5006 nos cinco.
+2. **Geometria.** As coordenadas do dump são absolutas em todo nível. Com o
+   artefato `1:749` fora, o bbox dos objetos de topo fecha em 52.623 × 26.851 —
+   exatamente o que o Figma informou pro render.
+3. **Cor.** O dump do FigJam não traz preenchimento, e é a cor que separa `act`
+   roxo de `doc` rosa de `copy` amarelo. Ela foi amostrada em pixel
+   (`dados/figjam-cores.tsv`), e o mapa forma+cor → tipo foi conferido contra os
+   19 nós do Onboarding cujo tipo já era conhecido: **19 de 19**.
+
+Uma exceção anotada no código: **losango é sempre `dec`**, sem olhar a cor.
+Quando o losango cai dentro da swimlane de aprovação, as amostras das pontas
+pegam o amarelo do fundo em vez do verde da forma.
+
+### O que entrou
+
+137 nós e 53 arestas: 30 de fluxograma, 7 faixas de bloco, 17 rótulos e
+**80 prints**. Os prints foram recortados de um render do board em 30.000 px
+(≈57% do tamanho original) e vivem em `public/assets/esteira/`, um arquivo por
+nó — mesmo padrão que `scripts/extrair-imagens.mjs` usa no Método.
+
+### O que ficou de fora, de propósito
+
+- **61 molduras** — retângulos escuros sem texto que só emolduram print no Figma.
+- **7 conectores** internos a grupo, que viravam auto-laço depois de redirecionados.
+- **Nome de layer** ("image 45", "Group 1171276438") não virou legenda: é nome de
+  arquivo, não conteúdo, e apareceria como figcaption em 80 prints.
