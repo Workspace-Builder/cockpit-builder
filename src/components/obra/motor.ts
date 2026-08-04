@@ -15,6 +15,14 @@
 
 import type { Passo } from "@/lib/model";
 import { PREDIOS, ORDEM, type PredioCfg } from "./pilares";
+import {
+  ehRetrato,
+  reservaBase,
+  reservaDireita,
+  reservaEsquerda,
+  reservaTopo,
+  SELETOR_UI_TOPO,
+} from "./layout";
 
 export type EstadoAndar = "done" | "now" | "wait" | "skip";
 
@@ -25,6 +33,16 @@ export type EstadoObra = {
   foco: 0 | 1 | 2 | 3 | 4;
   /** id do passo selecionado (o painel dos nós é dele) */
   sel: string | null;
+  /**
+   * O painel do andar está por cima da cena, à direita?
+   *
+   * A câmera precisa saber: ela enquadra a FAIXA LIVRE, não a tela (layout.ts).
+   * Sem isso o prédio é centralizado embaixo do painel — que foi exatamente o
+   * que aconteceu quando o painel cresceu.
+   */
+  painel: boolean;
+  /** O checklist do pilar está por cima da cena, à esquerda? */
+  aside: boolean;
 };
 
 export type Callbacks = {
@@ -37,6 +55,25 @@ export type Callbacks = {
 const NS = "http://www.w3.org/2000/svg";
 const WX = 0.866, WY = 0.5;
 const PASSO_PLOT = 205, AFASTA = 215;
+
+/**
+ * O passo entre prédios NA PILHA.
+ *
+ * Não é o mesmo 205 da fileira, e a diferença é aritmética da projeção: o
+ * deslocamento de tela é `2·t·WX` na horizontal (355px com t=205) e `2·t·WY`
+ * na vertical (205px com o mesmo t) — WY é 0,5 contra 0,866 de WX. Só isso já
+ * aproximaria os prédios.
+ *
+ * Some a isso a forma do objeto: um prédio é ALTO. O Pilar 01 vai de
+ * `iso(0,0,zt)` a `iso(W,Dp,-20)` e ocupa ~570px de tela na vertical, contra
+ * ~215px na horizontal. Empilhar com o passo da fileira faz a torre de cima
+ * atravessar a de baixo — foi o que aconteceu na primeira tentativa.
+ *
+ * 620 = os ~570 do prédio mais alto + ar. Fixo, e não medido, porque `caixa()`
+ * precisa do passo ANTES de conhecer a altura de qualquer prédio: é ela quem
+ * calcula a altura, e mediria a si mesma.
+ */
+const PASSO_PILHA = 620;
 
 // --- helpers ---------------------------------------------------------------
 
@@ -55,6 +92,31 @@ const rng = (s: number) => () => ((s = (s * 1103515245 + 12345) & 0x7fffffff), s
 
 export function criarObra(svg: SVGSVGElement, passos: Passo[], cb: Callbacks) {
   let OX = 0, OY = 0;
+
+  /**
+   * A DIREÇÃO DO QUARTEIRÃO — fileira ou pilha.
+   *
+   * Os quatro prédios sempre se afastaram pela diagonal `OY = -OX`. Na
+   * projeção isométrica isso é deslocamento PURAMENTE HORIZONTAL: com
+   * `OX = t, OY = -t`, o x de tela vira `(x - y + 2t)·WX` e o y não muda. Foi
+   * assim que o quarteirão nasceu fileira.
+   *
+   * Trocando o sinal — `OY = +OX` — o par se inverte: o x de tela para de
+   * andar e o y passa a `(x + y + 2t)·WY`. Os mesmos prédios, o mesmo desenho,
+   * empilhados. Nada é redesenhado; muda a direção em que eles se afastam.
+   *
+   * POR QUE ISSO IMPORTA EM RETRATO: em 375px de largura, quatro prédios lado
+   * a lado dão 90px cada, e a placa de cada um sai ilegível. A largura é
+   * justamente a dimensão que falta no celular — e a altura, a que sobra.
+   * Empilhar paga na moeda certa.
+   *
+   * -1 = fileira (paisagem, o de sempre) · +1 = pilha (retrato).
+   */
+  let EIXO: -1 | 1 = ehRetrato(window.innerWidth) ? 1 : -1;
+
+  /** Distância entre prédios vizinhos, na direção em que eles se afastam. */
+  const PASSO = () => (EIXO === 1 ? PASSO_PILHA : PASSO_PLOT);
+
   const iso = (x: number, y: number, z: number): [number, number] =>
     [(x + OX - (y + OY)) * WX, (x + OX + y + OY) * WY - z];
   const P = (x: number, y: number, z: number) => {
@@ -85,7 +147,7 @@ export function criarObra(svg: SVGSVGElement, passos: Passo[], cb: Callbacks) {
   const doPilar = (n: 1 | 2 | 3 | 4) =>
     passos.filter((p) => p.pilar === n).sort((a, b) => a.ordem - b.ordem);
 
-  let E: EstadoObra = { feitos: {}, foco: 0, sel: null };
+  let E: EstadoObra = { feitos: {}, foco: 0, sel: null, painel: false, aside: false };
   const GRUPO: Record<number, SVGGElement> = {};
 
   const feitos = (n: 1 | 2 | 3 | 4) => doPilar(n).filter((p) => E.feitos[p.id]).length;
@@ -147,7 +209,9 @@ export function criarObra(svg: SVGSVGElement, passos: Passo[], cb: Callbacks) {
   // --- defs ---------------------------------------------------------------
   function defs() {
     const d = el("defs");
-    ([["gN", 7], ["gS", 3.4], ["gT", 2.2], ["g80", 4.6], ["gW", 2.6]] as [string, number][])
+    // `g80` saiu junto com o glow do 8020 — filtro declarado e não usado é
+    // rasterização paga por quadro em troca de nada.
+    ([["gN", 7], ["gS", 3.4], ["gT", 2.2], ["gW", 2.6]] as [string, number][])
       .forEach(([id, sd]) => {
         const f = add(d, "filter", { id, x: "-95%", y: "-95%", width: "290%", height: "290%" });
         add(f, "feGaussianBlur", { stdDeviation: sd, result: "b" });
@@ -353,10 +417,13 @@ export function criarObra(svg: SVGSVGElement, passos: Passo[], cb: Callbacks) {
 
       // laje opaca: sem ela o último andar fica sem teto e vê-se o miolo do prédio
       add(g, "path", { d: b.top, fill: "#0d141e" });
+      /* A laje do 8020 continua mais grossa, mas perdeu o brilho (`g80`): a
+         espessura é relevo de prédio, o glow era um NOME — dizia "olhe pra
+         este andar e não pros outros". Ver `e8020` em lib/model.ts. */
       add(g, "path", {
         d: b.top, fill: rgba(CP, atual ? 0.16 : 0.09), stroke: cor,
         "stroke-width": (atual ? 2.2 : 1.4) + (Q.e8020 ? 0.7 : 0),
-        filter: atual ? "url(#gS)" : Q.e8020 ? "url(#g80)" : null,
+        filter: atual ? "url(#gS)" : null,
       });
 
       if (c.tipo === "terracos") {
@@ -407,8 +474,14 @@ export function criarObra(svg: SVGSVGElement, passos: Passo[], cb: Callbacks) {
       const g = add(root, "g", { class: "cursor-pointer" });
       g.addEventListener("click", (ev) => { ev.stopPropagation(); cb.onPasso(n, Q.id); });
 
-      /* alvo de clique da linha inteira — o texto sozinho é difícil de acertar */
-      add(g, "rect", { x: LX - 210, y: y - 15, width: 232, height: 30, fill: "transparent" });
+      /* alvo de clique da linha inteira — o texto sozinho é difícil de acertar.
+         Em pilha o nome não é desenhado (ver abaixo), então o alvo encolhe pro
+         redor do número: mantido em 232 ele seguiria reservando a largura da
+         lista que saiu, e o recorte do prédio não ganharia nada. */
+      add(g, "rect",
+        EIXO === 1
+          ? { x: LX - 22, y: y - 15, width: 44, height: 30, fill: "transparent" }
+          : { x: LX - 210, y: y - 15, width: 232, height: 30, fill: "transparent" });
 
       add(g, "circle", {
         cx: LX, cy: y, r: 11,
@@ -423,21 +496,40 @@ export function criarObra(svg: SVGSVGElement, passos: Passo[], cb: Callbacks) {
       });
       tn.textContent = pronto ? "\u2713" : skip ? "\u2013" : String(Q.ordem).padStart(2, "0");
 
-      const nm = add(g, "text", {
-        x: LX - 19, y: Q.e8020 || Q.unha ? y - 1 : y + 3.6, "text-anchor": "end",
-        fill: ativo ? "#F3F6FC" : pronto ? "#A8B6CC" : skip ? "#46505f" : "#5B6884",
-        "text-decoration": skip ? "line-through" : null,
-        style: "font:600 13px system-ui,sans-serif",
-      });
-      nm.textContent = Q.titulo;
+      /* O NOME DO ANDAR NÃO EXISTE EM PILHA — e não é economia de pixel, é
+         legibilidade. Medido no wireframe: com a torre enquadrada em 375px,
+         estes 13px do mundo chegam à tela a 7,8px, contra o mínimo de 12 da
+         auditoria. Ilegível, e ocupando 26% da largura (a coluna toda) que é
+         justamente o que falta pro desenho.
+         O nome não some do app: ele é o título da folha, que abre ao tocar no
+         número — lugar onde ele é lido de verdade. O que fica aqui é o badge,
+         que já carrega o estado (ativo acende na cor do pilar, pronto vira ✓,
+         pulado vira travessão). */
+      if (EIXO !== 1) {
+        const nm = add(g, "text", {
+          x: LX - 19, y: Q.unha ? y - 1 : y + 3.6, "text-anchor": "end",
+          fill: ativo ? "#F3F6FC" : pronto ? "#A8B6CC" : skip ? "#46505f" : "#5B6884",
+          "text-decoration": skip ? "line-through" : null,
+          style: "font:600 13px system-ui,sans-serif",
+        });
+        nm.textContent = Q.titulo;
+      }
 
-      if (Q.e8020 || Q.unha) {
+      /* Só "NA UNHA" sobra aqui. O selo "8020" saiu: ele dividia a lista em
+         andares que importam e andares que não, e os 36 são obrigatórios. O
+         80/20 agora é do ENTREGÁVEL e mora dentro do painel do andar, onde há
+         escolha de verdade entre aula, ferramenta e IA. */
+      /* Em pilha ele sai junto com o nome: mora na mesma coluna, e a 7,5px do
+         mundo chegaria à tela perto de 4px — flutuando num vazio, já que o
+         nome que o ancorava não está mais lá. O painel do andar continua
+         mostrando "NA UNHA · SEM FERRAMENTA", que é onde ele decide algo. */
+      if (Q.unha && EIXO !== 1) {
         const t8 = add(g, "text", {
           x: LX - 19, y: y + 10, "text-anchor": "end",
-          fill: Q.unha ? "#c98a2f" : skip ? "#c98a2f" : ativo ? c.cor : rgba(c.cor, 0.5),
+          fill: "#c98a2f",
           style: "font:700 7.5px ui-monospace,monospace;letter-spacing:.14em",
         });
-        t8.textContent = Q.unha ? "NA UNHA" : skip ? "8020 PULADO" : "8020";
+        t8.textContent = "NA UNHA";
       }
     });
   }
@@ -520,11 +612,11 @@ export function criarObra(svg: SVGSVGElement, passos: Passo[], cb: Callbacks) {
   function cena(root: Element) {
     ORDEM.forEach((n, k) => {
       const c = PREDIOS[n];
-      const t = k * PASSO_PLOT;
+      const t = k * PASSO(); 
       const ativo = E.foco === n;
       const g = add(root, "g", { class: "cursor-pointer", "data-p": n }) as SVGGElement;
       g.addEventListener("click", () => cb.onPredio(n));
-      OX = t; OY = -t;
+      OX = t; OY = EIXO * t;
 
       // área de clique: a silhueta inteira, invisível. Sem isso o clique cai no
       // vazio entre as linhas do wireframe e o prédio não seleciona.
@@ -539,10 +631,10 @@ export function criarObra(svg: SVGSVGElement, passos: Passo[], cb: Callbacks) {
         const fg = add(g, "g", { class: "cursor-pointer" }) as SVGGElement;
         fg.addEventListener("click", (ev) => { ev.stopPropagation(); cb.onPredio(n, Q.id); });
         FG[Q.id] = { g: fg, n, i };
-        OX = t; OY = -t;
+        OX = t; OY = EIXO * t;
         andar(fg, c, n, i, slotOf[i]);
       });
-      OX = t; OY = -t;
+      OX = t; OY = EIXO * t;
       /* o teto sobe junto com o último andar — num grupo próprio, animado pelo
          mesmo laço, senão ele pula enquanto as lajes deslizam */
       const zt = c.LOB + slots * c.FH - 3;
@@ -556,14 +648,23 @@ export function criarObra(svg: SVGSVGElement, passos: Passo[], cb: Callbacks) {
          a opacidade. Antes eram criados/destruídos a cada troca de foco. */
       const gEtq = add(g, "g", { opacity: ativo ? 1 : 0 }) as SVGGElement;
       GETQ[n] = gEtq;
-      OX = t; OY = -t;
+      OX = t; OY = EIXO * t;
       etiquetas(gEtq, c, n);
       if (c.tipo === "terracos") { arvore(g, -12, c.Dp + 14, -3, 1.1); arvore(g, c.W + 14, c.Dp + 10, -3, 0.95); }
 
-      const gPl = add(g, "g", { opacity: ativo ? 0 : 1 }) as SVGGElement;
+      /* A PLACA NÃO EXISTE EM PILHA — e o motivo é o vazamento, não o gosto.
+         Ela é desenhada DENTRO do mundo SVG, embaixo do prédio. Em fileira
+         isso funciona porque cada torre tem sua faixa de x. Empilhados, os
+         bboxes se cruzam na vertical: a placa do Pilar 03 caía dentro do
+         desenho do Pilar 02, e o aluno lia o nome do prédio errado sobre o
+         prédio certo.
+         Além disso ela dizia o mesmo que a faixa do topo — dois lugares, o
+         mesmo nome, e um deles no lugar errado. Fica o do topo, que é DOM e
+         portanto sempre no painel a que pertence. */
+      const gPl = add(g, "g", { opacity: EIXO === 1 ? 0 : ativo ? 0 : 1 }) as SVGGElement;
       GPLACA[n] = gPl;
-      OX = t; OY = -t;
-      placa(gPl, c, n);
+      OX = t; OY = EIXO * t;
+      if (EIXO !== 1) placa(gPl, c, n);
       GRUPO[n] = g;
     });
   }
@@ -574,20 +675,30 @@ export function criarObra(svg: SVGSVGElement, passos: Passo[], cb: Callbacks) {
     ORDEM.forEach((n) => { const c = PREDIOS[n]; b = Math.max(b, (c.W + c.Dp + 84) * 0.5 + 20); });
     return b + 30;
   })();
-  const PLACA_H = 74;
+  /* Altura reservada pra placa abaixo de BASE. Subiu de 74 junto com a
+     tipografia: a última linha fecha em ~by+78, e sem folgar aqui a câmera
+     enquadraria a obra cortando o contador de andares. */
+  const PLACA_H = 88;
 
+  /* A placa é o nome do prédio visto da rua — e era ela que ninguém lia.
+     O título vinha a 14px e a tipologia a 8.5px num cinza de 55% de opacidade:
+     na escala em que a câmera enquadra os quatro prédios, isso chega na tela
+     menor que a legenda de um gráfico. Prédio de 9 andares com etiqueta de
+     rodapé é desenho gritando e texto sussurrando.
+     O título dobra de peso e vai a 21px; a tipologia sai de 55% de opacidade
+     pra 92%. PLACA_H acompanha, senão a câmera corta a última linha. */
   function placa(g: Element, c: PredioCfg, n: 1 | 2 | 3 | 4) {
     const lst = doPilar(n), f = feitos(n);
     const bx = iso(c.W * 0.5, c.Dp * 0.5, 0)[0], by = BASE;
-    const t1 = add(g, "text", { x: bx, y: by, "text-anchor": "middle", fill: c.cor, style: "font:700 12px ui-monospace,monospace;letter-spacing:.16em" });
+    const t1 = add(g, "text", { x: bx, y: by, "text-anchor": "middle", fill: c.cor, style: "font:700 13px ui-monospace,monospace;letter-spacing:.18em" });
     t1.textContent = "PILAR " + c.no;
-    const t2 = add(g, "text", { x: bx, y: by + 20, "text-anchor": "middle", fill: "#eef2fb", style: "font:700 14px system-ui,sans-serif" });
+    const t2 = add(g, "text", { x: bx, y: by + 25, "text-anchor": "middle", fill: "#f5f8ff", style: "font:800 21px system-ui,sans-serif;letter-spacing:-.01em" });
     t2.textContent = c.titulo;
-    const t3 = add(g, "text", { x: bx, y: by + 35, "text-anchor": "middle", fill: "rgba(154,167,190,.55)", style: "font:600 8.5px ui-monospace,monospace;letter-spacing:.14em" });
+    const t3 = add(g, "text", { x: bx, y: by + 42, "text-anchor": "middle", fill: "rgba(154,167,190,.92)", style: "font:600 10px ui-monospace,monospace;letter-spacing:.15em" });
     t3.textContent = c.tp;
-    add(g, "rect", { x: bx - 56, y: by + 45, width: 112, height: 5, rx: 3, fill: "#141c29" });
-    if (f) add(g, "rect", { x: bx - 56, y: by + 45, width: 112 * (f / lst.length), height: 5, rx: 3, fill: c.cor, filter: "url(#gS)" });
-    const t4 = add(g, "text", { x: bx, y: by + 65, "text-anchor": "middle", fill: "rgba(154,167,190,.75)", style: "font:700 10px ui-monospace,monospace;letter-spacing:.1em" });
+    add(g, "rect", { x: bx - 66, y: by + 52, width: 132, height: 6, rx: 3, fill: "#141c29" });
+    if (f) add(g, "rect", { x: bx - 66, y: by + 52, width: 132 * (f / lst.length), height: 6, rx: 3, fill: c.cor, filter: "url(#gS)" });
+    const t4 = add(g, "text", { x: bx, y: by + 74, "text-anchor": "middle", fill: "rgba(180,193,214,.9)", style: "font:700 12px ui-monospace,monospace;letter-spacing:.1em" });
     t4.textContent = `${f} / ${lst.length} andares`;
   }
 
@@ -598,36 +709,91 @@ export function criarObra(svg: SVGSVGElement, passos: Passo[], cb: Callbacks) {
   // container mudava de tamanho.
   function caixa(n: 1 | 2 | 3 | 4, k: number, kAtivo: number, af: number, comPlaca: boolean) {
     const c = PREDIOS[n], qtd = doPilar(n).length;
-    OX = k * PASSO_PLOT + (k - kAtivo) * af; OY = -OX;
+    OX = k * PASSO() + (k - kAtivo) * af; OY = EIXO * OX;
     const folga = comPlaca ? (c.tipo === "torre" ? 96 : 54) : c.tipo === "torre" ? 52 : 26;
     /* o raio-X estica a torre: sem somar o exploded aqui, a obra passa a não
        caber na tela quando um andar entra em foco */
     const aberto = n === E.foco ? qtd * GAP_ABERTO + VAO + SOBE_ATIVO : 0;
     const zt = c.LOB + qtd * c.FH + folga + aberto;
     const pe = iso(c.W, c.Dp, -20)[1] + (comPlaca ? 30 : 16);
+
+    /* AS ETIQUETAS ENTRAM NA CAIXA — em pilha elas SÃO o checklist.
+       Elas moram 76 unidades à esquerda da torre (ver `LX` em `etiquetas`),
+       fora do rastro dela, e esta caixa media só a torre. Resultado medido: no
+       Pilar 04, o mais largo, os 8 badges caíam inteiros fora da tela — o
+       prédio aparecia e o checklist não, que foi o "pilar 4 some".
+       Só no prédio em FOCO, que é o único cujas etiquetas estão acesas, e só
+       em pilha: na cabine quem reserva essa faixa é `reservaEsquerda`, e somar
+       as duas afastaria a obra do nada. */
+    const badge = iso(0, c.Dp, 0)[0] - 76 - 11;
+    const comEtiqueta = EIXO === 1 && n === E.foco;
+
+    const x0 = iso(0, c.Dp + (comPlaca ? 42 : 16), 0)[0] - (comPlaca ? 24 : 8);
+    /* a etiqueta do térreo desce ~11 abaixo da linha de base dela; sem contar,
+       o círculo do andar 01 ficava mordido pela borda de baixo */
+    const y1 = comPlaca ? Math.max(pe, BASE + PLACA_H) : pe;
+
     return {
-      x0: iso(0, c.Dp + (comPlaca ? 42 : 16), 0)[0] - (comPlaca ? 24 : 8),
+      x0: comEtiqueta ? Math.min(x0, badge - 12) : x0,
       x1: iso(c.W + (comPlaca ? 42 : 16), 0, 0)[0] + (comPlaca ? 24 : 8),
       y0: iso(0, 0, zt)[1] - (comPlaca ? 18 : 8),
-      y1: comPlaca ? Math.max(pe, BASE + PLACA_H) : pe,
+      y1: comEtiqueta ? y1 + 14 : y1,
     };
   }
+  /* A tela, e dentro dela a FAIXA LIVRE: o que sobra depois da UI. Em paisagem
+     a UI ladeia (checklist à esquerda, painel à direita) e a faixa é medida na
+     largura. Em retrato ela empilha (barra em cima, folha embaixo) e a faixa é
+     medida na ALTURA — mesma ideia, girada 90°, porque não existe largura de
+     painel que caiba ao lado de um isométrico em 375px (layout.ts).
+     Com tudo fechado, faixa livre = tela, e nada muda em relação ao antigo.
+     Os pisos são pra tela muito estreita não gerar faixa negativa — nesse caso
+     a obra volta a caber embaixo da UI, que é ruim, mas menos ruim que escala
+     negativa. */
   const medida = () => {
     const pai = svg.parentElement;
-    return { W: pai?.clientWidth || 1000, H: pai?.clientHeight || 620 };
+    const W = pai?.clientWidth || 1000, H = pai?.clientHeight || 620;
+    const esq = E.aside ? reservaEsquerda(W) : 0;
+    const dir = E.painel ? reservaDireita(W) : 0;
+    /* medido, não declarado: a barra dos pilares quebra em duas linhas conforme
+       a largura, e chutar a altura erra sempre pro mesmo lado — obra enquadrada
+       por baixo dela. */
+    const uiTopo = pai?.querySelector(SELETOR_UI_TOPO);
+    const topo = reservaTopo(W, uiTopo?.getBoundingClientRect().height ?? 0);
+    const base = E.painel ? reservaBase(W, H) : 0;
+    return {
+      W,
+      H,
+      x0: esq,
+      livre: Math.max(280, W - esq - dir),
+      y0: topo,
+      livreAlt: Math.max(200, H - topo - base),
+    };
   };
   function alvoCam() {
     const kA = (E.foco || 1) - 1, af = E.foco ? AFASTA : 0, obra = !E.foco;
+    /* `comPlaca` reserva ~88px embaixo do prédio pro letreiro. Em pilha não há
+       letreiro, e reservar mesmo assim afastaria a câmera de um espaço vazio —
+       o prédio encolheria pra caber numa placa que não existe. */
+    const comPlaca = obra && EIXO !== 1;
     let r: { x0: number; y0: number; x1: number; y1: number } | null = null;
     ORDEM.forEach((n, k) => {
       if (!obra && n !== E.foco) return;
-      const c = caixa(n, k, kA, af, obra);
+      const c = caixa(n, k, kA, af, comPlaca);
       r = r ? { x0: Math.min(r.x0, c.x0), y0: Math.min(r.y0, c.y0), x1: Math.max(r.x1, c.x1), y1: Math.max(r.y1, c.y1) } : c;
     });
     const b = r!;
     const pad = obra ? 36 : 16, m = medida();
     const lg = b.x1 - b.x0 + pad * 2, al = b.y1 - b.y0 + pad * 2;
-    return { cx: (b.x0 + b.x1) / 2, cy: (b.y0 + b.y1) / 2, esc: Math.min(m.W / lg, m.H / al) };
+    /* a escala cabe na FAIXA nos DOIS eixos: fechar o painel devolve a largura
+       (paisagem) ou a altura (retrato) e a obra cresce sozinha — é o "aumentar
+       a obra", sem número fixo. Usar `m.H` aqui em vez de `livreAlt` faria o
+       retrato calcular a escala por uma altura que a folha já tomou, e a obra
+       ficaria grande demais, cortada por baixo. */
+    return {
+      cx: (b.x0 + b.x1) / 2,
+      cy: (b.y0 + b.y1) / 2,
+      esc: Math.min(m.livre / lg, m.livreAlt / al),
+    };
   }
 
   /* ------------------------------------------------------------------------
@@ -711,12 +877,24 @@ export function criarObra(svg: SVGSVGElement, passos: Passo[], cb: Callbacks) {
 
   const alvoDX = (): Mapa => {
     const kA = (E.foco || 1) - 1, r: Mapa = {};
-    ORDEM.forEach((n, k) => { r[n] = E.foco ? (k - kA) * AFASTA * (2 * WX) : 0; });
+    /* O afastamento do foco segue a MESMA direção do quarteirão: em fileira ele
+       empurra os vizinhos pros lados (`2·WX`), em pilha empurra pra cima e pra
+       baixo (`2·WY`). Fixo no eixo x, a pilha via os vizinhos saírem de lado
+       enquanto ela cresce pra baixo — dois movimentos discordando. */
+    const passoAf = AFASTA * 2 * (EIXO === 1 ? WY : WX);
+    ORDEM.forEach((n, k) => { r[n] = E.foco ? (k - kA) * passoAf : 0; });
     return r;
   };
   const alvoOP = (): Mapa => {
     const r: Mapa = {};
-    ORDEM.forEach((n) => { r[n] = E.foco && n !== E.foco ? 0.38 : 1; });
+    /* Em FILEIRA o vizinho a 38% é contexto: ele fica ao LADO, e ver o
+       quarteirão inteiro esmaecido diz "há mais três prédios aqui".
+       Em PILHA ele fica ACIMA e ABAIXO, dentro da mesma coluna — e a 38% a
+       torre de cima entra pela borda superior por trás do trilho, lida como
+       sujeira, não como contexto. Quem responde "há mais três" na pilha é o
+       trilho de pontos; o desenho pode ficar com um prédio só. */
+    const vizinho = EIXO === 1 ? 0 : 0.38;
+    ORDEM.forEach((n) => { r[n] = E.foco && n !== E.foco ? vizinho : 1; });
     return r;
   };
 
@@ -724,7 +902,8 @@ export function criarObra(svg: SVGSVGElement, passos: Passo[], cb: Callbacks) {
     ORDEM.forEach((n) => {
       const foco = E.foco === n;
       if (GETQ[n]) GETQ[n].style.opacity = foco ? "1" : "0";
-      if (GPLACA[n]) GPLACA[n].style.opacity = foco ? "0" : "1";
+      // Em pilha a placa nunca acende: ela não foi nem desenhada (ver `cena`).
+      if (GPLACA[n]) GPLACA[n].style.opacity = EIXO === 1 ? "0" : foco ? "0" : "1";
     });
   }
 
@@ -751,13 +930,24 @@ export function criarObra(svg: SVGSVGElement, passos: Passo[], cb: Callbacks) {
     ORDEM.forEach((n, k) => {
       const g = GRUPO[n];
       if (!g) return;
-      g.style.transform = DX[n] ? `translate(${DX[n].toFixed(2)}px,0)` : "";
+      // mesma razão do `passoAf`: em pilha o afastamento é no eixo y
+      g.style.transform = DX[n]
+        ? EIXO === 1
+          ? `translate(0,${DX[n].toFixed(2)}px)`
+          : `translate(${DX[n].toFixed(2)}px,0)`
+        : "";
       g.style.opacity = OP[n].toFixed(3);
       void k;
     });
     const m = medida();
-    const tx = m.W / 2 - (CAM.cx - MUNDO.x) * CAM.esc;
-    const ty = m.H / 2 - (CAM.cy - MUNDO.y) * CAM.esc;
+    /* centro da FAIXA LIVRE, não da tela. É esta linha que faz a obra deslizar
+       pra esquerda quando o painel abre — e como `svg.style.transition` já está
+       ligada por `transicao()`, ela desliza com a mesma curva e a mesma duração
+       do afastamento entre pilares, em vez de saltar.
+       Em retrato o mesmo vale no eixo Y: a obra sobe quando a folha do andar
+       abre embaixo, com o mesmo deslize. */
+    const tx = m.x0 + m.livre / 2 - (CAM.cx - MUNDO.x) * CAM.esc;
+    const ty = m.y0 + m.livreAlt / 2 - (CAM.cy - MUNDO.y) * CAM.esc;
     svg.style.transform = `translate(${tx.toFixed(2)}px,${ty.toFixed(2)}px) scale(${CAM.esc.toFixed(4)})`;
   }
 
@@ -825,7 +1015,7 @@ export function criarObra(svg: SVGSVGElement, passos: Passo[], cb: Callbacks) {
       const { slotOf } = slotsDe(f.n);
       if (slotOf[f.i] < 0) return;
       const k = ORDEM.indexOf(f.n);
-      OX = k * PASSO_PLOT; OY = -OX;
+      OX = k * PASSO(); OY = EIXO * OX;
       while (f.g.firstChild) f.g.removeChild(f.g.firstChild);
       andar(f.g, c, f.n, f.i, slotOf[f.i]);
     });
@@ -834,14 +1024,32 @@ export function criarObra(svg: SVGSVGElement, passos: Passo[], cb: Callbacks) {
       const g = GETQ[n];
       if (!g || (n !== E.foco && n !== focoAntes)) return;
       const k = ORDEM.indexOf(n);
-      OX = k * PASSO_PLOT; OY = -OX;
+      OX = k * PASSO(); OY = EIXO * OX;
       while (g.firstChild) g.removeChild(g.firstChild);
       etiquetas(g, PREDIOS[n], n);
     });
     camera();
   }
 
-  const onResize = () => poe();
+  /* Redimensionar muda a faixa livre — a reserva do painel depende da largura
+     da tela —, então a ESCALA precisa ser refeita, e `poe()` sozinho só
+     reposiciona. Instantâneo de propósito: acompanhar o arraste da janela com
+     uma transição de 600ms deixa a obra correndo atrás do mouse. */
+  const onResize = () => {
+    /* Cruzar o limiar do retrato troca a DIREÇÃO do quarteirão, e direção é
+       geometria: `camera()` só reposiciona o que já está desenhado, então
+       sozinha ela deixaria a fileira intacta numa tela que virou pilha. Só
+       reconstrói quando o eixo REALMENTE mudou — girar o celular passa por
+       aqui a cada quadro do arraste, e reconstruir 700+ paths por quadro é o
+       que `navegar` existe pra evitar. */
+    const eixoAgora: -1 | 1 = ehRetrato(window.innerWidth) ? 1 : -1;
+    if (eixoAgora !== EIXO) {
+      EIXO = eixoAgora;
+      render(E, true);
+      return;
+    }
+    camera(true);
+  };
   window.addEventListener("resize", onResize);
 
   return {

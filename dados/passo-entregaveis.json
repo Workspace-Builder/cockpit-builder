@@ -1,0 +1,29 @@
+{
+  "design": {
+    "aula": {
+      "label": "Design Easy",
+      "url": "https://easybuilder.club/",
+      "plat": null,
+      "dentro": [],
+      "ativo": true
+    }
+  },
+  "copy": {
+    "ia": {
+      "label": "Easy Copy",
+      "url": "https://app.easybuilder.com.br/ferramentas",
+      "plat": null,
+      "dentro": [],
+      "ativo": true
+    }
+  },
+  "estrategia-da-pagina": {
+    "ia": {
+      "label": "Estrutura de Sites",
+      "url": "https://app.easybuilder.com.br/ferramentas",
+      "plat": null,
+      "dentro": [],
+      "ativo": true
+    }
+  }
+}
