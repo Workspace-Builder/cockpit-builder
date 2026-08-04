@@ -3,9 +3,25 @@ node_modules/
 next-env.d.ts
 *.tsbuildinfo
 
+# A build do aluno (`npm run build:aluno`). Artefato, não fonte: sai de
+# `dados/` a cada build. Se o host escolhido for GitHub Pages servindo do
+# próprio repo, o conteúdo dela é COPIADO pra pasta publicada — esta continua
+# ignorada de qualquer forma.
+out/
+
+# Os passos do Ctrl+Z (lib/historico.ts): cópias do JSON de antes de cada
+# gravação. É desfazer, não backup — vive e morre nesta máquina, e versionar
+# trinta cópias de cada página a cada clique encheria o histórico do git de
+# ruído. O backup de verdade é commitar `dados/`.
+dados/.historico/
+
+# As cópias de emergência feitas na mão quando algo deu errado.
+dados-BACKUP-*/
+
 .env
 .env.local
 .env*.local
 
 .DS_Store
 .playwright-mcp/
+.mobile-audit/

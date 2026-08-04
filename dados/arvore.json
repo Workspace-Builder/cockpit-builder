@@ -1,0 +1,155 @@
+[
+  {
+    "pasta": {
+      "id": "obra-10k",
+      "nome": "Obra 10k",
+      "ordem": 0
+    },
+    "paginas": [
+      {
+        "id": "metodo",
+        "nome": "O Método 10k",
+        "pastaId": "obra-10k",
+        "ordem": 0,
+        "resumo": "Por quê e quanto: o funil antiprospecção e a conta do 10k.",
+        "vistas": [
+          {
+            "id": "34",
+            "label": "Tudo",
+            "x": 470.8240949009689,
+            "y": 211.248033787437,
+            "zoom": 0.07941198652389816
+          },
+          {
+            "id": "32",
+            "label": "Atração",
+            "x": -18.90011272124252,
+            "y": 186.0943965075133,
+            "zoom": 0.30997180362959836
+          },
+          {
+            "id": "33",
+            "label": "Conversa",
+            "x": 389.94725882962604,
+            "y": -376.0341705264435,
+            "zoom": 0.17411011265922494
+          },
+          {
+            "id": "36",
+            "label": "pilares",
+            "x": -1733.531459949722,
+            "y": 340.2786802160275,
+            "zoom": 0.45947934199881457
+          },
+          {
+            "id": "35",
+            "label": "esquetes",
+            "x": 1444.5207800220178,
+            "y": 110.48370903501467,
+            "zoom": 0.34822022531845004
+          },
+          {
+            "id": "37",
+            "label": "Motor",
+            "x": -3909.2343428098666,
+            "y": -1183.4689553455935,
+            "zoom": 0.8000000000000014
+          }
+        ]
+      },
+      {
+        "id": "obra",
+        "nome": "A Obra",
+        "pastaId": "obra-10k",
+        "ordem": 1,
+        "resumo": "O que construir: 4 pilares empilhados, 36 passos.",
+        "vistas": []
+      },
+      {
+        "id": "motor",
+        "nome": "O Motor de Tijolos",
+        "pastaId": "obra-10k",
+        "ordem": 2,
+        "resumo": "A roda do funil anti-prospecção: o arsenal completo, por setor e por pilar.",
+        "vistas": [
+          {
+            "id": "43",
+            "label": "Ver tudo",
+            "x": null,
+            "y": null,
+            "zoom": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "pasta": {
+      "id": "setup-6d",
+      "nome": "Setup Agência 6D",
+      "ordem": 1
+    },
+    "paginas": [
+      {
+        "id": "onboarding",
+        "nome": "Onboarding",
+        "pastaId": "setup-6d",
+        "ordem": 0,
+        "resumo": "O fluxo do cliente novo, do contrato à entrega.",
+        "vistas": [
+          {
+            "id": "v-tekim7",
+            "label": "tudo",
+            "x": -2911.705601390828,
+            "y": 6.526879456193797,
+            "zoom": 0.28284270517112703
+          }
+        ]
+      },
+      {
+        "id": "pag-qmne8l",
+        "nome": "Desenvolvimento da página",
+        "pastaId": "setup-6d",
+        "ordem": 1,
+        "vistas": []
+      },
+      {
+        "id": "pag-lr91ad",
+        "nome": "Ajustes Finais",
+        "pastaId": "setup-6d",
+        "ordem": 2,
+        "vistas": []
+      },
+      {
+        "id": "pag-lnhpzl",
+        "nome": "Otimização da Página",
+        "pastaId": "setup-6d",
+        "ordem": 3,
+        "vistas": []
+      },
+      {
+        "id": "pag-dhk98k",
+        "nome": "pós venda e retro-alimentação do final",
+        "pastaId": "setup-6d",
+        "ordem": 4,
+        "vistas": []
+      }
+    ]
+  },
+  {
+    "pasta": {
+      "id": "pasta-d7i7s1",
+      "nome": "Pasta sem nome",
+      "ordem": 2
+    },
+    "paginas": [
+      {
+        "id": "pag-qrgkpy",
+        "nome": "Página sem nome",
+        "pastaId": "pasta-d7i7s1",
+        "ordem": 0,
+        "vistas": []
+      }
+    ]
+  }
+]
