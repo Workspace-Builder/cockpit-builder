@@ -4,10 +4,11 @@ import {
   mkdirSync,
   readdirSync,
   readFileSync,
+  rmSync,
   unlinkSync,
   writeFileSync,
 } from "node:fs";
-import { resolve } from "node:path";
+import { resolve, sep } from "node:path";
 import { registrar } from "./historico";
 
 // ---------------------------------------------------------------------------
@@ -27,10 +28,25 @@ import { registrar } from "./historico";
 // ---------------------------------------------------------------------------
 
 const RAIZ = resolve(process.cwd(), "dados");
+const PASTA_HISTORICO = resolve(RAIZ, ".historico");
 
+/**
+ * Rede de segurança contra path traversal (auditoria A1). `relativo` costuma
+ * carregar direto um id vindo de Server Action — a validação de formato desse
+ * id é a primeira porta (nas próprias actions), esta é a segunda: mesmo que um
+ * chamador futuro esqueça de validar, `resolve()` com `"../../algo"` sai de
+ * dentro de `dados/`, e é isso que barra aqui antes de tocar o disco.
+ */
 function caminho(relativo: string): string {
-  return resolve(RAIZ, relativo);
+  const alvo = resolve(RAIZ, relativo);
+  if (alvo !== RAIZ && !alvo.startsWith(RAIZ + sep)) {
+    throw new Error(`Caminho fora de dados/: ${relativo}`);
+  }
+  return alvo;
 }
+
+/** `paginas/pag-abc123.json` → `paginas__pag-abc123.json` — mesma conversão de `historico.ts`. */
+const chaveHistorico = (relativo: string) => relativo.replace(/[\\/]/g, "__");
 
 /**
  * Lê um JSON do disco. Arquivo ausente devolve o padrão — página nova ainda
@@ -78,10 +94,18 @@ export function gravar(
   writeFileSync(p, JSON.stringify(dado, null, 2) + "\n", "utf8");
 }
 
-/** Remove um arquivo — o `ON DELETE CASCADE` de página/pasta, feito na mão. */
+/**
+ * Remove um arquivo — o `ON DELETE CASCADE` de página/pasta, feito na mão.
+ *
+ * Leva a pasta de histórico junto (auditoria F3): sem isto, cada página
+ * excluída deixava `dados/.historico/paginas__<id>.json/` órfã pra sempre —
+ * nada nunca aponta pra lá de novo depois que o arquivo principal some.
+ */
 export function remover(relativo: string): void {
   const p = caminho(relativo);
   if (existsSync(p)) unlinkSync(p);
+  const historico = resolve(PASTA_HISTORICO, chaveHistorico(relativo));
+  if (existsSync(historico)) rmSync(historico, { recursive: true, force: true });
 }
 
 /** Ids das páginas que têm canvas gravado (nome do arquivo, sem `.json`). */

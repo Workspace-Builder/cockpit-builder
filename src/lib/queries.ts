@@ -1,9 +1,9 @@
 import "server-only";
 import { cache } from "react";
 import { gravar, idsComCanvas, ler, remover } from "./dados";
-import { desfazer as desfazerArquivo, passos as passosDe } from "./historico";
+import { desfazer as desfazerArquivo } from "./historico";
 import { novoId } from "./ids";
-import { TETO_8020, TETO_MARCA, type ChaveVaga, type Passo, type Plataforma, type Vaga } from "./model";
+import { TETO_8020, TETO_MARCA, type ChaveVaga, type LinkExtra, type Passo, type Plataforma, type Vaga } from "./model";
 import { PASSOS } from "./passos";
 import type {
   ArestaBoard,
@@ -84,6 +84,20 @@ const todosOsCanvas = (): { paginaId: string; dado: CanvasArquivo }[] =>
 
 const acharPaginaDoNo = (noId: string) =>
   todosOsCanvas().find((c) => c.dado.nos.some((n) => n.id === noId)) ?? null;
+
+/**
+ * O molde repetido pelos setters de nó (auditoria F1): achar a página do nó,
+ * substituir pelo patch, gravar. Setter novo que copiar este padrão na mão
+ * corre o risco de esquecer o `gravarCanvas` final e falhar em silêncio — quem
+ * chama `patchNo` não tem como esquecer, porque ele é o próprio `gravarCanvas`.
+ */
+function patchNo(id: string, patch: Partial<NoBoard>): void {
+  const achado = acharPaginaDoNo(id);
+  if (!achado) return;
+  const { paginaId, dado } = achado;
+  dado.nos = dado.nos.map((n) => (n.id === id ? { ...n, ...patch } : n));
+  gravarCanvas(paginaId, dado);
+}
 
 const acharPaginaDaAresta = (arestaId: string) =>
   todosOsCanvas().find((c) => c.dado.arestas.some((a) => a.id === arestaId)) ?? null;
@@ -197,7 +211,7 @@ type EntregavelSalvo = {
   label: string;
   url: string | null;
   plat: Plataforma | null;
-  dentro: string[];
+  dentro: LinkExtra[];
   ativo: boolean;
 };
 type PassoEntregavelArquivo = Record<string, Partial<Record<ChaveVaga, EntregavelSalvo>>>;
@@ -442,11 +456,7 @@ export async function estiloNo(
     Pick<NoBoard, "cor" | "corTxt" | "contorno" | "fs" | "fw" | "ta" | "raio" | "opacidade">
   >,
 ) {
-  const achado = acharPaginaDoNo(id);
-  if (!achado) return;
-  const { paginaId, dado } = achado;
-  dado.nos = dado.nos.map((n) => (n.id === id ? { ...n, ...patch } : n));
-  gravarCanvas(paginaId, dado);
+  patchNo(id, patch);
 }
 
 export async function reordenarCheckpoints(paginaId: string, ids: string[]) {
@@ -655,29 +665,23 @@ export async function desfazerPagina(paginaId: string): Promise<boolean> {
   return desfazerArquivo(arquivoDaPagina(paginaId));
 }
 
-/** Quantos Ctrl+Z ainda cabem nesta página. */
-export async function passosDesfazer(paginaId: string): Promise<number> {
-  return passosDe(arquivoDaPagina(paginaId));
-}
-
 /** Troca o rótulo do nó. Sem isto todo nó criado morre dizendo "Ação". */
 export async function textoNo(id: string, txt: string) {
-  const achado = acharPaginaDoNo(id);
-  if (!achado) return;
-  const { paginaId, dado } = achado;
-  dado.nos = dado.nos.map((n) => (n.id === id ? { ...n, txt } : n));
-  gravarCanvas(paginaId, dado);
+  patchNo(id, { txt });
 }
 
-/** Grava o tamanho depois do redimensionamento. */
+/**
+ * Grava o tamanho depois do redimensionamento.
+ *
+ * Rejeita w/h não finitos (auditoria B3) ANTES de arredondar: `Math.round(NaN)`
+ * é `NaN`, e `JSON.stringify` grava `NaN` como `null` — o nó voltaria a ler com
+ * tamanho nulo na próxima abertura, sem erro nenhum no meio do caminho.
+ */
 export async function tamanhoNo(id: string, w: number, h: number) {
-  const achado = acharPaginaDoNo(id);
-  if (!achado) return;
-  const { paginaId, dado } = achado;
+  if (!Number.isFinite(w) || !Number.isFinite(h)) return;
   const wArred = Math.max(40, Math.round(w));
   const hArred = Math.max(28, Math.round(h));
-  dado.nos = dado.nos.map((n) => (n.id === id ? { ...n, w: wArred, h: hArred } : n));
-  gravarCanvas(paginaId, dado);
+  patchNo(id, { w: wArred, h: hArred });
 }
 
 // --- a gaveta do nó ----------------------------------------------------------
@@ -862,11 +866,9 @@ export async function excluirAresta(id: string) {
 export async function camadaNo(id: string, direcao: "frente" | "tras") {
   const achado = acharPaginaDoNo(id);
   if (!achado) return;
-  const { paginaId, dado } = achado;
-  const zs = dado.nos.map((n) => n.z ?? 1);
+  const zs = achado.dado.nos.map((n) => n.z ?? 1);
   const novoZ = direcao === "frente" ? Math.max(...zs, 1) + 1 : Math.min(...zs, 1) - 1;
-  dado.nos = dado.nos.map((n) => (n.id === id ? { ...n, z: novoZ } : n));
-  gravarCanvas(paginaId, dado);
+  patchNo(id, { z: novoZ });
 }
 
 /**

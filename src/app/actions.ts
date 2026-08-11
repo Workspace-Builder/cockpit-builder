@@ -25,7 +25,29 @@ function atualizarArvore() {
   revalidatePath("/", "layout");
 }
 
+// ---------------------------------------------------------------------------
+// Auditoria A1 — path traversal em id de página/pasta
+// ---------------------------------------------------------------------------
+// `novoId()` (lib/ids.ts) só produz `<prefixo>-<base36>`. Todo id de página ou
+// pasta que chega aqui vem cru do cliente — nada garante que bate esse formato
+// antes desta checagem. Rejeitar aqui, ANTES de qualquer chamada a `db.*`, é a
+// primeira porta; `caminho()` (lib/dados.ts) é a segunda, pra quando um
+// chamador futuro esquecer de passar por esta.
+// ---------------------------------------------------------------------------
+
+const ID_PAGINA = /^pag-[a-z0-9]+$/;
+const ID_PASTA = /^pasta-[a-z0-9]+$/;
+
+function validarIdPagina(id: string) {
+  if (!ID_PAGINA.test(id)) throw new Error(`Id de página inválido: ${id}`);
+}
+
+function validarIdPasta(id: string) {
+  if (!ID_PASTA.test(id)) throw new Error(`Id de pasta inválido: ${id}`);
+}
+
 export async function criarPaginaAction(pastaId: string) {
+  validarIdPasta(pastaId);
   const id = await db.criarPagina(pastaId);
   atualizarArvore();
   redirect(`/p/${id}`);
@@ -37,12 +59,14 @@ export async function criarPastaAction() {
 }
 
 export async function duplicarPaginaAction(id: string) {
+  validarIdPagina(id);
   const novo = await db.duplicarPagina(id);
   atualizarArvore();
   if (novo) redirect(`/p/${novo}`);
 }
 
 export async function renomearPaginaAction(id: string, nome: string) {
+  validarIdPagina(id);
   const limpo = nome.trim();
   if (!limpo) return; // nome vazio deixaria a página anônima na árvore
   await db.renomearPagina(id, limpo);
@@ -50,6 +74,7 @@ export async function renomearPaginaAction(id: string, nome: string) {
 }
 
 export async function renomearPastaAction(id: string, nome: string) {
+  validarIdPasta(id);
   const limpo = nome.trim();
   if (!limpo) return;
   await db.renomearPasta(id, limpo);
@@ -57,6 +82,7 @@ export async function renomearPastaAction(id: string, nome: string) {
 }
 
 export async function excluirPaginaAction(id: string) {
+  validarIdPagina(id);
   await db.excluirPagina(id);
   atualizarArvore();
   const proxima = await db.primeiraPagina();
@@ -74,6 +100,7 @@ export async function salvarCheckpointAction(
   y: number,
   zoom: number,
 ) {
+  validarIdPagina(paginaId);
   const limpo = label.trim() || "Sem nome";
   await db.salvarCheckpoint(paginaId, limpo, x, y, zoom);
   atualizarArvore();
@@ -102,6 +129,7 @@ export async function excluirCheckpointAction(id: string) {
 }
 
 export async function excluirPastaAction(id: string) {
+  validarIdPasta(id);
   await db.excluirPasta(id);
   atualizarArvore();
   const proxima = await db.primeiraPagina();
@@ -125,6 +153,7 @@ export async function moverNosAction(
   paginaId: string,
   movidos: { id: string; x: number; y: number }[],
 ) {
+  validarIdPagina(paginaId);
   await db.moverNos(paginaId, movidos);
 }
 
@@ -147,6 +176,7 @@ export async function reordenarCheckpointsAction(
   paginaId: string,
   ids: string[],
 ) {
+  validarIdPagina(paginaId);
   await db.reordenarCheckpoints(paginaId, ids);
   atualizarArvore();
 }
@@ -159,6 +189,7 @@ export async function criarNoAction(
   x: number,
   y: number,
 ) {
+  validarIdPagina(paginaId);
   await db.criarNo(paginaId, tipo, x, y);
   atualizarArvore();
 }
@@ -191,6 +222,7 @@ export async function colarNoCanvasAction(
   w: number,
   h: number,
 ) {
+  validarIdPagina(paginaId);
   const img = salvarImagemColada(paginaId, dataUrl);
   try {
     // `txt: null` porque o título vira a barra da janela do `shot`, e "Novo"
@@ -209,6 +241,7 @@ export async function colarNaGavetaAction(
   abaId: string,
   dataUrl: string,
 ) {
+  validarIdPagina(paginaId);
   const src = salvarImagemColada(paginaId, dataUrl);
   let id: string;
   try {
@@ -228,6 +261,7 @@ export async function criarArestaAction(
   ladoDe: string | null,
   ladoPara: string | null,
 ) {
+  validarIdPagina(paginaId);
   await db.criarAresta(paginaId, de, para, ladoDe, ladoPara);
   atualizarArvore();
 }
@@ -242,6 +276,7 @@ export async function colarNosAction(
   recorte: Parameters<typeof db.colarNos>[1],
   destino: { x: number; y: number },
 ) {
+  validarIdPagina(paginaId);
   const criados = await db.colarNos(paginaId, recorte, destino);
   atualizarArvore();
   return criados;
@@ -254,6 +289,7 @@ export async function colarNosAction(
  * único jeito honesto é reler do servidor.
  */
 export async function desfazerAction(paginaId: string): Promise<boolean> {
+  validarIdPagina(paginaId);
   const desfez = await db.desfazerPagina(paginaId);
   if (desfez) atualizarArvore();
   return desfez;
@@ -329,7 +365,10 @@ export async function criarItemAction(
   tipo: TipoItem,
   campos?: { nome?: string | null; url?: string | null; src?: string | null },
 ) {
-  const id = await db.criarItem(abaId, tipo, campos);
+  // Só reescreve a chave `url` quando ela veio no chamado — `db.criarItem`
+  // trata a ausência da chave diferente de uma chave presente com `undefined`.
+  const seguro = campos && "url" in campos ? { ...campos, url: urlSegura(campos.url) ?? null } : campos;
+  const id = await db.criarItem(abaId, tipo, seguro);
   atualizarArvore();
   return id;
 }
@@ -338,7 +377,11 @@ export async function editarItemAction(
   id: string,
   patch: Parameters<typeof db.editarItem>[1],
 ) {
-  await db.editarItem(id, patch);
+  // Mesmo cuidado de `criarItemAction`: `editarItem` só toca em campo cuja
+  // chave está presente no patch — forçar `url: undefined` aqui apagaria a
+  // URL de qualquer edição que não mexesse nela.
+  const seguro = "url" in patch ? { ...patch, url: urlSegura(patch.url) ?? null } : patch;
+  await db.editarItem(id, seguro);
   atualizarArvore();
 }
 
@@ -370,6 +413,19 @@ export async function editarArestaAction(
   atualizarArvore();
 }
 
+/**
+ * Auditoria A3 — só `http://`/`https://` vira link gravado. Sem isto,
+ * `javascript:alert(1)` salvo aqui vira executável no clique de quem abrir a
+ * página publicada; qualquer outro protocolo (ou lixo sem protocolo) é
+ * descartado em silêncio, não rejeitado — o campo é opcional em todo lugar
+ * que o consome.
+ */
+function urlSegura(url: string | null | undefined): string | undefined {
+  const limpo = url?.trim();
+  if (!limpo) return undefined;
+  return /^https?:\/\//i.test(limpo) ? limpo : undefined;
+}
+
 export async function salvarEntregavelAction(
   passoId: string,
   vaga: ChaveVaga,
@@ -379,9 +435,15 @@ export async function salvarEntregavelAction(
   if (!label) return;
   await db.salvarEntregavel(passoId, vaga, {
     label,
-    url: valor.url?.trim() || undefined,
+    url: urlSegura(valor.url),
     plat: vaga === "ferram" ? valor.plat : undefined,
-    dentro: valor.dentro?.map((item) => item.trim()).filter(Boolean),
+    // Cada link extra passa pelo MESMO filtro do link principal — sem isto,
+    // `javascript:` colado num link secundário escapava da auditoria A3 por
+    // não passar pelo `urlSegura` de cima. Sem rótulo a linha é lixo de quem
+    // clicou em "+" e voltou atrás sem preencher; cai fora.
+    dentro: valor.dentro
+      ?.map((item) => ({ label: item.label.trim(), url: urlSegura(item.url) }))
+      .filter((item) => item.label),
   });
   atualizarArvore();
 }

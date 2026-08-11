@@ -43,6 +43,7 @@ export default function Palco({
   passos,
   gavetas,
   andarInicial,
+  faseInicial,
 }: {
   pagina: Pagina;
   nos: NoBoard[];
@@ -58,6 +59,7 @@ export default function Palco({
   passos: Passo[];
   gavetas: GavetasDaPagina;
   andarInicial?: string;
+  faseInicial?: string;
 }) {
   // A Obra não é canvas de nós: é o quarteirão isométrico dos 4 pilares,
   // desenhado a partir da Ordem 0 (lib/passos.ts).
@@ -66,7 +68,7 @@ export default function Palco({
 
   // O Trilho também não é canvas de nós: é a roda do funil anti-prospecção com
   // o arsenal por setor, desenhada a partir de lib/flywheel.ts.
-  if (pagina.id === ID_MOTOR) return <Motor />;
+  if (pagina.id === ID_MOTOR) return <Motor faseInicial={faseInicial} />;
 
   return (
     <div className="relative min-h-0 flex-1 overflow-hidden">

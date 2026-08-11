@@ -935,7 +935,7 @@ a.icta{text-decoration:none}
 .btn:hover{border-color:color-mix(in srgb,var(--c-execucao) 50%,var(--fio))}
 .btn .dot{width:8px; height:8px; border-radius:50%; background:var(--c-gestao); box-shadow:0 0 10px var(--c-gestao)}
 .btn[aria-pressed="false"] .dot{background:var(--texto-3); box-shadow:none}
-.btn:focus-visible, .sector:focus-visible, .rail-close:focus-visible{outline:2px solid var(--c-gestao); outline-offset:3px}
+.btn:focus-visible, .sector:focus-visible{outline:2px solid var(--c-gestao); outline-offset:3px}
 
 .stage{position:relative; display:flex; justify-content:center; align-items:center; min-height:0}
 .wheelBox{
@@ -976,47 +976,6 @@ a.icta{text-decoration:none}
 .course{stroke-linecap:round; fill:none}
 .chev{fill:none; stroke-linecap:round; stroke-linejoin:round}
 
-/* rail */
-.rail{
-  position:absolute; top:0; right:0; height:100%; width:min(360px,86vw);
-  background:linear-gradient(180deg,var(--painel),var(--painel-2));
-  border:1px solid var(--fio); border-radius:18px; padding:20px;
-  box-shadow:var(--sombra); transform:translateX(112%); opacity:0;
-  transition:transform .42s cubic-bezier(.22,1,.36,1), opacity .3s;
-  display:flex; flex-direction:column; gap:14px; overflow:hidden;
-}
-.rail.open{transform:translateX(0); opacity:1}
-.rail-close{
-  position:absolute; top:14px; right:14px; width:30px; height:30px; cursor:pointer;
-  background:var(--painel-2); border:1px solid var(--fio); border-radius:8px; color:var(--texto-2); font-size:13px;
-}
-.rail-close:hover{color:var(--texto)}
-.rail-head{display:flex; align-items:center; gap:14px; padding-right:34px}
-.rail-index{
-  font-family:var(--mono); font-weight:800; font-size:22px; width:52px; height:52px; flex:none;
-  display:grid; place-items:center; border-radius:12px; color:var(--fundo);
-  background:var(--railc); box-shadow:0 8px 22px -8px var(--railc);
-}
-:root[data-theme="light"] .rail-index, .rail-index{color:#0c1018}
-.rail-name{margin:0; font-size:20px; font-weight:800; letter-spacing:-.01em; color:var(--texto)}
-.rail-count{font-family:var(--mono); font-size:11px; color:var(--railc); letter-spacing:.06em}
-.rail-role{margin:0; font-size:13px; line-height:1.5; color:var(--texto-2)}
-.rail-list{display:flex; flex-direction:column; gap:7px; overflow-y:auto; padding-right:4px; margin:0 -4px 0 0}
-.rail-list::-webkit-scrollbar{width:7px}
-.rail-list::-webkit-scrollbar-thumb{background:var(--fio); border-radius:99px}
-.brick{
-  display:flex; align-items:center; gap:11px; padding:9px 11px; border-radius:9px;
-  background:color-mix(in srgb,var(--railc) 9%, var(--painel));
-  border:1px solid color-mix(in srgb,var(--railc) 22%, transparent);
-  border-left:3px solid var(--railc);
-  position:relative;
-}
-.brick .ico{width:18px; height:18px; flex:none; color:var(--railc)}
-.brick .ico svg{width:100%; height:100%; stroke:currentColor; stroke-width:1.7; fill:none}
-.brick .bn{font-size:12.5px; line-height:1.25; color:var(--texto); font-weight:500}
-.brick .bt{font-family:var(--mono); font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--texto-3); margin-top:2px; display:block}
-.brick .loop{margin-left:auto; font-family:var(--mono); font-size:9px; color:var(--c-posicionamento); white-space:nowrap; letter-spacing:.04em}
-
 /* foundation */
 .foundation{
   background:
@@ -1026,9 +985,14 @@ a.icta{text-decoration:none}
   border:1px solid var(--fio); border-radius:16px; padding:16px clamp(16px,2.4vw,26px) 18px;
   margin-top:-6px;
 }
-.found-head{display:flex; align-items:baseline; gap:12px; margin-bottom:13px; flex-wrap:wrap}
+.found-head{display:flex; align-items:baseline; gap:12px; margin-bottom:13px; flex-wrap:wrap;
+  width:100%; text-align:left}
 .found-label{font-family:var(--mono); font-weight:800; letter-spacing:.24em; font-size:12px; color:var(--texto)}
 .found-sub{font-size:12px; color:var(--texto-2)}
+/* a seta só existe no recolhível do celular — na cabine o cabeçalho não é
+   botão de nada, é só o rótulo de sempre */
+.found-seta{display:none; margin-left:auto; flex:none; font-size:13px; line-height:1;
+  color:var(--texto-3); transition:transform .22s cubic-bezier(.22,1,.36,1)}
 .found-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(184px,1fr)); gap:11px}
 .fcard{background:color-mix(in srgb,var(--c-found) 8%,var(--painel)); border:1px solid var(--fio); border-radius:11px; padding:12px 13px}
 .fcard .fh{display:flex; align-items:center; gap:9px; margin-bottom:8px}
@@ -1117,7 +1081,6 @@ a.icta{text-decoration:none}
 .fw-no .lede { font-size: 13px; max-width: 52ch; }
 .fw-no .hub-eyebrow, .fw-no .hub-sub { font-size: 9px; }
 .fw-no .hub-thesis { font-size: 19px; }
-.fw-no .rail { width: min(330px, 62%); }
 
 /* ---------------------------------------------------------------------------
    MOTOR DE TIJOLOS — a TELA (não o nó do canvas)
@@ -1455,21 +1418,51 @@ a.icta{text-decoration:none}
 /* Abaixo de 1100 o par deixa de fazer sentido: o que sobraria pra roda depois
    do painel é pequeno demais pra ela continuar sendo uma roda. Aqui ela ocupa o
    palco e o painel vira gaveta de baixo. O corte é 1100 e não 900 porque a
-   barra lateral come ~290px antes do palco começar. */
+   barra lateral come ~290px antes do palco começar.
+
+   `.motor-palco` é `flex:1` dentro da coluna de `.motor`, e disputa altura com
+   o Alicerce (`.foundation`, abaixo). `min-height:auto` tirava o piso — sem
+   ele, o Alicerce empilhado (5 cartões, sem grade de colunas pra caber lado a
+   lado) ganhava a disputa e espremia o palco a ~60px. A roda inteira e o modal
+   (`max-height` em % DESSA altura) ficavam cortados pelo `overflow:hidden` do
+   palco: era por isso que a roda sumia e o card do setor aparecia com só o
+   título, sem o resto. O piso agora é explícito nos dois estados — mais baixo
+   fechado (só a roda precisa de espaço), mais alto aberto (o modal vira o
+   conteúdo principal da tela, e precisa da tela quase inteira). */
 @media (max-width:1100px){
-  .motor-palco{min-height:auto; padding-top:52px}
+  .motor-palco{min-height:min(60vh,460px); padding-top:52px}
+  .motor-palco.aberto{min-height:min(82dvh,680px)}
   .motor-palco.aberto .wheelBox{max-width:none}
   .motor-dupla{display:block; height:auto; transform:none}
   .motor-palco.aberto .motor-dupla{transform:none}
   .motor .wheelBox{width:min(92vw,420px); margin:0 auto;
     transition:transform .52s cubic-bezier(.22,1,.36,1)}
-  .motor-palco.aberto .wheelBox{transform:translateY(-12%) scale(.52)}
+  .motor-palco.aberto .wheelBox{transform:translateY(-54%)}
   .motor-modal{
-    position:absolute; width:100%; max-height:70%; left:0; right:0; bottom:0;
+    position:absolute; width:100%; max-height:80%; left:0; right:0; bottom:0;
     transform:translateY(112%); border-radius:18px 18px 0 0;
   }
   .motor-modal.on{transform:translateY(0)}
   .motor .hub{width:52%}
+
+  /* O ALICERCE RECOLHE — no celular ele nasce fechado (só o rótulo e a
+     legenda), porque as 5 famílias abertas de cara são a segunda causa do
+     espremido acima: puro texto de referência, sem ação nenhuma, competindo
+     por altura com a roda antes mesmo de o aluno ter clicado num setor.
+     Mesmo truque de `grid-template-rows` do `.mm-wrap` (abre/fecha as
+     famílias dentro do modal): anima ALTURA AUTOMÁTICA, que `max-height`
+     chutado não faz sem cortar ou sobrar. Na cabine nada disto entra — o
+     Alicerce continua sempre aberto, e o botão não muda de aparência nenhuma. */
+  .found-head{cursor:pointer}
+  .found-seta{display:block}
+  .found-head[aria-expanded="true"] .found-seta{transform:rotate(90deg)}
+  .found-wrap{display:grid; grid-template-rows:0fr; margin-top:-13px;
+    transition:grid-template-rows .28s cubic-bezier(.22,1,.36,1), margin-top .28s cubic-bezier(.22,1,.36,1)}
+  .found-wrap.on{grid-template-rows:1fr; margin-top:0}
+  .found-wrap > .found-grid{overflow:hidden; min-height:0}
+}
+@media (max-width:1100px) and (prefers-reduced-motion:reduce){
+  .found-wrap{transition:none}
 }
 @media (prefers-reduced-motion:reduce){
   .mm-tij{opacity:1; animation:none}

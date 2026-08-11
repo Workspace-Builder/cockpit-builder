@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { ReactFlowProvider, useReactFlow } from "@xyflow/react";
 import BarraLateral from "./BarraLateral";
 import TopoPagina from "./TopoPagina";
@@ -71,9 +72,28 @@ function Miolo({
   // única leitura possível é a do navegador. Ver `lib/usarQuery.ts`.
   const vDaUrl = useParametroDaUrl("v");
   const andarInicial = useParametroDaUrl("andar") ?? undefined;
+  const faseInicial = useParametroDaUrl("fase") ?? undefined;
   const recolhida = useUiStore((s) => s.recolhida);
+  const pathname = usePathname();
+  const setGaveta = useUiStore((s) => s.setGaveta);
 
-  const [vista, setVista] = useState(0);
+  /**
+   * A tela selecionada é o ID do checkpoint, não a posição dele na lista.
+   *
+   * Reordenar ou excluir chama uma Server Action que só faz `revalidatePath` —
+   * sem trocar de rota, `key={id}` não remonta, e este estado sobrevive
+   * intacto enquanto `pagina.vistas` (prop nova, vinda do servidor) muda de
+   * forma por baixo dele. Guardando o id em vez do índice, o destaque do dock
+   * e o "regravar" seguem o MESMO checkpoint, não a posição que ele tinha.
+   */
+  const [vistaId, setVistaId] = useState<string | null>(
+    pagina.vistas[0]?.id ?? null,
+  );
+  // Índice numérico é derivado a cada render, procurando o id na lista atual —
+  // não precisa de effect nem de comparação com a lista anterior. Some da
+  // lista (checkpoint excluído)? cai no índice 0, que é o fallback pedido.
+  const vistaAchada = pagina.vistas.findIndex((v) => v.id === vistaId);
+  const vista = vistaAchada < 0 ? 0 : vistaAchada;
   const [itemSel, setItemSel] = useState<string | null>(null);
   /* No store, não aqui: esta casca remonta a cada troca de página (`key={id}`
      na rota), e um `useState` desligaria a edição no meio do trabalho — o que
@@ -136,13 +156,13 @@ function Miolo({
       // A tela anda PRIMEIRO; o estado (destaque do botão e URL) vem depois e
       // não segura a animação.
       enquadrar(i);
-      setVista(i);
+      setVistaId(pagina.vistas[i]?.id ?? null);
       const url = new URL(window.location.href);
       if (i > 0) url.searchParams.set("v", String(i));
       else url.searchParams.delete("v");
       window.history.replaceState(null, "", url.pathname + url.search);
     },
-    [pagina.vistas.length, enquadrar],
+    [pagina.vistas, enquadrar],
   );
 
   /* O `?v=` chega DEPOIS da hidratação — antes dela `usarQuery` devolve null,
@@ -159,8 +179,52 @@ function Miolo({
   if (vAplicado !== vDaUrl) {
     setVAplicado(vDaUrl);
     const n = Number(vDaUrl);
-    if (Number.isInteger(n) && n > 0 && n < pagina.vistas.length) setVista(n);
+    if (Number.isInteger(n) && n > 0 && n < pagina.vistas.length) {
+      setVistaId(pagina.vistas[n]?.id ?? null);
+    }
   }
+
+  /* `enquadrar` MOVE A CÂMERA de verdade (setViewport/fitView do React Flow) —
+     diferente do bloco acima, que só sincroniza ESTADO. Por isso mora num
+     effect, não no render: side effect de verdade não pode rodar ali (pode
+     disparar duas vezes em Strict Mode, ou antes do canvas montar). Sem isto
+     — o bug real, achado na auditoria de 2026-08-03 — chegar num link com
+     `?v=N` acendia o checkpoint certo no dock, mas a câmera ficava no
+     `fitView` de tudo: parecia "foi pra outro lugar" em vez de abrir no
+     checkpoint pedido.
+
+     Só funciona porque `BoardCanvas.tsx` desliga o `fitView` DECLARATIVO do
+     `<ReactFlow>` quando a URL já chega com `?v=` — sem aquele concorrente,
+     não sobra corrida pra perder: `setViewport` (dentro de `enquadrar`) não
+     depende de nó medido nenhum, só seta x/y/zoom direto. Tentei antes travar
+     isto em `useNodesInitialized()`, mas esse sinal nunca vira `true` com
+     `onlyRenderVisibleElements` ligado (nó fora do viewport padrão nunca
+     monta pra ser medido) — não é o sinal certo pra esperar; o jeito certo é
+     não competir, não vencer a corrida.
+
+     `vEnquadrado` evita repetir o voo se o efeito rodar de novo só porque
+     `enquadrar` trocou de identidade (pagina.vistas mudou de referência numa
+     revalidação) sem `vAplicado` ter mudado — senão um clique no dock, que
+     não mexe em `vAplicado`, levaria a câmera de volta pro link antigo na
+     próxima revalidação. */
+  const vEnquadrado = useRef<string | null>(null);
+  useEffect(() => {
+    if (vEnquadrado.current === vAplicado) return;
+    vEnquadrado.current = vAplicado;
+    const n = Number(vAplicado);
+    if (Number.isInteger(n) && n > 0 && n < pagina.vistas.length) {
+      enquadrar(n);
+    }
+  }, [vAplicado, enquadrar, pagina.vistas.length]);
+
+  /* C1 — "gaveta" mora no Zustand (fora da árvore React) e só some com clique
+     explícito (link, X, Esc). Botão voltar do navegador não passa por nenhum
+     desses: troca a rota sem disparar handler nenhum daqui. Resetar toda vez
+     que o pathname muda cobre voltar/avançar do navegador de graça, sem
+     listener manual de popstate. */
+  useEffect(() => {
+    setGaveta(false);
+  }, [pathname, setGaveta]);
 
   // Teclas 1-9 vão pro checkpoint · Esc fecha a gaveta, depois larga o item.
   useEffect(() => {
@@ -220,6 +284,7 @@ function Miolo({
           passos={passos}
           gavetas={gavetas}
           andarInicial={andarInicial}
+          faseInicial={faseInicial}
         />
       </div>
 

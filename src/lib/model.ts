@@ -192,6 +192,19 @@ export type ChaveMarca = keyof typeof TETO_MARCA;
 /** Em qual plataforma a ferramenta do passo vive. BLUEPRINT-PAGINAS.md §6. */
 export type Plataforma = "EB" | "DB" | "AB";
 
+/**
+ * Um link extra dentro de uma vaga — o segundo (ou terceiro) ferramenta/aula/
+ * IA que o mesmo passo pede, cada um com o PRÓPRIO destino.
+ *
+ * Antes de 2026-08-10 isto era `string[]`: só nomes, todos abrindo o mesmo
+ * link da vaga (Lucas Neves, Luan Shimoda e Lorenzi levavam pra a mesma
+ * trilha de mentorias — um nome, um destino, servia). Onboarding do Cliente
+ * quebrou essa regra: Formulário de Briefing, Proposta e Contrato são três
+ * documentos DIFERENTES, cada um com seu link. `url` opcional mantém
+ * compatível o caso antigo (nome sem link próprio, que a UI mostra sem seta).
+ */
+export type LinkExtra = { label: string; url?: string };
+
 /** Uma das 3 vagas fixas do painel: aula → IA → ferramenta. */
 export type Vaga = {
   label: string;
@@ -199,19 +212,12 @@ export type Vaga = {
   /** Só na vaga `ferram`. Sem URL o selo não linka (Decisão 5). */
   plat?: Plataforma;
   /**
-   * O que existe DENTRO deste entregável — sem link próprio, porque o destino
-   * é o mesmo da vaga.
-   *
-   * Nasceu de um caso concreto: "Acessar mentes que construíram" entrega uma
-   * trilha de mentorias, e quem está nela (Lucas Neves, Luan Shimoda, Lorenzi)
-   * é metade do valor — mas os três abrem a MESMA trilha. Como três vagas
-   * seriam três links iguais, e o painel só tem três vagas no total, eles
-   * simplesmente sumiam.
-   *
-   * Não use pra entregável que leva a outro lugar: aí é vaga, não conteúdo.
-   * Um nome aqui promete o destino da vaga que o contém.
+   * Links extras dentro deste entregável, além do principal (`label`+`url`
+   * acima). Cada um é uma linha própria no painel, com seu próprio destino —
+   * ver `LinkExtra`. Vazio ou ausente: a vaga é só o link principal, como
+   * sempre foi.
    */
-  dentro?: string[];
+  dentro?: LinkExtra[];
 };
 
 /**
