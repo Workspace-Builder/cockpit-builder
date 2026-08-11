@@ -1,0 +1,34 @@
+{
+  "base": "http://localhost:3970",
+  "comentario": "Rotas e aparelhos da varredura. Rota nova no app = linha nova aqui, senão a auditoria mente por omissão.",
+
+  "rotas": [
+    { "url": "/p/metodo", "nome": "metodo", "sobre": "canvas de 56 nós + 7 animações" },
+    {
+      "url": "/p/obra",
+      "nome": "obra",
+      "sobre": "os 4 pilares, câmera própria, sem dock",
+      "estados": "tem três, e só o primeiro aparece ao carregar: quarteirão · pilar em foco (toque num botão da barra) · andar aberto (seta ↑ depois do foco). O layout de retrato muda nos três — medir só o primeiro esconde o caso pior, que é o andar aberto.",
+      "aviso": "a abertura só aparece na primeira visita. Pra vê-la: localStorage.removeItem('cockpit:obra:abertura:v1') e recarregar."
+    },
+    { "url": "/p/onboarding", "nome": "onboarding", "sobre": "canvas de 43 nós" }
+  ],
+
+  "aparelhos": [
+    { "nome": "iphone-se", "w": 375, "h": 667, "sobre": "o piso — se passa aqui, passa em quase tudo" },
+    { "nome": "iphone-15", "w": 393, "h": 852, "sobre": "o mediano de hoje" },
+    { "nome": "pixel-8", "w": 412, "h": 915, "sobre": "Android típico" },
+    { "nome": "ipad-mini", "w": 744, "h": 1133, "sobre": "tablet retrato — o degrau entre celular e cabine" }
+  ],
+
+  "deitado": [
+    { "nome": "iphone-15-deitado", "w": 852, "h": 393, "sobre": "celular virado: 393px de ALTURA é onde o dock e o topo se atropelam" }
+  ],
+
+  "limites": {
+    "toqueMin": 44,
+    "toqueGrave": 32,
+    "fonteMin": 12,
+    "vazamentoTolerado": 0
+  }
+}
