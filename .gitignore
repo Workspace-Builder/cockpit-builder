@@ -9,6 +9,10 @@ next-env.d.ts
 # ignorada de qualquer forma.
 out/
 
+# Builds de teste do `build:aluno` guardadas lado a lado (uma pasta por
+# combinação de páginas publicadas). Mesmo artefato de `out/`, mesma regra.
+modelos-html/
+
 # Os passos do Ctrl+Z (lib/historico.ts): cópias do JSON de antes de cada
 # gravação. É desfazer, não backup — vive e morre nesta máquina, e versionar
 # trinta cópias de cada página a cada clique encheria o histórico do git de

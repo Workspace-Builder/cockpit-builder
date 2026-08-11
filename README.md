@@ -53,7 +53,7 @@ Node 22 (`.nvmrc`). Gates: `npm run typecheck`, `npm run lint`, `npm run build`.
 ## Publicar pro aluno
 
 ```bash
-npm run publicadas             # lista o que está ligado
+npm run publicadas             # lista o que está ligado (mostra o id de cada página)
 npm run publicadas obra        # liga uma tela  (--tirar obra desliga)
 npm run build:aluno            # HTML estático em out/
 ```
@@ -69,6 +69,27 @@ pasta publicada é substituída inteira.
 
 Onde essa build vai ficar hospedada ainda não foi decidido; ver
 [docs/ARQUITETURA.md](./docs/ARQUITETURA.md) §9.
+
+### Passo a passo
+
+Nada aqui é em tempo real: publicar um id não faz nada aparecer sozinho, tem
+que regerar a build. São sempre estes passos, nesta ordem:
+
+1. **Achar o id da página** — `npm run publicadas` lista id + nome + status
+   (`●` publicada, `○` rascunho). O id também é o final da URL no editor:
+   `localhost:3970/p/<id>`.
+2. **Editar o conteúdo**, se for o caso — `npm run dev`, edita a página normal.
+3. **Publicar ou despublicar o id** — `npm run publicadas <id>` /
+   `npm run publicadas --tirar <id>`.
+4. **Gerar o HTML de novo** — `npm run build:aluno`. Sempre depois de publicar
+   ou despublicar; o passo 3 só edita um JSON, não gera nada sozinho.
+5. **Ver o resultado — nunca abrindo o arquivo direto.** `npx serve out` e abre
+   o link que aparecer no terminal. Duplo clique no `index.html` (`file://`)
+   quebra o CSS: os assets usam caminho absoluto (`/_next/...`), que só resolve
+   servido por HTTP. Um host estático de verdade (passo 6) não tem esse
+   problema — é só o teste local com arquivo aberto direto que quebra.
+6. **Publicar de verdade** — subir a pasta `out/` pro host escolhido. Ainda
+   manual, ver §9 do ARQUITETURA.md.
 
 ## Onde começar a ler
 
