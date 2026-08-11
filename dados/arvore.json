@@ -98,11 +98,18 @@
         "resumo": "O fluxo do cliente novo, do contrato à entrega.",
         "vistas": [
           {
-            "id": "v-tekim7",
-            "label": "tudo",
-            "x": -2911.705601390828,
-            "y": 6.526879456193797,
-            "zoom": 0.28284270517112703
+            "id": "v-dobva7",
+            "label": "contrato",
+            "x": -13267.527671319172,
+            "y": -1214.4437942353677,
+            "zoom": 1.131370820684509
+          },
+          {
+            "id": "v-ue44m0",
+            "label": "briefing",
+            "x": -15889.097076251892,
+            "y": -1528.6068395384657,
+            "zoom": 1.299603800611942
           }
         ]
       },
@@ -132,22 +139,6 @@
         "nome": "pós venda e retro-alimentação do final",
         "pastaId": "setup-6d",
         "ordem": 4,
-        "vistas": []
-      }
-    ]
-  },
-  {
-    "pasta": {
-      "id": "pasta-d7i7s1",
-      "nome": "Pasta sem nome",
-      "ordem": 2
-    },
-    "paginas": [
-      {
-        "id": "pag-qrgkpy",
-        "nome": "Página sem nome",
-        "pastaId": "pasta-d7i7s1",
-        "ordem": 0,
         "vistas": []
       }
     ]

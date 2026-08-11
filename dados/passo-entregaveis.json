@@ -6,6 +6,13 @@
       "plat": null,
       "dentro": [],
       "ativo": true
+    },
+    "ferram": {
+      "label": "Extensão EB · 1.000+ componentes",
+      "url": "https://app.easybuilder.com.br/index-v2",
+      "plat": "EB",
+      "dentro": [],
+      "ativo": true
     }
   },
   "copy": {
@@ -21,6 +28,335 @@
     "ia": {
       "label": "Estrutura de Sites",
       "url": "https://app.easybuilder.com.br/ferramentas",
+      "plat": null,
+      "dentro": [],
+      "ativo": true
+    }
+  },
+  "imagem-e-direcao-visual": {
+    "ia": {
+      "label": "IA 10 Easy Image",
+      "url": "https://app.easybuilder.com.br/ferramentas",
+      "plat": null,
+      "dentro": [],
+      "ativo": true
+    }
+  },
+  "otimizacao": {
+    "ferram": {
+      "label": "Backup otimizado",
+      "url": "https://app.easybuilder.com.br/",
+      "plat": "EB",
+      "dentro": [],
+      "ativo": true
+    },
+    "aula": {
+      "label": "Easy Optimize",
+      "url": "https://aulas.easybuilder.com.br/easybuilder/aula/01-nocoes-gerais-alinhamento-essencial?trail=easy-optimize",
+      "plat": null,
+      "dentro": [],
+      "ativo": true
+    }
+  },
+  "implementacao-tecnica": {
+    "aula": {
+      "label": "Como instalar as Configurações no Wordpress",
+      "url": "https://aulas.easybuilder.com.br/easybuilder/aula/instalando-as-configuracoes-pre-definidas-no-seu-wordpress?trail=do-zero-a-primeira-pagina-profissao-web-builder",
+      "plat": null,
+      "dentro": [],
+      "ativo": true
+    },
+    "ferram": {
+      "label": "Backup WordPress · 3 cliques",
+      "url": "https://drive.google.com/drive/folders/1PIoectAsvvCkOGRgQYARZAQOP1_gGw2W",
+      "plat": "EB",
+      "dentro": [],
+      "ativo": true
+    }
+  },
+  "posicionamento": {
+    "ia": {
+      "label": "IA 02 ICP e Posicionamento",
+      "url": "https://app.easybuilder.com.br/ferramentas",
+      "plat": null,
+      "dentro": [],
+      "ativo": true
+    }
+  },
+  "portfolio": {
+    "ferram": {
+      "label": "Template Portfólio (Figma)",
+      "url": "https://www.figma.com/design/xAbtU3E8t9qR5ajBVVYIqB/Propostas-Comerciais?node-id=0-1",
+      "plat": "EB",
+      "dentro": [],
+      "ativo": true
+    }
+  },
+  "instagram": {
+    "aula": {
+      "label": "Reels N3 + SEO",
+      "url": "https://aulas.easybuilder.com.br/easybuilder/aula/19-o-que-postar-no-instagram",
+      "plat": null,
+      "dentro": [],
+      "ativo": true
+    },
+    "ferram": {
+      "label": "Template Carrossel",
+      "url": "https://drive.google.com/file/d/1zTR6uwoKjI8WCefTRL57XSHqvuvXGwO_/view",
+      "plat": "EB",
+      "dentro": [],
+      "ativo": true
+    },
+    "ia": {
+      "label": "IA 07 Copy Carrossel",
+      "url": "https://app.easybuilder.com.br/ferramentas",
+      "plat": null,
+      "dentro": [],
+      "ativo": true
+    }
+  },
+  "atendimento": {
+    "aula": {
+      "label": "Easy Sales",
+      "url": "https://aulas.easybuilder.com.br/easybuilder/aula/01-um-guia-para-voce-assistir-e-aproveitar-o-conteudo-nao-pule?trail=easy-sales",
+      "plat": null,
+      "dentro": [],
+      "ativo": true
+    },
+    "ia": {
+      "label": "IA 03 Atendimento e Negociação",
+      "url": "https://app.easybuilder.com.br/ferramentas",
+      "plat": null,
+      "dentro": [
+        {
+          "label": "IA 04 Webson Vendedor",
+          "url": "https://app.easybuilder.com.br/ferramentas"
+        }
+      ],
+      "ativo": true
+    }
+  },
+  "proposta-profissional": {
+    "aula": {
+      "label": "Template de Proposta + Orientações",
+      "url": "https://aulas.easybuilder.com.br/easybuilder/aula/proposta-comercial-orientacoes",
+      "plat": null,
+      "dentro": [],
+      "ativo": true
+    },
+    "ferram": {
+      "label": "Template de Proposta",
+      "url": "https://www.figma.com/design/xAbtU3E8t9qR5ajBVVYIqB/Propostas-Comerciais?node-id=0-1&p=f&t=hc5EADhoV5QOp7Tn-0",
+      "plat": "EB",
+      "dentro": [],
+      "ativo": true
+    }
+  },
+  "precificacao-pelo-valor": {
+    "ferram": {
+      "label": "Planilha Financeira",
+      "url": "https://docs.google.com/spreadsheets/d/1Stax8_nd6Vjdcx-hWAS5onw8m4EVwTpDSQiRH8xJ1YE/edit",
+      "plat": "EB",
+      "dentro": [],
+      "ativo": true
+    }
+  },
+  "prova-social": {
+    "aula": {
+      "label": "O 80/20 para prospectar na prática e usar seus projetos...",
+      "url": "https://aulas.easybuilder.com.br/easybuilder/aula/017-o-80-20-para-prospectar-na-pratica-e-usar-seus-projetos-para-fechar-novos-contratos",
+      "plat": null,
+      "dentro": [],
+      "ativo": true
+    },
+    "ferram": {
+      "label": "Coleta de depoimento",
+      "url": "https://www.figma.com/design/xAbtU3E8t9qR5ajBVVYIqB/Propostas-Comerciais?node-id=0-1",
+      "plat": "",
+      "dentro": [],
+      "ativo": true
+    }
+  },
+  "trafego-pago-nitro": {
+    "aula": {
+      "label": "Tráfego N3",
+      "url": "https://aulas.easybuilder.com.br/easybuilder/aula/007-funil-de-trafego-pago-para-designers-webs-com-r-7-a-r-20-por-dia",
+      "plat": null,
+      "dentro": [],
+      "ativo": true
+    }
+  },
+  "onboarding-do-cliente": {
+    "ferram": {
+      "label": "Formulário de Briefing",
+      "url": "https://forms.clickup.com/9007068676/f/8cdtxg4-4633/XQXBKR08XN0T32ULJK",
+      "plat": "EB",
+      "dentro": [
+        {
+          "label": "Template de Proposta",
+          "url": "https://www.figma.com/design/xAbtU3E8t9qR5ajBVVYIqB/Propostas-Comerciais?node-id=0-1&p=f&t=hc5EADhoV5QOp7Tn-0"
+        },
+        {
+          "label": "Template de Contrato",
+          "url": "https://docs.google.com/document/d/17UN1_UhV0bS2Fqa_9hWhVJGdzpKSr3zi/edit?tab=t.0"
+        }
+      ],
+      "ativo": true
+    },
+    "aula": {
+      "label": "Briefing e Contrato",
+      "url": "https://aulas.easybuilder.com.br/easybuilder/aula/contrato-e-briefing-orientacoes-do-briefing?trail=gestao-e-processos-2-0",
+      "plat": null,
+      "dentro": [],
+      "ativo": true
+    }
+  },
+  "entregar-no-prazo": {
+    "ferram": {
+      "label": "Esteira ClickUp · Setup Builder",
+      "url": "https://app.clickup.com/template/project/t-90136019993/e5bcc63b384cb81f16",
+      "plat": "EB",
+      "dentro": [],
+      "ativo": true
+    }
+  },
+  "conciliar-as-demandas": {
+    "ferram": {
+      "label": "ClickUp + pasta modelo",
+      "url": "https://app.clickup.com/template/project/t-90136019993/e5bcc63b384cb81f16",
+      "plat": "EB",
+      "dentro": [],
+      "ativo": true
+    }
+  },
+  "controlar-os-processos": {
+    "ferram": {
+      "label": "Checklists da esteira",
+      "url": "https://app.clickup.com/template/project/t-90136019993/e5bcc63b384cb81f16",
+      "plat": "EB",
+      "dentro": [],
+      "ativo": true
+    }
+  },
+  "proteger-escopo-e-contrato": {
+    "ferram": {
+      "label": "Template de Contrato",
+      "url": "https://docs.google.com/document/d/17UN1_UhV0bS2Fqa_9hWhVJGdzpKSr3zi/edit",
+      "plat": "EB",
+      "dentro": [],
+      "ativo": true
+    }
+  },
+  "controle-financeiro": {
+    "ferram": {
+      "label": "Planilha Financeira",
+      "url": "https://docs.google.com/spreadsheets/d/1Stax8_nd6Vjdcx-hWAS5onw8m4EVwTpDSQiRH8xJ1YE/edit?usp=sharing",
+      "plat": "EB",
+      "dentro": [],
+      "ativo": true
+    }
+  },
+  "projetar-crescimento": {
+    "ferram": {
+      "label": "Planilha Financeira",
+      "url": "https://docs.google.com/spreadsheets/d/1Stax8_nd6Vjdcx-hWAS5onw8m4EVwTpDSQiRH8xJ1YE/edit?usp=sharing",
+      "plat": "EB",
+      "dentro": [],
+      "ativo": true
+    }
+  },
+  "mudar-a-mente": {
+    "aula": {
+      "label": "Mentalidade Builder",
+      "url": "https://aulas.easybuilder.com.br/easybuilder/aula/inf-06-vontade-proposito-e-a-bussola-do-norte?trail=mentalidade-builder",
+      "plat": null,
+      "dentro": [],
+      "ativo": true
+    }
+  },
+  "estar-no-ambiente-certo": {
+    "ferram": {
+      "label": "Comunidade WhatsApp",
+      "url": "https://api.whatsapp.com/send/?phone=554599388913&text=Fala%20Vitor,%20estou%20usando%20o%20Easy%20Builder%20e%20tenho%20d%C3%BAvidas!",
+      "plat": "",
+      "dentro": [
+        {
+          "label": "Discord",
+          "url": "https://discord.com/invite/n8YZzB695H"
+        },
+        {
+          "label": "Nichos",
+          "url": "https://aulas.easybuilder.com.br/easybuilder/aula/016-prospeccao-com-ia-para-comecar-hoje"
+        },
+        {
+          "label": "Behance",
+          "url": "https://www.behance.net/easybuilderr"
+        }
+      ],
+      "ativo": true
+    },
+    "aula": {
+      "label": "Nichos",
+      "url": "https://aulas.easybuilder.com.br/easybuilder/aula/016-prospeccao-com-ia-para-comecar-hoje",
+      "plat": null,
+      "dentro": [],
+      "ativo": true
+    }
+  },
+  "acessar-mentes-que-construiram": {
+    "ferram": {
+      "label": "Mentorias mensais",
+      "url": "https://easybuilder.club/",
+      "plat": "",
+      "dentro": [
+        {
+          "label": "Lucas Neves · vendas gringa",
+          "url": "https://www.behance.net/easybuilderr"
+        },
+        {
+          "label": "Luan Shimoda · tráfego",
+          "url": "https://aulas.easybuilder.com.br/easybuilder/aula/007-funil-de-trafego-pago-para-designers-webs-com-r-7-a-r-20-por-dia"
+        },
+        {
+          "label": "Lorenzi · dentro da comunidade",
+          "url": "https://aulas.easybuilder.com.br/easybuilder/aula/000-masterclass-caixa-rapido"
+        }
+      ],
+      "ativo": true
+    }
+  },
+  "networking-e-oportunidades": {
+    "ferram": {
+      "label": "Indicações e parcerias",
+      "url": "https://app.arenabuilder.com.br/login",
+      "plat": "",
+      "dentro": [
+        {
+          "label": "Expor projeto no Behance / Nichos",
+          "url": "https://www.behance.net/"
+        }
+      ],
+      "ativo": true
+    }
+  },
+  "pedir-ajuda-quando-trava": {
+    "ferram": {
+      "label": "Comunidade",
+      "url": "https://easybuilder.club/",
+      "plat": "",
+      "dentro": [
+        {
+          "label": "Suporte na ferramenta",
+          "url": "https://api.whatsapp.com/send/?phone=554598216210&text=Fala+Mika%21+T%C3%B4+com+um+problema+aqui%2C+pode+me+ajudar%3F&type=phone_number&app_absent=0"
+        }
+      ],
+      "ativo": true
+    }
+  },
+  "qualidade-antes-de-enviar": {
+    "aula": {
+      "label": "Anti Prospecção",
+      "url": "https://aulas.easybuilder.com.br/easybuilder/aula/01-01-o-conteudo-serve-para-voce?trail=imersao-anti-prospeccao",
       "plat": null,
       "dentro": [],
       "ativo": true

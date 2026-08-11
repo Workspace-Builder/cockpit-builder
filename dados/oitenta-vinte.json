@@ -2,9 +2,6 @@
   "copy": [
     "ia"
   ],
-  "instagram": [
-    "ferram"
-  ],
   "plano-de-negocio": [
     "ferram"
   ],
@@ -12,6 +9,34 @@
     "ia"
   ],
   "design": [
+    "aula"
+  ],
+  "imagem-e-direcao-visual": [
+    "ia"
+  ],
+  "implementacao-tecnica": [
+    "aula"
+  ],
+  "posicionamento": [
+    "aula",
+    "ia"
+  ],
+  "portfolio": [
+    "ferram"
+  ],
+  "proposta-profissional": [
+    "aula"
+  ],
+  "precificacao-pelo-valor": [
+    "ferram"
+  ],
+  "trafego-pago-nitro": [
+    "aula"
+  ],
+  "acessar-mentes-que-construiram": [
+    "ferram"
+  ],
+  "instagram": [
     "ferram"
   ]
 }
