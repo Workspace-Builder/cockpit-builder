@@ -11,11 +11,11 @@ import {
   useTransition,
 } from "react";
 import clsx from "clsx";
-import { ArrowUpRight, Check, CirclePlus, HelpCircle, Link2, PenLine, Trash2, X, type LucideIcon } from "lucide-react";
+import { ArrowUpRight, Check, CirclePlus, HelpCircle, Link2, PenLine, Plus, Trash2, X, type LucideIcon } from "lucide-react";
 import { alternarOitentaVinteAction, excluirEntregavelAction, salvarEntregavelAction } from "@/app/actions";
 import { PODE_EDITAR } from "@/lib/modo";
 import { PASSOS, passosDoPilar } from "@/lib/passos";
-import { TETO_8020, type ChaveVaga, type Oitenta, type Passo, type Vaga } from "@/lib/model";
+import { TETO_8020, type ChaveVaga, type LinkExtra, type Oitenta, type Passo, type Vaga } from "@/lib/model";
 import { PREDIOS, ORDEM } from "./pilares";
 import { criarObra, type EstadoObra } from "./motor";
 import { ENTREGAVEIS } from "./entregaveis";
@@ -23,9 +23,11 @@ import { ASIDE, FOLHA, PAINEL } from "./layout";
 import { useRetrato } from "./useRetrato";
 import ModalAbertura, {
   assinarAbertura,
+  criarPersistenciaLocal,
   jaViuAbertura,
   jaViuNoServidor,
   marcarAberturaVista,
+  useFocusTrap,
 } from "./ModalAbertura";
 
 // ---------------------------------------------------------------------------
@@ -41,6 +43,31 @@ import ModalAbertura, {
 // obrigatórios; o que se escolhe é por qual dos três caminhos entrar. Marcar
 // isso é o modo de edição do painel — dado do banco, não constante.
 // ---------------------------------------------------------------------------
+
+/** Progresso é do aluno, não do banco — como `jaViuAbertura` em ModalAbertura.
+    A build publicada (`build:aluno`) é estática (`output: "export"`) e troca
+    as Server Actions por no-op: não existe servidor pra gravar isso pra
+    ninguém. `localStorage` é o único lugar que sobrevive ao F5 nesse modo, e
+    é aceitável não sincronizar entre aparelhos — cada aluno usa o dele.
+
+    A fábrica é `criarPersistenciaLocal`, em ModalAbertura.tsx: mesmo desenho
+    de `jaViuAbertura` (cache de referência + Set de ouvintes + contrato
+    useSyncExternalStore), só que pra objeto em vez de boolean. */
+const SEM_FEITOS: Record<string, boolean> = {};
+const persistFeitos = criarPersistenciaLocal<Record<string, boolean>>(
+  "cockpit:obra:feitos:v1",
+  SEM_FEITOS,
+);
+const assinarFeitos = persistFeitos.assinar;
+const lerFeitos = persistFeitos.ler;
+const lerFeitosNoServidor = persistFeitos.lerNoServidor;
+
+/** Marca/desmarca um andar e grava. Quem lê via `useSyncExternalStore` é
+    avisado no mesmo tique — sem storage o clique some no F5, mas continua
+    reagindo na tela. */
+function alternarFeito(id: string) {
+  persistFeitos.escrever((atual) => ({ ...atual, [id]: !atual[id] }));
+}
 
 export default function Obra({
   passos,
@@ -74,7 +101,7 @@ export default function Obra({
   /** retrato = celular em pé. Fonte única pro que muda de forma nesta tela. */
   const retrato = useRetrato();
 
-  const [feitos, setFeitos] = useState<Record<string, boolean>>({});
+  const feitos = useSyncExternalStore(assinarFeitos, lerFeitos, lerFeitosNoServidor);
   const [foco, setFoco] = useState<0 | 1 | 2 | 3 | 4>(0);
   const [sel, setSel] = useState<string | null>(null);
   /* "andar em destaque" e "painel dos nós aberto" são estados diferentes:
@@ -172,8 +199,18 @@ export default function Obra({
     if (!svgRef.current) return;
     const m = criarObra(svgRef.current, passos, { onPredio, onPasso });
     motorRef.current = m;
-    m.render({ feitos: {}, foco: 0, sel: null, painel: false, aside: false }, true);
+    /* `feitos` aqui, não `{}` fixo: o localStorage já resolveu (via
+       `useSyncExternalStore`, síncrono no primeiro render do cliente) antes
+       deste efeito rodar. Desenhar vazio e confiar no efeito de baixo pra
+       "corrigir" depois não funciona — aquele efeito só redesenha quando
+       `feitos` MUDA (`feitosRef.current !== feitos`), e no mount o ref já
+       nasce apontando pro mesmo `feitos` já carregado: a comparação dá igual,
+       ele cai no `navegar` (que não mexe em geometria) e a torre fica curta
+       pra sempre, mesmo com andar marcado — só o contador (que lê `feitos`
+       direto no JSX) mostrava o progresso certo. */
+    m.render({ feitos, foco: 0, sel: null, painel: false, aside: false }, true);
     return () => { m.destruir(); motorRef.current = null; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- só a 1ª pintura: mudanças de `feitos` depois do mount passam pelo efeito de baixo (`feitosRef`), que já sabe reconstruir a geometria.
   }, [onPredio, onPasso, passos]);
 
   /* ---- O ÍMÃ DO RETRATO ---------------------------------------------------
@@ -278,6 +315,11 @@ export default function Obra({
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (abertura) return;                  // com a abertura na tela, o teclado é dela
+      /* com o Editor de Entregáveis aberto, o teclado é DELE — sem isto, ↑/↓
+         trocavam "sel" (o andar) por baixo do formulário sem ele remontar
+         (foco num <button> do próprio modal escapa do filtro de tag abaixo),
+         e o texto digitado ia salvo no andar errado (bug B1). */
+      if (editando) return;
       const alvo = e.target as HTMLElement | null;
       if (alvo && /^(INPUT|TEXTAREA|SELECT)$/.test(alvo.tagName)) return;
 
@@ -321,9 +363,9 @@ export default function Obra({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [aberto, abertura, foco, feitos, passos]);
+  }, [aberto, abertura, editando, foco, feitos, passos]);
 
-  const marcar = (id: string) => setFeitos((f) => ({ ...f, [id]: !f[id] }));
+  const marcar = (id: string) => alternarFeito(id);
 
   const cfg = foco ? PREDIOS[foco] : null;
   const lista = foco ? passos.filter((p) => p.pilar === foco).sort((a, b) => a.ordem - b.ordem) : [];
@@ -456,6 +498,7 @@ export default function Obra({
           feito={!!feitos[passoSel.id]}
           pulado={!feitos[passoSel.id] && lista.findIndex((x) => x.id === passoSel.id) < ultimo}
           onMarcar={() => marcar(passoSel.id)}
+          onFechar={() => setAberto(false)}
           marcas={marcas[passoSel.id] ?? []}
           onEditando={() => setEditando((v) => !v)}
         />
@@ -477,8 +520,22 @@ export default function Obra({
           caminho de volta — o único resto permanente dela, e por isso ele não
           some em retrato: muda de canto. Embaixo à esquerda é onde a folha do
           andar sobe; no alto à direita ele fica livre em qualquer estado.
-          Fora do `[data-ui-topo]` de propósito — flutua, não empurra a obra. */}
-      <div className="pointer-events-none absolute right-3 top-3 z-40 flex items-center gap-2.5 lg:bottom-5 lg:left-6 lg:right-auto lg:top-auto">
+          Fora do `[data-ui-topo]` de propósito — flutua, não empurra a obra.
+
+          Em paisagem o `left` só abre mão do canto quando há motivo: a faixa
+          do pilar (`aside`) deita o rodapé dela (voltar + contador,
+          empurrados por `mt-auto`) nesse mesmo canto, mas só existe com um
+          pilar em foco (`cfg`). No quarteirão não há aside — deslocar sempre
+          deixava o `?` órfão do canto sem ninguém pra evitar. Com pilar em
+          foco, 278px = ASIDE.margem×2 + ASIDE.largura (24+24+230): a mesma
+          margem que a aside já usa dos dois lados dela, duplicada pra abrir
+          espaço depois da coluna inteira em vez de inventar número. */}
+      <div
+        className={clsx(
+          "pointer-events-none absolute right-3 top-3 z-40 flex items-center gap-2.5 lg:bottom-5 lg:right-auto lg:top-auto",
+          cfg ? "lg:left-[278px]" : "lg:left-6",
+        )}
+      >
         <button
           type="button"
           onClick={() => setReaberta(true)}
@@ -635,10 +692,11 @@ function BarraPilares({
  * telas.
  */
 function PainelNos({
-  passo, cor, feito, pulado, onMarcar, marcas, onEditando,
+  passo, cor, feito, pulado, onMarcar, onFechar, marcas, onEditando,
 }: {
   passo: Passo; cor: string; feito: boolean; pulado: boolean;
   onMarcar: () => void;
+  onFechar: () => void;
   marcas: ChaveVaga[];
   onEditando: () => void;
 }) {
@@ -683,6 +741,21 @@ function PainelNos({
             <span className="font-mono text-[10px] font-bold tracking-[.12em]">EDITAR</span>
           </button>
         )}
+        {/* No toque a folha cobre metade da tela e a cortina atrás dela é
+            `pointer-events-none` (deixa clicar noutro andar "através" dela) —
+            sem este botão a única saída era Esc, que não existe em
+            touchscreen. "← VOLTAR" na faixa do topo continua existindo, mas
+            aquele sai do PILAR inteiro; este fecha só a folha, sem perder o
+            checklist. */}
+        <button
+          type="button"
+          onClick={onFechar}
+          aria-label="Fechar"
+          title="Fechar"
+          className="-mr-1.5 -mt-1.5 grid h-11 w-11 flex-none place-items-center rounded-xl text-texto-3 hover:bg-white/[.08] hover:text-texto lg:h-9 lg:w-9"
+        >
+          <X size={18} />
+        </button>
       </div>
 
       {passo.unha && (
@@ -770,9 +843,13 @@ function LinhaVaga({
   rot: string; papel: string; Ico: LucideIcon; cor: string;
   unha: boolean; oitenta: boolean;
 }) {
+  // `items-center`/`items-stretch` entram no clsx de CADA retorno, não aqui:
+  // as duas classes do Tailwind competem pela mesma propriedade, e juntar as
+  // duas numa `clsx` só não garante qual vence — depende da ordem no CSS
+  // gerado, não da ordem na string. Cada card só carrega UMA das duas.
   const caixa = clsx(
     // Três destes empilhados: cada 4px de padding vira 12px de folha.
-    "mt-2 flex w-full items-center gap-3 rounded-2xl border p-2.5 text-left lg:mt-3 lg:gap-4 lg:p-3.5",
+    "mt-2 flex w-full gap-3 rounded-2xl border p-2.5 text-left lg:mt-3 lg:gap-4 lg:p-3.5",
     !vaga && "border-dashed",
   );
   /* Vaga cheia carrega um fio da própria cor mesmo sem ser 80/20: no painel
@@ -859,37 +936,63 @@ function LinhaVaga({
               ? "Sem atalho — é você, na unha."
               : "O link entra aqui."}
         </strong>
-        {/* Quem está dentro. Uma linha, não caixas: são nomes que dão peso ao
-            entregável — os mentores da trilha, os templates do briefing — e
-            todos abrem o MESMO destino da vaga. Como caixas próprias seriam
-            três links iguais ocupando as vagas dos outros dois caminhos. */}
-        {vaga?.dentro?.length ? (
-          <span className="mt-1.5 block text-[13.5px] leading-relaxed text-texto-3">
-            {vaga.dentro.map((quem, i) => (
-              <span key={quem}>
-                {i > 0 && <span className="opacity-40"> · </span>}
-                {quem}
-              </span>
-            ))}
-          </span>
-        ) : null}
       </span>
     </>
   );
 
-  if (!vaga) return <div className={caixa} style={borda}>{miolo}</div>;
+  if (!vaga) return <div className={clsx(caixa, "items-center")} style={borda}>{miolo}</div>;
 
+  // Sem link extra: exatamente o card de sempre, um `<a>` só, um destino só.
+  if (!vaga.dentro?.length) {
+    return (
+      <a
+        href={vaga.url ?? undefined}
+        target={vaga.url ? "_blank" : undefined}
+        rel="noopener"
+        className={clsx(caixa, "items-center", vaga.url && "hover:brightness-125")}
+        style={borda}
+      >
+        {miolo}
+        {vaga.url && <ArrowUpRight size={19} className="flex-none text-texto-3" />}
+      </a>
+    );
+  }
+
+  // Com link extra: o card não é mais UM destino, então não é mais `<a>` —
+  // vira um agrupador, e cada destino (o principal + os de `dentro`) ganha a
+  // própria linha, todas visíveis de cara (sem acordeão: pra 2 ou 3 linhas,
+  // esconder custa mais clique do que economiza espaço). O empilhamento
+  // escala sozinho pra quantos links a vaga tiver — não tem "modo com 2" e
+  // "modo com 3", é sempre a mesma lista.
   return (
-    <a
-      href={vaga.url ?? undefined}
-      target={vaga.url ? "_blank" : undefined}
-      rel="noopener"
-      className={clsx(caixa, vaga.url && "hover:brightness-125")}
-      style={borda}
-    >
-      {miolo}
-      {vaga.url && <ArrowUpRight size={19} className="flex-none text-texto-3" />}
-    </a>
+    <div className={clsx(caixa, "flex-col items-stretch")} style={borda}>
+      <div className="flex items-center gap-3 lg:gap-4">{miolo}</div>
+      <div className="mt-2.5 flex flex-col gap-1.5 pl-[62px] lg:pl-[66px]">
+        {[{ label: vaga.label, url: vaga.url }, ...vaga.dentro].map((link, i) =>
+          link.url ? (
+            <a
+              key={i}
+              href={link.url}
+              target="_blank"
+              rel="noopener"
+              className="flex items-center justify-between gap-2 rounded-lg py-1.5 pl-2.5 pr-2 text-[13px] text-texto-2 transition hover:bg-white/[.05] hover:text-texto"
+              style={{ borderLeft: `2px solid ${cor}88` }}
+            >
+              {link.label}
+              <ArrowUpRight size={14} className="flex-none text-texto-3" />
+            </a>
+          ) : (
+            <span
+              key={i}
+              className="rounded-lg py-1.5 pl-2.5 pr-2 text-[13px] text-texto-3"
+              style={{ borderLeft: "2px solid rgba(255,255,255,.18)" }}
+            >
+              {link.label}
+            </span>
+          ),
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -908,17 +1011,27 @@ function ModalEditorEntregaveis({
   const atual = ENTREGAVEIS.find((item) => item.k === vagaKey)!;
   const configurados = ENTREGAVEIS.filter(({ k }) => passo[k]).length;
 
+  const dialogRef = useRef<HTMLElement | null>(null);
+  useFocusTrap(dialogRef);
+
+  // Esc fecha só ESTE modal. Fase de captura + stopPropagation, igual
+  // ModalAbertura: sem isto o listener global de Obra (Esc = volta uma
+  // camada de câmera) rodava pro MESMO evento e fechava o painel do andar
+  // atrás junto (bug D1).
   useEffect(() => {
     const onKey = (evento: KeyboardEvent) => {
-      if (evento.key === "Escape") onFechar();
+      if (evento.key !== "Escape") return;
+      evento.stopPropagation();
+      onFechar();
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
   }, [onFechar]);
 
   return (
     <div className="absolute inset-0 z-50 grid place-items-center bg-[#070a11]/70 p-3 backdrop-blur-md sm:p-6" onMouseDown={onFechar}>
       <section
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label={`Editar entregáveis de ${passo.titulo}`}
@@ -1008,7 +1121,10 @@ function ModalEditorEntregaveis({
 
           <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">
             <FormularioEntregavel
-              key={vagaKey}
+              // inclui passo.id: sem isto, trocar de andar por teclado (setas)
+              // com o foco fora de INPUT/TEXTAREA/SELECT não remontava o
+              // formulário — o texto digitado ia salvo no andar errado (B1).
+              key={`${passo.id}:${vagaKey}`}
               passoId={passo.id}
               vagaKey={vagaKey}
               vaga={passo[vagaKey] as Vaga | undefined}
@@ -1034,7 +1150,12 @@ function FormularioEntregavel({ passoId, vagaKey, vaga, rot, cor, onConcluido }:
   const [label, setLabel] = useState(vaga?.label ?? "");
   const [url, setUrl] = useState(vaga?.url ?? "");
   const [plat, setPlat] = useState(vaga?.plat ?? "");
-  const [dentro, setDentro] = useState((vaga?.dentro ?? []).join("\n"));
+  /* Links extras — o Onboarding do Cliente é o caso concreto: Formulário de
+     Briefing, Proposta e Contrato são 3 documentos, 3 destinos. Cada linha é
+     um `LinkExtra` (nome + o PRÓPRIO link), "+" empurra uma linha vazia no
+     fim, "-" tira pelo índice. Padrão pras 3 vagas — nada aqui é exclusivo de
+     `ferram`, então nem essa checagem existe no formulário. */
+  const [extras, setExtras] = useState<LinkExtra[]>(vaga?.dentro ?? []);
   const [confirmandoExclusao, setConfirmandoExclusao] = useState(false);
   const [salvando, iniciar] = useTransition();
   const salvar = () => iniciar(async () => {
@@ -1042,7 +1163,7 @@ function FormularioEntregavel({ passoId, vagaKey, vaga, rot, cor, onConcluido }:
       label,
       url: url.trim() || undefined,
       plat: vagaKey === "ferram" ? (plat as Vaga["plat"]) : undefined,
-      dentro: dentro.split("\n").map((item) => item.trim()).filter(Boolean),
+      dentro: extras,
     });
     onConcluido();
   });
@@ -1075,8 +1196,48 @@ function FormularioEntregavel({ passoId, vagaKey, vaga, rot, cor, onConcluido }:
             </div>
           </Campo>
         )}
-        <Campo label="O que vem dentro" opcional ajuda="Um por linha. Use apenas se todos levam ao mesmo link acima.">
-          <textarea value={dentro} onChange={(evento) => setDentro(evento.target.value)} placeholder="Ex.: Template de briefing" rows={3} className="campo-edicao min-h-[88px] resize-y py-2.5" />
+        <Campo label="Outros links dentro desta vaga" opcional ajuda="Use quando esta vaga reúne mais de um destino — cada linha abre o SEU próprio link, não o de cima.">
+          <div className="flex flex-col gap-2">
+            {extras.map((item, i) => (
+              <div key={i} className="flex items-center gap-1.5">
+                <input
+                  value={item.label}
+                  onChange={(evento) =>
+                    setExtras((v) => v.map((x, j) => (j === i ? { ...x, label: evento.target.value } : x)))
+                  }
+                  placeholder="Nome deste link"
+                  className="campo-edicao flex-1"
+                />
+                <span className="relative block flex-1">
+                  <Link2 size={14} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-texto-3" />
+                  <input
+                    value={item.url ?? ""}
+                    onChange={(evento) =>
+                      setExtras((v) => v.map((x, j) => (j === i ? { ...x, url: evento.target.value } : x)))
+                    }
+                    placeholder="https://…"
+                    className="campo-edicao pl-8"
+                  />
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setExtras((v) => v.filter((_, j) => j !== i))}
+                  aria-label="Remover este link"
+                  title="Remover este link"
+                  className="grid h-9 w-9 flex-none place-items-center rounded-lg text-texto-3 hover:bg-red-400/[.12] hover:text-red-300"
+                >
+                  <X size={15} />
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => setExtras((v) => [...v, { label: "", url: "" }])}
+              className="flex items-center gap-1.5 self-start rounded-lg px-2.5 py-2 text-[11.5px] font-medium text-texto-2 hover:bg-white/[.06]"
+            >
+              <Plus size={14} /> Adicionar link
+            </button>
+          </div>
         </Campo>
       </div>
 

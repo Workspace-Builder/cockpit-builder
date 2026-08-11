@@ -840,8 +840,28 @@ export function criarObra(svg: SVGSVGElement, passos: Passo[], cb: Callbacks) {
 
   /* O MUNDO é fixo: viewBox constante, 1 unidade = 1px. A câmera é um
      `transform` CSS no <svg> — o browser rasteriza o desenho uma vez e compõe.
-     Animar o viewBox obrigava a re-rasterizar 700+ paths por quadro. */
-  const MUNDO = { x: -700, y: -1500, w: 2600, h: 2100 };
+     Animar o viewBox obrigava a re-rasterizar 700+ paths por quadro.
+
+     FIXO, MAS NÃO O MESMO NOS DOIS EIXOS — e foi isso que faltou quando o
+     retrato virou pilha. O `<svg>` recorta o que passa do próprio viewport, e
+     este aqui foi dimensionado pra FILEIRA: 2600 de largura são os quatro
+     prédios lado a lado, 2100 de altura é um prédio de pé. Em pilha os papéis
+     se invertem — o empilhamento come Y (3 × PASSO_PILHA) e sobra X —, mas a
+     caixa não invertia junto. O chão do mundo ficava em y=+600 e a obra
+     continuava descendo: o Pilar 02 perdia lobby e terreno, o 03 e o 04 eram
+     desenhados inteiros fora da caixa e não chegavam à tela. A câmera apontava
+     certo, com a escala certa, pra um pedaço de mundo que não existia.
+
+     A altura da pilha é a soma do que de fato acontece nela: 3 × 620 de
+     empilhamento, 645 do afastamento máximo do foco (3 × AFASTA × 2 × WY) e
+     181 do raio-X (11 andares × GAP_ABERTO + VAO + SOBE_ATIVO), com folga. A
+     largura encolhe porque em pilha só há um prédio por faixa de x.
+
+     Custa ~35% mais área rasterizada no retrato — que é justamente onde o
+     desenho aparece menor. Barato perto de não aparecer. */
+  const MUNDO_FILEIRA = { x: -700, y: -1500, w: 2600, h: 2100 };
+  const MUNDO_PILHA = { x: -700, y: -1500, w: 1600, h: 4600 };
+  let MUNDO = EIXO === 1 ? MUNDO_PILHA : MUNDO_FILEIRA;
   function estilo() {
     if (document.getElementById("obra-css")) return;
     const st = document.createElement("style");
@@ -855,6 +875,11 @@ export function criarObra(svg: SVGSVGElement, passos: Passo[], cb: Callbacks) {
   }
   function montaMundo() {
     estilo();
+    /* reavaliado aqui, e não uma vez só: girar o celular troca o EIXO, e quem
+       responde a isso é o `render` do `onResize` — que passa por esta função.
+       `poe()` lê MUNDO na mesma volta, então a caixa e a câmera nunca ficam
+       falando de mundos diferentes. */
+    MUNDO = EIXO === 1 ? MUNDO_PILHA : MUNDO_FILEIRA;
     svg.setAttribute("viewBox", `${MUNDO.x} ${MUNDO.y} ${MUNDO.w} ${MUNDO.h}`);
     svg.setAttribute("width", String(MUNDO.w));
     svg.setAttribute("height", String(MUNDO.h));

@@ -6,6 +6,7 @@ import clsx from "clsx";
 import { FOUNDATION, ICONS, NAT, PHASES, PILARES } from "@/lib/flywheel";
 import type { Natureza, Pilar } from "@/lib/flywheel";
 import { ID_OBRA } from "@/lib/passos";
+import { useRetrato } from "@/components/obra/useRetrato";
 
 // ---------------------------------------------------------------------------
 // O MOTOR DE TIJOLOS — a tela
@@ -151,8 +152,31 @@ function fiadas(a0: number, a1: number, cor: string) {
   return linhas;
 }
 
-export default function Motor() {
+export default function Motor({ faseInicial }: { faseInicial?: string }) {
   const [aberta, setAberta] = useState<number | null>(null);
+
+  /* O Alicerce nasce FECHADO no celular — 5 famílias de texto de referência
+     abertas de cara competiam por altura com a roda antes de qualquer clique
+     (era metade do bug do layout). `null` = "segue o aparelho"; um clique no
+     cabeçalho grava a escolha do aluno e passa a valer até ele clicar de
+     novo. Mesmo padrão de estado derivado do resto do arquivo: computado no
+     render, sem `useEffect`. */
+  const retrato = useRetrato();
+  const [alicerceForcada, setAlicerceForcada] = useState<boolean | null>(null);
+  const alicerceAberta = alicerceForcada ?? !retrato;
+
+  /* `?fase=` é a mão inversa do `?andar=`: lá o tijolo linka pro andar da
+     Obra, aqui o setor da roda embutida no Método 10k (`canvas/animacoes/
+     Flywheel.tsx`) linka pra fase certa aqui. Aplicado NO RENDER, não em
+     effect — mesmo padrão do `andarAplicado` em `obra/Obra.tsx`: aplica
+     exatamente uma vez por link, sem brigar com o clique de trocar de fase
+     depois. */
+  const [faseAplicada, setFaseAplicada] = useState<string | undefined>(undefined);
+  if (faseInicial && faseInicial !== faseAplicada) {
+    setFaseAplicada(faseInicial);
+    const i = PHASES.findIndex((p) => p.key === faseInicial);
+    if (i >= 0) setAberta(i);
+  }
   /**
    * Quais grupos de pilar estão abertos.
    *
@@ -683,28 +707,38 @@ export default function Motor() {
       {/* O alicerce envolve o ciclo inteiro — não é etapa, é base. Fica no pé da
           tela porque é isso que ele é: o chão de tudo que a roda gira. */}
       <section className="foundation" aria-label="Alicerce">
-        <div className="found-head">
+        <button
+          type="button"
+          className="found-head"
+          aria-expanded={alicerceAberta}
+          onClick={() => setAlicerceForcada(!alicerceAberta)}
+        >
           <span className="found-label">ALICERCE</span>
           <span className="found-sub">
             envolve o ciclo inteiro — não é etapa, é base
           </span>
-        </div>
-        <div className="found-grid">
-          {FOUNDATION.map((f) => (
-            <div key={f.g} className="fcard">
-              <div className="fh">
-                <Icone t={f.t} />
-                <b>{f.g}</b>
+          <span className="found-seta" aria-hidden>
+            ›
+          </span>
+        </button>
+        <div className={clsx("found-wrap", alicerceAberta && "on")}>
+          <div className="found-grid">
+            {FOUNDATION.map((f) => (
+              <div key={f.g} className="fcard">
+                <div className="fh">
+                  <Icone t={f.t} />
+                  <b>{f.g}</b>
+                </div>
+                <div className="fitems">
+                  {f.items.map((i) => (
+                    <span key={i} className="chip">
+                      {i}
+                    </span>
+                  ))}
+                </div>
               </div>
-              <div className="fitems">
-                {f.items.map((i) => (
-                  <span key={i} className="chip">
-                    {i}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
     </div>
