@@ -52,6 +52,27 @@ export const MALHA_FORTE = 5;
 type Guias = { linhas: LinhaGuia[]; cotas: Cota[] };
 const SEM_GUIAS: Guias = { linhas: [], cotas: [] };
 
+function linhasIguais(a: LinhaGuia[], b: LinhaGuia[]): boolean {
+  return (
+    a.length === b.length &&
+    a.every((l, i) => l.eixo === b[i].eixo && l.pos === b[i].pos && l.de === b[i].de && l.ate === b[i].ate)
+  );
+}
+
+function cotasIguais(a: Cota[], b: Cota[]): boolean {
+  return (
+    a.length === b.length &&
+    a.every(
+      (c, i) =>
+        c.eixo === b[i].eixo &&
+        c.transversal === b[i].transversal &&
+        c.de === b[i].de &&
+        c.ate === b[i].ate &&
+        c.valor === b[i].valor,
+    )
+  );
+}
+
 function caixaDe(n: Node): Caixa {
   return {
     id: n.id,
@@ -125,12 +146,27 @@ export function useGuias({
           // canvas registra a posição corrigida, não a do mouse.
           m.position.x = al.x ?? Math.round(m.position.x / MALHA) * MALHA;
           m.position.y = al.y ?? Math.round(m.position.y / MALHA) * MALHA;
-          setGuias({ linhas: al.linhas, cotas: al.cotas });
+          // Comparar antes de gravar: mesmo com a caixa parada num encaixe já
+          // achado, cada pointermove recalcula `al` e devolveria um objeto
+          // NOVO com os MESMOS números. `guias` era dep de `onNodesChange` —
+          // sem esta guarda, a referência mudava a cada quadro do arrasto e a
+          // função inteira era recriada, com o StoreUpdater do React Flow
+          // reagindo (`store.setState`) sem necessidade. A forma funcional
+          // some com a leitura de `guias` no closure, então ela nem precisa
+          // mais estar nas deps (ver abaixo). Mesmo padrão de `movidos` logo
+          // abaixo.
+          setGuias((atual) =>
+            linhasIguais(atual.linhas, al.linhas) && cotasIguais(atual.cotas, al.cotas)
+              ? atual
+              : { linhas: al.linhas, cotas: al.cotas },
+          );
         }
-      } else if (guias.linhas.length || guias.cotas.length) {
+      } else {
         // Some com as guias em qualquer coisa que não seja arrasto de um nó só
-        // — inclusive no `dragging: false` que fecha o arrasto.
-        setGuias(SEM_GUIAS);
+        // — inclusive no `dragging: false` que fecha o arrasto. Forma
+        // funcional pelo mesmo motivo: ler `guias` do closure manteria o
+        // hook preso a ela nas deps.
+        setGuias((atual) => (atual.linhas.length || atual.cotas.length ? SEM_GUIAS : atual));
       }
 
       // Comparar antes de gravar: um objeto novo com os MESMOS números ainda é
@@ -151,7 +187,7 @@ export function useGuias({
         return mudou ? novo : antes;
       });
     },
-    [editando, getNodes, zoom, guias, setMovidos],
+    [editando, getNodes, zoom, setMovidos],
   );
 
   /** Soltou: some com as guias e grava. `arrastados` traz a seleção inteira. */

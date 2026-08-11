@@ -1,21 +1,30 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useRouter } from "next/navigation";
 import clsx from "clsx";
-import { ICONS, NAT, PHASES } from "@/lib/flywheel";
-import type { Natureza } from "@/lib/flywheel";
+import { PHASES } from "@/lib/flywheel";
+import { ID_MOTOR } from "@/lib/passos";
 import type { PropsAnimacao } from "../animacoes";
 
 // ---------------------------------------------------------------------------
 // O FLYWHEEL — a roda do motor de tijolos
 // ---------------------------------------------------------------------------
 // Segunda peça portada, e a que o board tinha de mais interativo: 6 fases em
-// setores clicáveis, trilho lateral com os tijolos da fase, faísca girando pelo
-// anel de momentum e botão de parar o movimento.
+// setores clicáveis, faísca girando pelo anel de momentum e botão de parar o
+// movimento.
 //
 // No legado a roda era construída com `createElementNS` num `<script>` de 327
-// linhas. Aqui o SVG é JSX e a seleção é estado — a geometria (raios, ângulos,
-// arcos) veio verbatim, porque é ela que faz o desenho ser o mesmo.
+// linhas. Aqui o SVG é JSX — a geometria (raios, ângulos, arcos) veio verbatim,
+// porque é ela que faz o desenho ser o mesmo.
+//
+// Clicar num setor NÃO abre um trilho aqui dentro: este nó é a versão em
+// miniatura (1000×721) dentro do board do Método 10k, e o inventário de
+// tijolos da fase — o trilho de verdade, com o modal — só existe na página
+// cheia (`motor/Motor.tsx`). Duplicar o modal num retângulo de board seria
+// reconstruir a mesma UI dentro de um espaço que não tem altura pra ela. O
+// clique leva pra lá, na fase certa (`?fase=`), a mesma mão do `?andar=` que
+// o tijolo da página cheia usa pra abrir a Obra.
 //
 // O botão de movimento não é enfeite: `prefers-reduced-motion` desliga sozinho.
 // ---------------------------------------------------------------------------
@@ -53,16 +62,6 @@ function arco(r: number, a0: number, a1: number) {
   return `M${fmt(p0)}A${r} ${r} 0 ${g} ${a1 > a0 ? 1 : 0} ${fmt(p1)}`;
 }
 
-// O CSS do legado é `.ico svg{stroke:currentColor}` — o span carrega a cor e o
-// svg herda. Trocar a estrutura quebraria a cor de todos os ícones.
-const Icone = ({ t }: { t: Natureza }) => (
-  <span className="ico">
-    <svg viewBox="0 0 24 24">
-      <path d={ICONS[t]} />
-    </svg>
-  </span>
-);
-
 const PASSO = 360 / PHASES.length;
 
 const MQ_REDUZ = "(prefers-reduced-motion: reduce)";
@@ -87,7 +86,7 @@ function usePrefereMenosMovimento() {
 }
 
 export default function Flywheel({ largura, altura }: PropsAnimacao) {
-  const [aberta, setAberta] = useState<number | null>(null);
+  const router = useRouter();
   const [parado, setParado] = useState(false);
   const [pulsando, setPulsando] = useState(-1);
   const faiscaRef = useRef<SVGGElement>(null);
@@ -129,17 +128,9 @@ export default function Flywheel({ largura, altura }: PropsAnimacao) {
     return () => cancelAnimationFrame(raf);
   }, [movimento]);
 
-  // Esc fecha o trilho — mesmo atalho do board legado.
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setAberta(null);
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
   const total = PHASES.reduce((s, p) => s + p.bricks.length, 0);
-  const fase = aberta !== null ? PHASES[aberta] : null;
+  const abrir = (fase: (typeof PHASES)[number]) =>
+    router.push(`/p/${ID_MOTOR}?fase=${fase.key}`);
 
   return (
     // `fw-no` = este widget dentro de UM nó. O legado era a página inteira, e
@@ -242,19 +233,15 @@ export default function Flywheel({ largura, altura }: PropsAnimacao) {
               return (
                 <g
                   key={p.key}
-                  className={clsx(
-                    "sector",
-                    aberta === i && "active",
-                    pulsando === i && "pulsing",
-                  )}
+                  className={clsx("sector", pulsando === i && "pulsing")}
                   tabIndex={0}
                   role="button"
-                  aria-label={`Fase ${i + 1}: ${p.name}`}
-                  onClick={() => setAberta(aberta === i ? null : i)}
+                  aria-label={`Abrir a fase ${i + 1} (${p.name}) no Motor de Tijolos`}
+                  onClick={() => abrir(p)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
-                      setAberta(aberta === i ? null : i);
+                      abrir(p);
                     }
                   }}
                 >
@@ -355,65 +342,7 @@ export default function Flywheel({ largura, altura }: PropsAnimacao) {
             ↻ ciclo virtuoso
           </div>
         </div>
-
-        {/* trilho: os tijolos da fase escolhida */}
-        <aside
-          className={clsx("rail nodrag", fase && "open")}
-          aria-hidden={!fase}
-          style={
-            fase ? ({ "--railc": `var(${fase.varc})` } as React.CSSProperties) : undefined
-          }
-        >
-          {fase && (
-            <>
-              <div className="rail-head">
-                <span
-                  className="rail-index"
-                  style={{ background: `var(${fase.varc})` }}
-                >
-                  {"0" + ((aberta ?? 0) + 1)}
-                </span>
-                <b className="rail-name">{fase.name}</b>
-                <span
-                  className="rail-count"
-                  style={{ color: `var(${fase.varc})` }}
-                >
-                  {fase.bricks.length} tijolo{fase.bricks.length > 1 ? "s" : ""}
-                </span>
-                <button
-                  type="button"
-                  className="rail-close"
-                  aria-label="Fechar"
-                  onClick={() => setAberta(null)}
-                >
-                  ✕
-                </button>
-              </div>
-              <p className="rail-role">{fase.role}</p>
-              <div className="rail-list">
-                {fase.bricks.map((b, i) => (
-                  <div
-                    key={b.n + i}
-                    className="brick"
-                    style={{ ["--railc" as string]: `var(${fase.varc})` }}
-                  >
-                    <Icone t={b.t} />
-                    <span>
-                      <span className="bn">{b.n}</span>
-                      <span className="bt">
-                        {NAT[b.t]}
-                        {b.note ? ` · ${b.note}` : ""}
-                      </span>
-                    </span>
-                    {b.loop && <span className="loop">↻ fecha o ciclo</span>}
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-        </aside>
       </div>
-
     </div>
   );
 }

@@ -548,7 +548,11 @@ function LinhaItem({
   iniciar: (fn: () => void) => void;
 }) {
   const { rot, Ico, cor } = componente(item.tipo);
-  const linkavel = !editando && item.url;
+  // Defesa em profundidade: a validação de protocolo em actions.ts só barra
+  // escritas novas — item.url pode ser dado salvo antes dela existir.
+  const urlSegura =
+    item.url && /^https?:\/\//i.test(item.url) ? item.url : undefined;
+  const linkavel = !editando && urlSegura;
 
   const miolo = (
     <>
@@ -635,7 +639,7 @@ function LinhaItem({
 
       {linkavel ? (
         <a
-          href={item.url!}
+          href={urlSegura}
           target="_blank"
           rel="noreferrer"
           className="flex min-w-0 flex-1 gap-2.5"

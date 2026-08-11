@@ -46,6 +46,7 @@ import {
   tamanhoNoAction,
 } from "@/app/actions";
 import type { ArestaBoard, GavetasDaPagina, NoBoard } from "@/lib/model";
+import { useParametroDaUrl } from "@/lib/useParametroDaUrl";
 
 // ---------------------------------------------------------------------------
 // O canvas
@@ -89,6 +90,17 @@ export default function BoardCanvas({
 }) {
   const { fitView, setViewport, getViewport, screenToFlowPosition, getNodes } =
     useReactFlow();
+
+  /* `?v=` na URL: quem enquadra a câmera nesse caso é o AppShell (via
+     `enquadrar`/`setViewport` num effect, depois que a página monta) — não o
+     `fitView` declarativo abaixo. Os dois competiam pelo mesmo viewport
+     inicial: o `fitView` da lib só resolve quando o ResizeObserver termina de
+     medir os nós (assíncrono), e ele rodava DEPOIS do `setViewport` do
+     AppShell e desfazia o enquadramento do checkpoint pedido — o link
+     `?v=N` acendia o botão certo no dock, mas a câmera ia pra outro lugar.
+     `setViewport` não precisa de nó medido nenhum (só seta x/y/zoom), então
+     tirando o concorrente daqui não sobra corrida pra ganhar. */
+  const temVistaNaUrl = useParametroDaUrl("v") !== null;
 
   /** de onde o 2× clique partiu, pro Esc saber pra onde voltar */
   const antes = useRef<{ x: number; y: number; zoom: number } | null>(null);
@@ -408,6 +420,18 @@ export default function BoardCanvas({
   const palco = useStore((s) => s.domNode);
   const gavetaAberta = !!noSel && !!gavetas[noSel.id]?.length;
 
+  /**
+   * Quem a gaveta pode listar como vizinho — filtrado do nó aberto e do
+   * fundo. Memoizado porque, com a gaveta aberta, um arrasto em QUALQUER
+   * outro nó re-renderiza BoardCanvas via `movidos`; sem o memo, o filtro
+   * O(n) rodava a cada quadro desse arrasto por causa de um nó que nem é
+   * este.
+   */
+  const vizinhos = useMemo(
+    () => nos.filter((n) => n.id !== noSel?.id && !FUNDO.has(n.tipo)),
+    [nos, noSel?.id],
+  );
+
   useEffect(() => {
     if (!editando || gavetaAberta || !palco) return;
 
@@ -660,6 +684,18 @@ export default function BoardCanvas({
       selectionMode={SelectionMode.Partial}
       panOnDrag={editando && !ferramenta ? [1, 2] : true}
       panActivationKeyCode="Space"
+      /* Padrão do mercado (Figma/FigJam/Miro), não o padrão da lib: sem isto,
+         @xyflow/react vem com `zoomOnScroll` ligado e `panOnScroll` desligado
+         — rolar SEMPRE dava zoom, e não existia "passear pela tela" sem
+         arrastar. `panOnScroll` inverte pra rolar = mover; `zoomOnScroll`
+         desligado tira a rota concorrente que dava zoom sem pedir. A lib já
+         resolve o resto sozinha via `zoomActivationKeyCode` (Ctrl/Cmd por
+         padrão): pinça no touchpad continua dando zoom (ela seta
+         `ctrlKey` no evento de wheel, então cai no mesmo caminho), Ctrl/Cmd +
+         scroll dá zoom, e Shift+scroll rola de lado — em Mac o navegador já
+         converte sozinho, em Windows a lib faz a conversão internamente. */
+      panOnScroll
+      zoomOnScroll={false}
       /* SOMAR À SELEÇÃO: Ctrl, Cmd ou Shift. Declarado, não herdado — o padrão
          do React Flow é uma tecla só e varia por sistema operacional, e o
          resultado era clique com Ctrl TROCANDO a seleção em vez de somar.
@@ -667,7 +703,7 @@ export default function BoardCanvas({
       multiSelectionKeyCode={["Control", "Meta", "Shift"]}
       minZoom={0.05}
       maxZoom={3}
-      fitView
+      fitView={!temVistaNaUrl}
       fitViewOptions={{ padding: 0.12 }}
       nodesDraggable={editando}
       // Grava onde largou. A gravação sai em lote e sem revalidar: o canvas já
@@ -752,7 +788,7 @@ export default function BoardCanvas({
           no={noSel}
           abas={gavetas[noSel.id]}
           editando={editando}
-          vizinhos={nos.filter((n) => n.id !== noSel.id && !FUNDO.has(n.tipo))}
+          vizinhos={vizinhos}
           /* 246 = a barra de propriedades (232) + a folga dela na borda.
              86 = o dock, que nesta página sempre existe. */
           insets={{ esq: editando ? 246 : 0, baixo: 86 }}

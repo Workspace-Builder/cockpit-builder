@@ -4,8 +4,16 @@ import { memo, useEffect, useRef, useState } from "react";
 import clsx from "clsx";
 import { Handle, NodeResizer, Position, type NodeProps } from "@xyflow/react";
 import type { NoBoard } from "@/lib/model";
+import { ID_MOTOR } from "@/lib/passos";
 import { ANIMACOES } from "./animacoes";
 import PortaoDeAnimacao from "./PortaoDeAnimacao";
+
+/** Só a roda do Motor de Tijolos tem página cheia pra linkar quando o portão
+    de animação está fechado (ver `PortaoDeAnimacao`) — as outras 7 peças
+    (timeline, esquetes) não têm destino próprio. */
+const FALLBACK_POR_COMPONENTE: Record<string, string> = {
+  Flywheel: `/p/${ID_MOTOR}`,
+};
 
 // ---------------------------------------------------------------------------
 // Um nó do board
@@ -231,6 +239,7 @@ function Corpo({
         largura={no.w ?? 400}
         altura={no.h ?? 300}
         nome={no.comp ?? "animação"}
+        hrefFallback={no.comp ? FALLBACK_POR_COMPONENTE[no.comp] : undefined}
       />
     );
   }
@@ -280,19 +289,37 @@ function Corpo({
     );
   }
 
-  // texto
+  const estiloTexto: React.CSSProperties = {
+    color: no.corTxt ?? undefined,
+    fontSize: no.fs ? `${no.fs}px` : undefined,
+    fontWeight: no.fw ?? undefined,
+    textAlign: no.ta ?? undefined,
+    opacity: no.opacidade ?? undefined,
+  };
+
+  // texto com `html`: veio pronto do IMPORT do board legado (migration 003),
+  // não de digitação — é o mesmo dado confiável que os ramos `iframe`/`video`
+  // acima já tratam com `dangerouslySetInnerHTML`. Sem este ramo, todo nó
+  // migrado que carrega `html` em vez de `txt` (as placas dos 4 pilares, os
+  // depoimentos, os prints com moldura) rendia um `<div>` vazio — clicável,
+  // selecionável, sem nada dentro.
+  if (no.html) {
+    return (
+      <div
+        className={clsx("h-full w-full", anel)}
+        style={estiloTexto}
+        dangerouslySetInnerHTML={{ __html: no.html }}
+      />
+    );
+  }
+
+  // texto solto — no.txt vem de <input> comum (só .trim() no servidor), não
+  // HTML confiável. JSX escapa por padrão; nada de dangerouslySetInnerHTML
+  // pra este campo.
   return (
-    <div
-      className={clsx("h-full w-full", anel)}
-      style={{
-        color: no.corTxt ?? undefined,
-        fontSize: no.fs ? `${no.fs}px` : undefined,
-        fontWeight: no.fw ?? undefined,
-        textAlign: no.ta ?? undefined,
-        opacity: no.opacidade ?? undefined,
-      }}
-      dangerouslySetInnerHTML={{ __html: no.html ?? no.txt ?? "" }}
-    />
+    <div className={clsx("h-full w-full whitespace-pre-line", anel)} style={estiloTexto}>
+      {no.txt}
+    </div>
   );
 }
 

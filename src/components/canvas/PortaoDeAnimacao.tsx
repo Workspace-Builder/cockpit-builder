@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ComponentType } from "react";
+import Link from "next/link";
 import { useStore } from "@xyflow/react";
 import { useBoardMovendo } from "./movimentoDoBoard";
 import type { PropsAnimacao } from "./animacoes";
@@ -57,11 +58,15 @@ export default function PortaoDeAnimacao({
   largura,
   altura,
   nome,
+  hrefFallback,
 }: {
   Anim: ComponentType<PropsAnimacao>;
   largura: number;
   altura: number;
   nome: string;
+  /** Só o Motor de Tijolos tem página cheia pra linkar — as outras 7 peças
+      não têm destino, então ficam com o "aproxime" de sempre (abaixo). */
+  hrefFallback?: string;
 }) {
   const caixaRef = useRef<HTMLDivElement>(null);
   const [naTela, setNaTela] = useState(false);
@@ -98,6 +103,23 @@ export default function PortaoDeAnimacao({
     <div ref={caixaRef} style={{ width: largura, height: altura }}>
       {rodando ? (
         <Anim largura={largura} altura={altura} />
+      ) : hrefFallback ? (
+        // Sem isto, quem chega no zoom padrão do board só via um cartão inerte
+        // dizendo "aproxime" — pra roda do Motor de Tijolos, que tem página
+        // própria, dá pra simplesmente levar pra lá em vez de pedir zoom.
+        <Link
+          href={hrefFallback}
+          className="nodrag group grid h-full w-full place-items-center rounded-xl border border-fio bg-painel/60 px-4 text-center transition hover:border-azul hover:bg-painel"
+        >
+          <span>
+            <b className="block text-[12px] font-bold text-texto-2 group-hover:text-texto">
+              {nome}
+            </b>
+            {!movendo && (
+              <span className="text-[10.5px] text-azul">abrir página →</span>
+            )}
+          </span>
+        </Link>
       ) : (
         <div className="grid h-full w-full place-items-center rounded-xl border border-fio bg-painel/60 px-4 text-center">
           <span>
