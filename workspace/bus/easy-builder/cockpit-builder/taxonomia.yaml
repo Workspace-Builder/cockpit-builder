@@ -1,0 +1,296 @@
+# Taxonomia do Cockpit Builder
+# Fonte da verdade para categorização de aulas, cômodos, paredes e tijolos.
+# Toda extração de aula DEVE usar exclusivamente os valores definidos aqui.
+
+meta:
+  version: "1.0"
+  created: "2026-08-04"
+  owner: "Lorenzi (CEO)"
+  source: "DEMANDA-COCKPIT-ELVIS.md §6.3 (pistões) + validação CEO 2026-08-04 (etapas do funil)"
+
+# ══════════════════════════════════════════════════════════
+# PISTÕES — os 4 pilares do Cockpit (a espinha do mapa)
+# ══════════════════════════════════════════════════════════
+# Cada entregável do ecossistema resolve a dor de um pistão.
+# Ordem de ataque na implementação: execução → entrega → negócio → topo (mentalidade)
+
+pistoes:
+  - id: entrega-alto-valor
+    nome: "Entrega de Alto Valor"
+    slug: entrega
+    escopo: "Execução — design, construção de site, qualidade técnica do que é entregue"
+    cor: "--emerald"
+    icone: "🔨"
+
+  - id: valor-percebido
+    nome: "Valor Percebido"
+    slug: valor
+    escopo: "Posicionamento, percepção de mercado, ticket, autoridade"
+    cor: "--accent"
+    icone: "💎"
+
+  - id: gestao-eficiencia
+    nome: "Gestão e Eficiência"
+    slug: gestao
+    escopo: "Processos, onboarding, controle, ganho de tempo, operação"
+    cor: "--blue"
+    icone: "⚙️"
+
+  - id: ambiente-mentalidade
+    nome: "Ambiente e Mentalidade"
+    slug: mentalidade
+    escopo: "Comunidade, Mentalidade Builder, ambiente de crescimento"
+    cor: "--purple"
+    icone: "🧠"
+
+# ══════════════════════════════════════════════════════════
+# ETAPAS DO FUNIL ANTI-PROSPECÇÃO
+# ══════════════════════════════════════════════════════════
+# O ciclo virtuoso: atrai → percebe valor → qualifica → negocia → entrega → indica.
+# A etapa 6 (Retroalimentação) devolve para a etapa 1 — é flywheel, não linha reta.
+
+etapas_funil:
+  - id: atracao
+    ordem: 1
+    nome: "Atração"
+    escopo: "Fazer o lead certo aparecer — conteúdo, tráfego, alcance"
+    comodos_tipicos: [instagram, meta-ads, youtube, behance, tiktok]
+    cor: "--orange"
+    icone: "🧲"
+
+  - id: percepcao
+    ordem: 2
+    nome: "Percepção"
+    escopo: "Lead entende o que você faz e por que vale — bio, portfólio, prova, link na bio"
+    comodos_tipicos: [instagram, site, behance, linkedin]
+    cor: "--accent"
+    icone: "👁️"
+
+  - id: qualificacao
+    ordem: 3
+    nome: "Qualificação"
+    escopo: "Separar quem pode e quer comprar de quem só está olhando"
+    comodos_tipicos: [whatsapp, site, instagram]
+    cor: "--blue"
+    icone: "🎯"
+
+  - id: negociacao
+    ordem: 4
+    nome: "Negociação"
+    escopo: "Oferta, objeções, fechamento, proposta comercial"
+    comodos_tipicos: [whatsapp, reuniao, site]
+    cor: "--purple"
+    icone: "🤝"
+
+  - id: entrega
+    ordem: 5
+    nome: "Entrega"
+    escopo: "Executar o serviço com qualidade — o que faz o cliente ficar"
+    comodos_tipicos: [fundamentos, gestao, site]
+    cor: "--emerald"
+    icone: "📦"
+
+  - id: retroalimentacao
+    ordem: 6
+    nome: "Retroalimentação"
+    escopo: "Indicação, recorrência, LTV — o cliente vira fonte de novo cliente"
+    comodos_tipicos: [whatsapp, gestao, instagram]
+    cor: "--rose"
+    icone: "🔄"
+
+# ══════════════════════════════════════════════════════════
+# CÔMODOS — plataformas/canais onde a ação acontece
+# ══════════════════════════════════════════════════════════
+# Um cômodo acumula tijolos de VÁRIAS aulas. Nunca duplicar.
+
+comodos:
+  - id: instagram
+    nome: "Instagram"
+    icone: "📸"
+    conteudos: "Posts, carrosséis, reels, stories, bio, destaques"
+
+  - id: whatsapp
+    nome: "WhatsApp"
+    icone: "💬"
+    conteudos: "Perfil profissional, catálogo, atendimento, scripts"
+
+  - id: meta-ads
+    nome: "Meta Ads"
+    icone: "📡"
+    conteudos: "Campanhas, criativos, pixel, públicos"
+
+  - id: site
+    nome: "Site próprio"
+    icone: "🌐"
+    conteudos: "Portfólio, landing pages, link na bio, SEO"
+
+  - id: behance
+    nome: "Behance"
+    icone: "🎨"
+    conteudos: "Conta, projetos, otimização de perfil"
+
+  - id: linkedin
+    nome: "LinkedIn"
+    icone: "💼"
+    conteudos: "Perfil, posts, artigos"
+
+  - id: youtube
+    nome: "YouTube"
+    icone: "▶️"
+    conteudos: "Canal, vídeos, descrições"
+
+  - id: tiktok
+    nome: "TikTok"
+    icone: "🎵"
+    conteudos: "Vídeos virais, fórmulas de retenção, prospecção/atração de audiência"
+
+  - id: fundamentos
+    nome: "Fundamentos"
+    icone: "📋"
+    conteudos: "Estudo técnico, produtização, decisões de nicho, ICP"
+
+  - id: gestao
+    nome: "Gestão"
+    icone: "📊"
+    conteudos: "Ranking de clientes, contratos, equipe, financeiro"
+
+  - id: reuniao
+    nome: "Reunião"
+    icone: "🎙️"
+    conteudos: "Call de venda, apresentação de proposta, diagnóstico"
+
+  - id: prospeccao
+    nome: "Prospecção"
+    icone: "🔍"
+    conteudos: "Captação ativa fora das redes sociais — Google Maps, eventos presenciais, grupos/cursos do nicho do cliente, parcerias (ex: gestor de tráfego)"
+
+# ══════════════════════════════════════════════════════════
+# CATEGORIAS DE PAREDE — tipo de trabalho dentro do cômodo
+# ══════════════════════════════════════════════════════════
+# Setup é SEMPRE a primeira parede de qualquer cômodo.
+
+categorias_parede:
+  - id: setup
+    nome: "Setup"
+    ordem: 1
+    quando: "Criar conta, configurar perfil, instalar, ativar"
+    badge_css: "cat-setup"
+    cor: "--accent"
+
+  - id: posts
+    nome: "Posts"
+    ordem: 2
+    quando: "Publicar conteúdo orgânico"
+    badge_css: "cat-posts"
+    cor: "--blue"
+
+  - id: trafego
+    nome: "Tráfego"
+    ordem: 3
+    quando: "Anúncios, turbinar, campanha paga"
+    badge_css: "cat-trafego"
+    cor: "--orange"
+
+  - id: prospeccao
+    nome: "Prospecção"
+    ordem: 4
+    quando: "Captação ativa, abordagem, listas"
+    badge_css: "cat-prospeccao"
+    cor: "--amber"
+
+  - id: vendas
+    nome: "Vendas"
+    ordem: 5
+    quando: "Atendimento, call, fechamento, negociação"
+    badge_css: "cat-vendas"
+    cor: "--purple"
+
+  - id: landing-page
+    nome: "Landing Page"
+    ordem: 6
+    quando: "Construir LP, formulário, VSL"
+    badge_css: "cat-lp"
+    cor: "--rose"
+
+  - id: gestao
+    nome: "Gestão"
+    ordem: 7
+    quando: "Monitoramento, planilha, ranking, contratos"
+    badge_css: "cat-gestao"
+    cor: "--emerald"
+
+# ══════════════════════════════════════════════════════════
+# TIPOS DE AULA
+# ══════════════════════════════════════════════════════════
+# Determina qual template HTML a skill usa.
+
+tipos_aula:
+  - id: pratica
+    nome: "Prática"
+    quando: "A aula tem ações concretas que o Builder executa"
+    template: "mockup-html-aula.html"
+    badge: "🔧 Prática"
+
+  - id: conceitual
+    nome: "Conceitual"
+    quando: "A aula é teórica/decisória — muda como o Builder pensa, não o que ele faz agora"
+    template: "mockup-html-insight.html"
+    badge: "🧠 Conceitual"
+
+  - id: hibrida
+    nome: "Híbrida"
+    quando: "A aula tem conceito forte E ações. Gera os DOIS blocos no mesmo HTML."
+    template: "mockup-html-aula.html + bloco de insight no topo"
+    badge: "⚡ Híbrida"
+
+# ══════════════════════════════════════════════════════════
+# OBRAS — projetos macro que agrupam cômodos
+# ══════════════════════════════════════════════════════════
+
+obras:
+  - id: bootcamp-10k
+    nome: "Bootcamp Builder 10k"
+    objetivo: "Caminho para R$10.000/mês"
+    status: ativo
+
+# ══════════════════════════════════════════════════════════
+# CURSOS — origem das aulas
+# ══════════════════════════════════════════════════════════
+
+cursos:
+  - id: easy-sales
+    nome: "Easy Sales"
+    clickup_parent: "86ajvjw4t"
+    total_aulas: 47
+    modulos:
+      - { id: instrucoes-iniciais, nome: "Instruções Iniciais", aulas: 3 }
+      - { id: planejamento, nome: "Planejamento", aulas: 12 }
+      - { id: posicionamento, nome: "Posicionamento", aulas: 9 }
+      - { id: funil-anti-prospeccao, nome: "Funil Anti Prospecção", aulas: 17 }
+      - { id: tecnicas-de-venda, nome: "Técnicas de Venda", aulas: 6 }
+
+  - id: easy-optimize
+    nome: "Easy Optimize"
+    clickup_parent: "86ajvkj34"
+    total_aulas: 11
+    modulos:
+      - { id: modulo-1-intermediario, nome: "Módulo 1 [Intermediário]", aulas: 5 }
+      - { id: api-de-conversao, nome: "API de Conversão", aulas: 6 }
+
+  - id: operacao-black-builder
+    nome: "Operação Black Builder"
+    clickup_parent: "86ajvkj47"
+    total_aulas: 9
+    modulos:
+      - { id: operacao-3k, nome: "Operação 3K", aulas: 9 }
+
+# ══════════════════════════════════════════════════════════
+# ESTRUTURA DE PASTAS
+# ══════════════════════════════════════════════════════════
+
+estrutura:
+  extracoes: "extracoes/{curso}/{modulo}/aula-{XX}-raw.md"
+  obras: "obras/{obra}/{comodo}.md"
+  htmls: "htmls/{curso}/{XX}-{slug}.html"
+  indice_obra: "obras/{obra}/_index.md"
+  indice_aulas: "extracoes/_indice-aulas.yaml"

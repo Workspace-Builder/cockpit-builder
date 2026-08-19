@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cockpit Builder — Coerência VS Fachada</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --bg-base: #0a0a0a;
+    --bg-surface: #111111;
+    --bg-card: #0e0e0e;
+    --bg-elevated: #1a1a1a;
+    --bg-input: #161616;
+    --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-medium: rgba(255, 255, 255, 0.10);
+    --border-strong: rgba(255, 255, 255, 0.14);
+    --accent: #b8ff04;
+    --accent-dim: rgba(184, 255, 4, 0.10);
+    --accent-glow: rgba(184, 255, 4, 0.05);
+    --blue: #60a5fa;
+    --blue-dim: rgba(96, 165, 250, 0.10);
+    --orange: #fb923c;
+    --orange-dim: rgba(251, 146, 60, 0.10);
+    --purple: #a78bfa;
+    --purple-dim: rgba(167, 139, 250, 0.10);
+    --emerald: #34d399;
+    --emerald-dim: rgba(52, 211, 153, 0.10);
+    --rose: #f472b6;
+    --rose-dim: rgba(244, 114, 182, 0.10);
+    --amber: #fbbf24;
+    --amber-dim: rgba(251, 191, 36, 0.10);
+    --text-primary: #f0f0f0;
+    --text-secondary: #888888;
+    --text-tertiary: #555555;
+    --text-on-accent: #0a0a0a;
+    --radius-xs: 6px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+
+  /* ─── Window (same as practical) ─── */
+  .window {
+    max-width: 840px;
+    margin: 0 auto;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.2);
+  }
+
+  .window-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 20px;
+    background: rgba(255,255,255,0.015);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+
+  .window-title {
+    flex: 1;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    letter-spacing: 0.03em;
+  }
+
+  .window-spacer { width: 52px; }
+  .window-body { padding: 32px 28px 40px; }
+
+  /* ─── Header (same as practical) ─── */
+  .lesson-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 11px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(184,255,4,0.15);
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 14px;
+  }
+
+  .type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 11px;
+    background: var(--purple-dim);
+    border: 1px solid rgba(167,139,250,0.15);
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--purple);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 14px;
+    margin-left: 8px;
+  }
+
+  .type-badge-etapa {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 11px;
+    background: var(--blue-dim);
+    border: 1px solid rgba(96,165,250,0.15);
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--blue);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 14px;
+    margin-left: 8px;
+  }
+
+  .lesson-title {
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 6px;
+    letter-spacing: -0.02em;
+  }
+  .lesson-title span { color: var(--accent); }
+
+  .lesson-subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    max-width: 620px;
+    margin-bottom: 28px;
+  }
+
+  /* ─── Hero Quote ─── */
+  .hero-quote {
+    position: relative;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+    padding: 28px 32px;
+    margin-bottom: 28px;
+  }
+
+  .hero-quote::before {
+    content: '"';
+    position: absolute;
+    top: 8px;
+    left: 16px;
+    font-size: 48px;
+    font-weight: 800;
+    color: var(--accent);
+    opacity: 0.15;
+    line-height: 1;
+  }
+
+  .quote-text {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.55;
+    color: var(--text-primary);
+    position: relative;
+    z-index: 1;
+  }
+
+  .quote-author {
+    margin-top: 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+  }
+
+  /* ─── Context Box (same as practical) ─── */
+  .context-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 28px;
+  }
+
+  .context-box h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 16px;
+  }
+
+  .context-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+  }
+
+  .context-card {
+    padding: 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+  }
+
+  .context-card-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+    margin-bottom: 10px;
+  }
+
+  .context-card p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .context-card ul {
+    list-style: none;
+  }
+
+  .context-card li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    padding: 4px 0;
+  }
+
+  .context-card li::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    min-width: 5px;
+    border-radius: 50%;
+    margin-top: 6px;
+    background: var(--accent);
+  }
+
+  /* ─── Progress (adapted: "Conceitos dominados") ─── */
+  .progress-section {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 5px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--purple), var(--accent));
+    border-radius: 100px;
+    transition: width 0.4s ease;
+  }
+
+  .progress-label {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+  .progress-label strong { color: var(--accent); font-weight: 700; }
+
+  /* ─── Section Headers ─── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .section-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-xs);
+    font-size: 15px;
+  }
+
+  .section-name {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .section-count {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    background: rgba(255,255,255,0.04);
+    padding: 2px 9px;
+    border-radius: 100px;
+  }
+
+  /* ─── Insight Card ─── */
+  .insight-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    margin-bottom: 10px;
+    transition: border-color 0.2s ease;
+    overflow: hidden;
+  }
+
+  .insight-card:hover { border-color: var(--border-medium); }
+  .insight-card.absorbed { opacity: 0.45; }
+
+  .insight-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 18px 20px;
+    cursor: pointer;
+  }
+
+  .insight-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    border: 2px solid var(--text-tertiary);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    margin-top: 1px;
+    position: relative;
+  }
+
+  .insight-checkbox:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .insight-checkbox:checked::after {
+    content: '✓';
+    position: absolute;
+    top: -1px;
+    left: 2px;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text-on-accent);
+  }
+
+  .insight-checkbox:hover { border-color: var(--accent); }
+
+  .insight-content { flex: 1; }
+
+  .insight-top-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .insight-category {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+
+  .cat-decisao { background: var(--orange-dim); color: var(--orange); border: 1px solid rgba(251,146,60,0.12); }
+  .cat-insight { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(184,255,4,0.12); }
+  .cat-principio { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(96,165,250,0.12); }
+  .cat-modelo { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(167,139,250,0.12); }
+  .cat-metrica { background: var(--emerald-dim); color: var(--emerald); border: 1px solid rgba(52,211,153,0.12); }
+  .cat-erro { background: var(--rose-dim); color: var(--rose); border: 1px solid rgba(244,114,182,0.12); }
+
+  .insight-title {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--text-primary);
+  }
+
+  .insight-body {
+    padding: 0 20px 0 50px;
+  }
+
+  .insight-explanation {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.55;
+    margin-bottom: 12px;
+  }
+
+  .insight-quote {
+    font-size: 13px;
+    font-style: italic;
+    color: var(--text-primary);
+    line-height: 1.55;
+    border-left: 2px solid var(--border-medium);
+    padding: 2px 0 2px 12px;
+    margin-bottom: 12px;
+  }
+
+  .insight-practical {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 14px;
+    margin-bottom: 18px;
+    background: var(--accent-glow);
+    border-left: 2px solid rgba(184,255,4,0.20);
+    border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  }
+
+  .practical-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+
+  .practical-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  /* ─── VS Comparison ─── */
+  .comparison-section { margin-bottom: 28px; }
+
+  .vs-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .vs-header {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .vs-label {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .vs-label-left { color: var(--text-tertiary); text-align: left; }
+  .vs-label-right { color: var(--accent); text-align: right; }
+
+  .vs-badge {
+    font-size: 10px;
+    font-weight: 800;
+    padding: 4px 12px;
+    border-radius: 100px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-medium);
+    color: var(--text-secondary);
+    letter-spacing: 0.06em;
+  }
+
+  .vs-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .vs-row:last-child { border-bottom: none; }
+
+  .vs-cell {
+    padding: 14px 24px;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .vs-cell:first-child {
+    border-right: 1px solid var(--border-subtle);
+    color: var(--text-tertiary);
+  }
+
+  .vs-cell:last-child { color: var(--text-secondary); }
+
+  .vs-dimension {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-tertiary);
+    margin-bottom: 4px;
+  }
+
+  .vs-value { font-size: 13px; }
+  .vs-value.weak { color: var(--text-tertiary); }
+  .vs-value.strong { color: var(--accent); font-weight: 600; }
+
+  .vs-conclusion {
+    margin-top: 14px;
+    padding: 14px 18px;
+    background: var(--accent-glow);
+    border-left: 2px solid rgba(184,255,4,0.20);
+    border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.55;
+  }
+
+  /* ─── Divider ─── */
+  .divider {
+    height: 1px;
+    background: var(--border-subtle);
+    margin: 24px 0;
+  }
+
+  /* ─── Action list (Decisões e Ações) ─── */
+  .action-list { list-style: none; }
+
+  .action-item {
+    padding: 14px 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    margin-bottom: 8px;
+  }
+  .action-item:last-child { margin-bottom: 0; }
+
+  .action-item-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .action-item-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .action-item-tag {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 7px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  .action-item-tag.direta { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(184,255,4,0.12); }
+  .action-item-tag.derivada { background: rgba(255,255,255,0.04); color: var(--text-tertiary); border: 1px solid var(--border-subtle); }
+
+  .action-item-how {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.55;
+  }
+
+  .action-item-how strong {
+    color: var(--text-tertiary);
+    font-weight: 600;
+  }
+
+  /* ─── Cross References (same as practical) ─── */
+  .cross-refs {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .section-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-title svg {
+    width: 14px;
+    height: 14px;
+    stroke: var(--text-tertiary);
+    fill: none;
+  }
+
+  .ref-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    margin-bottom: 6px;
+    cursor: default;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .ref-card:hover {
+    border-color: rgba(184,255,4,0.2);
+    background: rgba(184,255,4,0.02);
+  }
+
+  .ref-pilar {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .ref-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    flex: 1;
+  }
+
+  /* ─── Footer (same as practical) ─── */
+  .lesson-footer {
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+
+  .brand-dot {
+    width: 5px;
+    height: 5px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  .footer-source {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    padding: 3px 9px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 100px;
+  }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 640px) {
+    body { padding: 16px 8px; }
+    .window-body { padding: 20px 16px 28px; }
+    .lesson-title { font-size: 20px; }
+    .context-grid { grid-template-columns: 1fr; }
+    .insight-body { padding-left: 38px; }
+    .vs-header { padding: 12px 16px; }
+    .vs-cell { padding: 10px 16px; }
+    .hero-quote { padding: 20px 24px; }
+    .quote-text { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="window">
+  <div class="window-bar">
+    <div class="dot dot-r"></div>
+    <div class="dot dot-y"></div>
+    <div class="dot dot-g"></div>
+    <div class="window-title">Cockpit Builder — Página de Insight</div>
+    <div class="window-spacer"></div>
+  </div>
+
+  <div class="window-body">
+
+    <!-- ═══ HEADER ═══ -->
+    <div>
+      <span class="lesson-badge">💎 Valor Percebido</span>
+      <span class="type-badge-etapa">👁️ Percepção</span>
+      <span class="type-badge">🧠 Conceitual</span>
+    </div>
+    <div style="font-size: 11px; color: var(--text-tertiary); margin-top: -8px; margin-bottom: 14px;">Etapas secundárias: Atração, Negociação</div>
+    <h1 class="lesson-title">Coerência <span>VS Fachada</span>: O Que É Posicionamento De Verdade</h1>
+    <p class="lesson-subtitle">Posicionamento se resume a uma palavra: coerência. A diferença entre autoridade real e a "casquinha de ovo" que qualquer cliente com nível de consciência elevado enxerga na hora.</p>
+
+    <!-- ═══ HERO QUOTE ═══ -->
+    <div class="hero-quote">
+      <p class="quote-text">Eu resumo posicionamento em uma palavra. Coerência. Essa palavra resume praticamente tudo o que eu imagino e prego sobre posicionamento.</p>
+      <div class="quote-author">— Lorenzi</div>
+    </div>
+
+    <!-- ═══ CONTEXTO ═══ -->
+    <div class="context-box">
+      <h3>Por que importa</h3>
+      <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">Entender o posicionamento como coerência evita a criação de uma "casquinha de ovo" — uma autoridade falsa baseada em aparências (como alugar um terno para fotos) que qualquer cliente com nível de consciência elevado percebe como inconsistente. Quando o profissional é coerente e externaliza sua verdade, ele filtra leads automaticamente, eliminando clientes que "choram preço", pois sua narrativa demonstra embasamento teórico e valor que vai além da entrega de uma simples arte. Ignorar isso resulta em atrair o público errado ou em se portar abaixo do seu real valor técnico e humano.</p>
+    </div>
+
+    <!-- ═══ PROGRESS ═══ -->
+    <div class="progress-section">
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-label" id="progressLabel"><strong>0</strong> de 4 conceitos dominados</div>
+    </div>
+
+    <!-- ═══════════════════════════════════ -->
+    <!-- CONCEITOS-CHAVE -->
+    <!-- ═══════════════════════════════════ -->
+    <div style="margin-bottom: 28px;">
+      <div class="section-header">
+        <div class="section-icon">💡</div>
+        <div class="section-name">Conceitos-chave</div>
+        <div class="section-count">4 insights</div>
+      </div>
+
+      <!-- Insight 1 -->
+      <div class="insight-card">
+        <div class="insight-main">
+          <input type="checkbox" class="insight-checkbox">
+          <div class="insight-content">
+            <div class="insight-top-row">
+              <span class="insight-category cat-principio">Princípio</span>
+            </div>
+            <div class="insight-title">Coerência Estratégica — o alinhamento total entre quem você é e o que você demonstra</div>
+          </div>
+        </div>
+        <div class="insight-body">
+          <p class="insight-explanation">É o alinhamento total entre quem você é e o que você demonstra no digital. Não se trata de inventar um personagem, mas de garantir que cada detalhe, da bio à foto de perfil, transpareça sua verdade.</p>
+          <p class="insight-quote">"Quando eu falo em coerência, eu tô falando em tudo aquilo que você faz, deve ser coeso com quem você é."</p>
+          <div class="insight-practical">
+            <span class="practical-label">Como usar →</span>
+            <span class="practical-text">O aluno deve auditar seu perfil e comunicações para verificar se suas fotos e textos condizem com o profissional que ele deseja ser e com o serviço que entrega.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Insight 2 -->
+      <div class="insight-card">
+        <div class="insight-main">
+          <input type="checkbox" class="insight-checkbox">
+          <div class="insight-content">
+            <div class="insight-top-row">
+              <span class="insight-category cat-modelo">Modelo Mental</span>
+            </div>
+            <div class="insight-title">Matriz do Foco — a energia criativa é uma só, e dividi-la custa alcance</div>
+          </div>
+        </div>
+        <div class="insight-body">
+          <p class="insight-explanation">A teoria de que a energia criativa e de gestão é limitada, tornando quase impossível para um profissional sozinho manter dois perfis (pessoal e profissional) com a mesma qualidade e disciplina.</p>
+          <p class="insight-quote">"Pera, a matriz do foco é uma só, tá ligado? ... Você investe energia em uma só e leva ele muito mais longe."</p>
+          <div class="insight-practical">
+            <span class="practical-label">Como usar →</span>
+            <span class="practical-text">Quando o aluno sentir que não está dando conta de manter a constância, ele deve unificar sua presença digital em um único perfil estratégico.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Insight 3 -->
+      <div class="insight-card">
+        <div class="insight-main">
+          <input type="checkbox" class="insight-checkbox">
+          <div class="insight-content">
+            <div class="insight-top-row">
+              <span class="insight-category cat-modelo">Modelo Mental</span>
+            </div>
+            <div class="insight-title">Arquétipo Natural — o padrão que já existe em você e atrai quem se conecta com ele</div>
+          </div>
+        </div>
+        <div class="insight-body">
+          <p class="insight-explanation">Um padrão de comportamento e símbolos que já residem no inconsciente coletivo e que, quando bem externalizados, atraem pessoas com a mesma forma de enxergar o mundo.</p>
+          <p class="insight-quote">"Eu não escolhi o arquétipo e falei, agora eu sou um governante. ... Isso faz parte de quem eu sou. Por consequência, as pessoas que chegam até mim se conectaram com isso."</p>
+          <div class="insight-practical">
+            <span class="practical-label">Como usar →</span>
+            <span class="practical-text">Identificar as próprias características naturais (como um viés mais filosófico ou técnico) e usá-las na narrativa para atrair clientes com valores similares.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Insight 4 -->
+      <div class="insight-card">
+        <div class="insight-main">
+          <input type="checkbox" class="insight-checkbox">
+          <div class="insight-content">
+            <div class="insight-top-row">
+              <span class="insight-category cat-metrica">Métrica</span>
+            </div>
+            <div class="insight-title">Regra dos 10% de Pessoalidade — o limite que equilibra autoridade e conexão</div>
+          </div>
+        </div>
+        <div class="insight-body">
+          <p class="insight-explanation">Uma diretriz para equilibrar o perfil estratégico, permitindo uma pequena margem para aspectos da vida pessoal que reforcem maturidade e valores, como o convívio familiar.</p>
+          <p class="insight-quote">"entra no âmbito, a gente vai falar aqui sobre as porcentagens da divisão do seu perfil estratégico. 10% de pessoalidade."</p>
+          <div class="insight-practical">
+            <span class="practical-label">Como usar →</span>
+            <span class="practical-text">Utilizar momentos da vida pessoal de forma intencional para gerar conexão, como postar sobre família se o objetivo for transmitir maturidade.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════ -->
+    <!-- COMPARAÇÃO VISUAL -->
+    <!-- ═══════════════════════════════════ -->
+    <div class="comparison-section">
+      <div class="section-header">
+        <div class="section-icon">🔄</div>
+        <div class="section-name">Comparação</div>
+      </div>
+
+      <div class="vs-container">
+        <div class="vs-header">
+          <span class="vs-label vs-label-left">Posicionamento "Haitique" de Fachada</span>
+          <span class="vs-badge">VS</span>
+          <span class="vs-label vs-label-right">Posicionamento de Coerência</span>
+        </div>
+
+        <div class="vs-row">
+          <div class="vs-cell">
+            <div class="vs-dimension">Fundação</div>
+            <div class="vs-value weak">Baseado em símbolos alugados (terno, fotos caras)</div>
+          </div>
+          <div class="vs-cell">
+            <div class="vs-dimension">Fundação</div>
+            <div class="vs-value strong">Baseado em quem você é de verdade</div>
+          </div>
+        </div>
+
+        <div class="vs-row">
+          <div class="vs-cell">
+            <div class="vs-dimension">Percepção</div>
+            <div class="vs-value weak">"Casquinha de ovo" para olhos treinados</div>
+          </div>
+          <div class="vs-cell">
+            <div class="vs-dimension">Percepção</div>
+            <div class="vs-value strong">Autoridade real e embasada</div>
+          </div>
+        </div>
+
+        <div class="vs-row">
+          <div class="vs-cell">
+            <div class="vs-dimension">Resultado</div>
+            <div class="vs-value weak">Tenta forçar uma imagem vergonhosa</div>
+          </div>
+          <div class="vs-cell">
+            <div class="vs-dimension">Resultado</div>
+            <div class="vs-value strong">Filtra clientes e evita negociações por preço</div>
+          </div>
+        </div>
+
+        <div class="vs-row">
+          <div class="vs-cell">
+            <div class="vs-dimension">Narrativa</div>
+            <div class="vs-value weak">Replicar conteúdo de outros</div>
+          </div>
+          <div class="vs-cell">
+            <div class="vs-dimension">Narrativa</div>
+            <div class="vs-value strong">Processo de dentro para fora</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vs-conclusion">O posicionamento real nasce do equilíbrio entre o produto, o público e as suas características pessoais; sem essa união, a "matemática" do posicionamento não fecha.</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════ -->
+    <!-- DECISÕES E AÇÕES -->
+    <!-- ═══════════════════════════════════ -->
+    <div style="margin-bottom: 28px;">
+      <div class="section-header">
+        <div class="section-icon">✅</div>
+        <div class="section-name">Decisões e ações</div>
+      </div>
+
+      <div class="context-box" style="margin-bottom: 16px;">
+        <h3>Decisões que você precisa tomar</h3>
+        <div class="context-card" style="background: transparent; border: none; padding: 0;">
+          <ul>
+            <li>Você manterá um perfil único ou continuará dividindo sua energia entre pessoal e profissional?</li>
+            <li>Qual é o seu arquétipo dominante que será externalizado sem esforço ou "teatralidade"?</li>
+            <li>Você está disposto a remover elementos do seu perfil (como fotos inadequadas) que baixam sua autoridade percebida?</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="context-box" style="margin-bottom: 0;">
+        <h3>O que fazer a partir disso</h3>
+        <ul class="action-list">
+          <li class="action-item">
+            <div class="action-item-top">
+              <div class="action-item-title">Unificar a presença no Instagram</div>
+              <span class="action-item-tag derivada">Derivada</span>
+            </div>
+            <div class="action-item-how"><strong>Como:</strong> escolher o perfil com maior potencial de crescimento, levar a pessoalidade para ele e descontinuar o uso do perfil secundário como ferramenta de trabalho.</div>
+          </li>
+          <li class="action-item">
+            <div class="action-item-top">
+              <div class="action-item-title">Ajustar a foto de perfil e a bio estrategicamente</div>
+              <span class="action-item-tag derivada">Derivada</span>
+            </div>
+            <div class="action-item-how"><strong>Como:</strong> avaliar se a foto atual comunica o profissionalismo desejado e alterá-la para uma que represente sua autoridade.</div>
+          </li>
+          <li class="action-item">
+            <div class="action-item-top">
+              <div class="action-item-title">Implementar a narrativa de "bastidor de estudo"</div>
+              <span class="action-item-tag direta">Direta</span>
+            </div>
+            <div class="action-item-how"><strong>Como:</strong> mostrar diariamente que você está lendo, estudando temas teóricos ou se exercitando, para provar que sua entrega não é apenas "uma arte".</div>
+          </li>
+          <li class="action-item">
+            <div class="action-item-top">
+              <div class="action-item-title">Definir o público com base em testes de polêmica ou conexão</div>
+              <span class="action-item-tag derivada">Derivada</span>
+            </div>
+            <div class="action-item-how"><strong>Como:</strong> observar qual tipo de conteúdo gera identificação e ajustar a linguagem para esse grupo específico.</div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ═══ REFERÊNCIAS CRUZADAS ═══ -->
+    <div class="cross-refs">
+      <div class="section-title">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        Veja também
+      </div>
+
+      <div class="ref-card">
+        <span class="ref-pilar">Arquétipos</span>
+        <span class="ref-text">Arquétipos e símbolos — estudo profundo necessário para o posicionamento (complementar)</span>
+      </div>
+
+      <div class="ref-card">
+        <span class="ref-pilar">Matemática</span>
+        <span class="ref-text">Matemática do posicionamento — a tríade Produto + Público + Você</span>
+      </div>
+
+      <div class="ref-card">
+        <span class="ref-pilar">Conteúdo</span>
+        <span class="ref-text">Divisão de conteúdo — as porcentagens da divisão do perfil estratégico (10% de pessoalidade)</span>
+      </div>
+    </div>
+
+    <!-- ═══ FOOTER ═══ -->
+    <div class="lesson-footer">
+      <div class="footer-brand">
+        <span class="brand-dot"></span>
+        Cockpit Builder — Easy Builder
+      </div>
+      <div class="footer-source">Easy Sales — Posicionamento — Aula 13</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const checkboxes = document.querySelectorAll('.insight-checkbox');
+
+  checkboxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      const card = cb.closest('.insight-card');
+      card.classList.toggle('absorbed', cb.checked);
+      updateProgress();
+    });
+  });
+
+  function updateProgress() {
+    const total = checkboxes.length;
+    let done = 0;
+    checkboxes.forEach(cb => { if (cb.checked) done++; });
+    document.getElementById('progressFill').style.width = `${(done / total) * 100}%`;
+    document.getElementById('progressLabel').innerHTML = `<strong>${done}</strong> de ${total} conceitos dominados`;
+  }
+
+  updateProgress();
+</script>
+
+</body>
+</html>

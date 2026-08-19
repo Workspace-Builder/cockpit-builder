@@ -29,3 +29,7 @@ dados-BACKUP-*/
 .DS_Store
 .playwright-mcp/
 .mobile-audit/
+
+# O zip do v7 que trouxe os insumos de `workspace/bus/`. O conteudo vai
+# versionado; o arquivo que o entregou, nao.
+cockpit-builder.zip

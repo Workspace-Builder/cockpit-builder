@@ -1,0 +1,75 @@
+# Cadeias de Execução — Bootcamp Builder 10k
+#
+# Uma CADEIA é um entregável que atravessa vários cômodos.
+# Ex: o "funil de R$7/dia" passa por Instagram → Meta Ads → Site → WhatsApp.
+#
+# Sem esse arquivo, cada cômodo é uma ilha e ninguém enxerga a sequência.
+# Cada parede nos cômodos declara a qual cadeia pertence e em que posição.
+
+meta:
+  obra: bootcamp-10k
+  version: "1.0"
+  atualizado_em: "2026-08-04"
+
+cadeias:
+
+  - id: fundacao
+    nome: "Fundação — o que precisa existir antes de qualquer tráfego"
+    pistao: entrega-alto-valor
+    etapa_funil: entrega
+    icone: "🧱"
+    descricao: >
+      Sem nível técnico e produto definido, tráfego é dinheiro queimado.
+      Esta cadeia não gera cliente — ela torna as outras possíveis.
+    passos:
+      - { ordem: 1, comodo: fundamentos, parede: "estudo-tecnico-30-dias", nome: "Nível técnico igualado aos top players" }
+      - { ordem: 2, comodo: fundamentos, parede: "redesign-expert-publicado", nome: "Redesign de expert publicado" }
+      - { ordem: 3, comodo: fundamentos, parede: "produto-padronizado", nome: "Produto padronizado definido" }
+
+  - id: funil-7-reais
+    nome: "Funil de Tráfego com R$7/dia"
+    pistao: valor-percebido
+    etapa_funil: atracao
+    icone: "📡"
+    descricao: >
+      O caminho completo do lead: vê o carrossel, clica no anúncio,
+      preenche o formulário na landing page e cai no WhatsApp pronto pra conversar.
+    depende_de: fundacao
+    passos:
+      - { ordem: 1, comodo: instagram, parede: "perfil-profissional-configurado", nome: "Conta profissional configurada" }
+      - { ordem: 2, comodo: instagram, parede: "carrossel-dor-publicado", nome: "1 carrossel de dor publicado" }
+      - { ordem: 3, comodo: meta-ads, parede: "campanha-turbinar-ativa", nome: "Campanha turbinar ativa 7 dias" }
+      - { ordem: 4, comodo: site, parede: "landing-page-formulario", nome: "Landing Page com formulário no ar" }
+      - { ordem: 5, comodo: whatsapp, parede: "atendimento-fechamento", nome: "Atendimento e fechamento rodando" }
+
+  - id: retencao-recorrencia
+    nome: "Retenção e Recorrência"
+    pistao: gestao-eficiencia
+    etapa_funil: retroalimentacao
+    icone: "🔄"
+    descricao: >
+      Transformar cliente pontual em receita previsível.
+      É o que faz o funil girar sem precisar de mais tráfego.
+    depende_de: funil-7-reais
+    passos:
+      - { ordem: 1, comodo: gestao, parede: "ranking-clientes", nome: "Ranking de clientes + clube" }
+      - { ordem: 2, comodo: gestao, parede: "contrato-trimestral", nome: "Contrato trimestral fechado" }
+
+# ══════════════════════════════════════════════════════════
+# REGRAS PARA A SKILL
+# ══════════════════════════════════════════════════════════
+#
+# 1. Ao processar uma aula, verificar se as paredes extraídas pertencem
+#    a alguma cadeia existente (comparar pelo RESULTADO).
+#
+# 2. Se pertencem → registrar `cadeia` e `posicao` no frontmatter da parede
+#    dentro do cômodo, e não criar cadeia nova.
+#
+# 3. Se a aula revela uma sequência que atravessa cômodos e não existe
+#    aqui → PERGUNTAR ao CEO antes de criar cadeia nova.
+#
+# 4. Uma parede pode pertencer a mais de uma cadeia. Nesse caso, listar
+#    todas em `cadeias:` no frontmatter da parede.
+#
+# 5. O `_index.md` da obra é GERADO a partir deste arquivo — nunca
+#    escrito à mão.

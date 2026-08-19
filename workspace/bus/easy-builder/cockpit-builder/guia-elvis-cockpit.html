@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guia Elvis — Pipeline Cockpit Builder</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --bg-base: #0a0a0a;
+    --bg-surface: #111111;
+    --bg-card: #0e0e0e;
+    --bg-elevated: #1a1a1a;
+    --bg-input: #161616;
+    --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-medium: rgba(255, 255, 255, 0.10);
+    --border-strong: rgba(255, 255, 255, 0.14);
+    --accent: #b8ff04;
+    --accent-dim: rgba(184, 255, 4, 0.10);
+    --accent-glow: rgba(184, 255, 4, 0.05);
+    --blue: #60a5fa;
+    --blue-dim: rgba(96, 165, 250, 0.10);
+    --orange: #fb923c;
+    --orange-dim: rgba(251, 146, 60, 0.10);
+    --purple: #a78bfa;
+    --purple-dim: rgba(167, 139, 250, 0.10);
+    --emerald: #34d399;
+    --emerald-dim: rgba(52, 211, 153, 0.10);
+    --rose: #f472b6;
+    --rose-dim: rgba(244, 114, 182, 0.10);
+    --amber: #fbbf24;
+    --amber-dim: rgba(251, 191, 36, 0.10);
+    --red: #f87171;
+    --red-dim: rgba(248, 113, 113, 0.10);
+    --text-primary: #f0f0f0;
+    --text-secondary: #888888;
+    --text-tertiary: #555555;
+    --text-on-accent: #0a0a0a;
+    --radius-xs: 6px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+
+  .window {
+    max-width: 880px;
+    margin: 0 auto;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.2);
+  }
+
+  .window-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 20px;
+    background: rgba(255,255,255,0.015);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+
+  .window-title {
+    flex: 1;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    letter-spacing: 0.03em;
+  }
+
+  .window-spacer { width: 52px; }
+  .window-body { padding: 32px 28px 40px; }
+
+  /* ─── Header ─── */
+  .header-badges { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 11px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .badge-accent { background: var(--accent-dim); border: 1px solid rgba(184,255,4,0.15); color: var(--accent); }
+  .badge-blue { background: var(--blue-dim); border: 1px solid rgba(96,165,250,0.15); color: var(--blue); }
+
+  .page-title {
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 6px;
+    letter-spacing: -0.02em;
+  }
+  .page-title span { color: var(--accent); }
+
+  .page-subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    max-width: 680px;
+    margin-bottom: 28px;
+  }
+
+  /* ─── Pipeline Visual ─── */
+  .pipeline {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin-bottom: 32px;
+    overflow-x: auto;
+  }
+
+  .pipeline-stage {
+    flex: 1;
+    min-width: 0;
+    padding: 16px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    text-align: center;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .pipeline-stage:first-child { border-radius: var(--radius-md) 0 0 var(--radius-md); }
+  .pipeline-stage:last-child { border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+  .pipeline-stage + .pipeline-stage { border-left: none; }
+
+  .pipeline-stage:hover { background: var(--bg-elevated); }
+  .pipeline-stage.active { background: var(--accent-dim); border-color: rgba(184,255,4,0.2); }
+  .pipeline-stage.done { opacity: 0.5; }
+
+  .stage-number {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-tertiary);
+    margin-bottom: 4px;
+  }
+
+  .pipeline-stage.active .stage-number { color: var(--accent); }
+  .pipeline-stage.done .stage-number { color: var(--emerald); }
+  .pipeline-stage.done .stage-number::after { content: ' ✓'; font-size: 14px; }
+
+  .stage-name {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-tertiary);
+  }
+
+  .pipeline-stage.active .stage-name { color: var(--accent); }
+
+  .stage-arrow {
+    position: absolute;
+    right: -7px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-tertiary);
+    font-size: 12px;
+    z-index: 2;
+  }
+
+  /* ─── Progress ─── */
+  .progress-section {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 5px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--blue), var(--accent));
+    border-radius: 100px;
+    transition: width 0.4s ease;
+  }
+
+  .progress-label {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+  .progress-label strong { color: var(--accent); font-weight: 700; }
+
+  /* ─── Phase Sections ─── */
+  .phase-section {
+    margin-bottom: 28px;
+  }
+
+  .phase-section[data-phase] { display: none; }
+  .phase-section.visible { display: block; }
+
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .phase-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    font-size: 18px;
+  }
+
+  .phase-icon.extract { background: var(--blue-dim); border: 1px solid rgba(96,165,250,0.15); }
+  .phase-icon.generate { background: var(--purple-dim); border: 1px solid rgba(167,139,250,0.15); }
+  .phase-icon.review { background: var(--orange-dim); border: 1px solid rgba(251,146,60,0.15); }
+  .phase-icon.save { background: var(--emerald-dim); border: 1px solid rgba(52,211,153,0.15); }
+  .phase-icon.publish { background: var(--rose-dim); border: 1px solid rgba(244,114,182,0.15); }
+
+  .phase-info { flex: 1; }
+
+  .phase-title {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .phase-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  .phase-count {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    background: rgba(255,255,255,0.04);
+    padding: 2px 9px;
+    border-radius: 100px;
+  }
+
+  /* ─── Step Card ─── */
+  .step-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    margin-bottom: 8px;
+    transition: all 0.2s ease;
+    overflow: hidden;
+  }
+
+  .step-card:hover { border-color: var(--border-medium); }
+  .step-card.completed { opacity: 0.45; }
+
+  .step-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 18px;
+    cursor: pointer;
+  }
+
+  .step-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    border: 2px solid var(--text-tertiary);
+    border-radius: var(--radius-xs);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    margin-top: 1px;
+    position: relative;
+  }
+
+  .step-checkbox:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .step-checkbox:checked::after {
+    content: '✓';
+    position: absolute;
+    top: -1px;
+    left: 3px;
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--text-on-accent);
+  }
+
+  .step-checkbox:hover { border-color: var(--accent); }
+
+  .step-content { flex: 1; }
+
+  .step-top-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .step-num {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.05);
+    color: var(--text-tertiary);
+    letter-spacing: 0.04em;
+  }
+
+  .step-title {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .step-subtitle {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    margin-top: 4px;
+  }
+
+  .step-toggle {
+    font-size: 16px;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    user-select: none;
+    padding: 4px;
+  }
+
+  .step-toggle.open { transform: rotate(90deg); }
+
+  /* ─── Step Details ─── */
+  .step-details {
+    display: none;
+    padding: 0 18px 18px 50px;
+  }
+
+  .step-details.open { display: block; }
+
+  .detail-block {
+    margin-bottom: 14px;
+  }
+
+  .detail-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-tertiary);
+    margin-bottom: 6px;
+  }
+
+  .detail-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.55;
+  }
+
+  .detail-steps {
+    list-style: none;
+  }
+
+  .detail-steps li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 6px 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .detail-steps li .step-dot {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    background: rgba(255,255,255,0.04);
+    border-radius: 50%;
+    margin-top: 1px;
+  }
+
+  .detail-steps li code {
+    background: var(--bg-elevated);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--accent);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+
+  /* ─── Callout ─── */
+  .callout {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    margin-top: 8px;
+  }
+
+  .callout-warn {
+    background: var(--amber-dim);
+    border-left: 2px solid var(--amber);
+  }
+
+  .callout-tip {
+    background: var(--accent-glow);
+    border-left: 2px solid rgba(184,255,4,0.20);
+  }
+
+  .callout-danger {
+    background: var(--red-dim);
+    border-left: 2px solid var(--red);
+  }
+
+  .callout-icon { font-size: 14px; margin-top: 1px; }
+
+  .callout-text {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+  }
+
+  .callout-text strong { color: var(--text-primary); font-weight: 600; }
+
+  /* ─── Input/Output Tags ─── */
+  .io-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+
+  .io-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: var(--radius-xs);
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .io-input { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(96,165,250,0.12); }
+  .io-output { background: var(--emerald-dim); color: var(--emerald); border: 1px solid rgba(52,211,153,0.12); }
+
+  /* ─── Error Table ─── */
+  .error-section {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .error-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .error-table th {
+    text-align: left;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-tertiary);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .error-table td {
+    font-size: 12px;
+    color: var(--text-secondary);
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-subtle);
+    line-height: 1.45;
+    vertical-align: top;
+  }
+
+  .error-table tr:last-child td { border-bottom: none; }
+  .error-table td:first-child { color: var(--rose); font-weight: 500; }
+
+  /* ─── Naming Convention ─── */
+  .naming-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+    margin-top: 8px;
+  }
+
+  .naming-pattern {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    background: var(--bg-elevated);
+    padding: 8px 12px;
+    border-radius: var(--radius-xs);
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .naming-examples {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .naming-examples code {
+    background: var(--bg-elevated);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 11px;
+    color: var(--emerald);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+
+  /* ─── Resource Links ─── */
+  .resources {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .resource-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .resource-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s ease;
+  }
+
+  .resource-card:hover {
+    border-color: rgba(184,255,4,0.2);
+    background: rgba(184,255,4,0.02);
+  }
+
+  .resource-icon {
+    font-size: 18px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-elevated);
+    border-radius: var(--radius-xs);
+  }
+
+  .resource-info { flex: 1; }
+
+  .resource-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .resource-desc {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-top: 1px;
+  }
+
+  /* ─── Section Title ─── */
+  .section-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ─── Footer ─── */
+  .lesson-footer {
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+
+  .brand-dot {
+    width: 5px;
+    height: 5px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  .footer-version {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    padding: 3px 9px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 100px;
+  }
+
+  /* ─── Show All Toggle ─── */
+  .show-all-toggle {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .toggle-btn {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-medium);
+    color: var(--text-secondary);
+    padding: 6px 16px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+
+  .toggle-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .toggle-btn.active { background: var(--accent-dim); border-color: rgba(184,255,4,0.2); color: var(--accent); }
+
+  @media (max-width: 640px) {
+    body { padding: 16px 8px; }
+    .window-body { padding: 20px 16px 28px; }
+    .page-title { font-size: 22px; }
+    .pipeline { flex-wrap: wrap; }
+    .pipeline-stage { min-width: 80px; }
+    .stage-arrow { display: none; }
+    .step-details { padding-left: 38px; }
+    .resource-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="window">
+  <div class="window-bar">
+    <div class="dot dot-r"></div>
+    <div class="dot dot-y"></div>
+    <div class="dot dot-g"></div>
+    <div class="window-title">Guia Operacional — Cockpit Builder</div>
+    <div class="window-spacer"></div>
+  </div>
+
+  <div class="window-body">
+
+    <!-- ═══ HEADER ═══ -->
+    <div class="header-badges">
+      <span class="badge badge-accent">Easy Builder</span>
+      <span class="badge badge-blue">SOP-EBU-EXT-001</span>
+    </div>
+    <h1 class="page-title">Pipeline de Extração <span>Cockpit Builder</span></h1>
+    <p class="page-subtitle">Cada aula vira um HTML interativo com ações, checklists e referências cruzadas. Esse guia é o passo a passo completo — da transcrição até a área de membros.</p>
+
+    <!-- ═══ PIPELINE VISUAL ═══ -->
+    <div class="pipeline" id="pipeline">
+      <div class="pipeline-stage active" data-target="phase-1" onclick="showPhase('phase-1', this)">
+        <div class="stage-number">1</div>
+        <div class="stage-name">Extrair</div>
+        <span class="stage-arrow">›</span>
+      </div>
+      <div class="pipeline-stage" data-target="phase-2" onclick="showPhase('phase-2', this)">
+        <div class="stage-number">2</div>
+        <div class="stage-name">Gerar HTML</div>
+        <span class="stage-arrow">›</span>
+      </div>
+      <div class="pipeline-stage" data-target="phase-3" onclick="showPhase('phase-3', this)">
+        <div class="stage-number">3</div>
+        <div class="stage-name">Revisar</div>
+        <span class="stage-arrow">›</span>
+      </div>
+      <div class="pipeline-stage" data-target="phase-4" onclick="showPhase('phase-4', this)">
+        <div class="stage-number">4</div>
+        <div class="stage-name">Salvar</div>
+        <span class="stage-arrow">›</span>
+      </div>
+      <div class="pipeline-stage" data-target="phase-5" onclick="showPhase('phase-5', this)">
+        <div class="stage-number">5</div>
+        <div class="stage-name">Publicar</div>
+      </div>
+    </div>
+
+    <!-- ═══ SHOW ALL ═══ -->
+    <div class="show-all-toggle">
+      <button class="toggle-btn" id="showAllBtn" onclick="toggleShowAll()">Mostrar todas as fases</button>
+    </div>
+
+    <!-- ═══ PROGRESS ═══ -->
+    <div class="progress-section">
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-label" id="progressLabel"><strong>0</strong> de 16 passos</div>
+    </div>
+
+    <!-- ═══════════════════════════════════════ -->
+    <!-- FASE 1 — EXTRAIR NO NOTEBOOKLM         -->
+    <!-- ═══════════════════════════════════════ -->
+    <div class="phase-section visible" data-phase="phase-1">
+      <div class="phase-header">
+        <div class="phase-icon extract">🔍</div>
+        <div class="phase-info">
+          <div class="phase-title">Fase 1 — Extrair ações no NotebookLM</div>
+          <div class="phase-desc">Transcrição da aula → texto estruturado com blocos RESULTADO/PLATAFORMA/AÇÕES</div>
+        </div>
+        <div class="phase-count">6 passos</div>
+      </div>
+
+      <div class="io-row" style="margin-bottom: 14px;">
+        <span class="io-tag io-input">↓ Input: transcrição da aula (.txt/.md)</span>
+        <span class="io-tag io-output">↑ Output: texto com blocos RESULTADO</span>
+      </div>
+
+      <!-- Step 1.1 -->
+      <div class="step-card">
+        <div class="step-main" onclick="toggleDetails(this)">
+          <input type="checkbox" class="step-checkbox" onclick="event.stopPropagation()">
+          <div class="step-content">
+            <div class="step-top-row"><span class="step-num">1.1</span></div>
+            <div class="step-title">Pegar a subtask da aula no ClickUp</div>
+            <div class="step-subtitle">Identifica qual aula processar e pega o link da transcrição.</div>
+          </div>
+          <span class="step-toggle">›</span>
+        </div>
+        <div class="step-details">
+          <div class="detail-block">
+            <div class="detail-label">Como fazer</div>
+            <ol class="detail-steps">
+              <li><span class="step-dot">1</span>Abrir a task pai do curso no ClickUp (Easy Sales, Easy Optimize ou Operação Black Builder)</li>
+              <li><span class="step-dot">2</span>Encontrar a próxima subtask com status <strong>backlog/ideias</strong></li>
+              <li><span class="step-dot">3</span>Anotar o nome da aula e o módulo (ex: [Planejamento] Aula 03: Generalista VS Especialista)</li>
+              <li><span class="step-dot">4</span>Localizar a transcrição da aula na pasta do Drive ou no workspace</li>
+            </ol>
+          </div>
+          <div class="callout callout-tip">
+            <span class="callout-icon">💡</span>
+            <span class="callout-text"><strong>Processar na ordem.</strong> Começar pela Aula 01 de cada módulo. Referências cruzadas só fazem sentido se as aulas anteriores já foram processadas.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 1.2 -->
+      <div class="step-card">
+        <div class="step-main" onclick="toggleDetails(this)">
+          <input type="checkbox" class="step-checkbox" onclick="event.stopPropagation()">
+          <div class="step-content">
+            <div class="step-top-row"><span class="step-num">1.2</span></div>
+            <div class="step-title">Criar notebook no NotebookLM com a transcrição</div>
+            <div class="step-subtitle">1 notebook = 1 aula = 1 documento. Nunca mais de 1 fonte.</div>
+          </div>
+          <span class="step-toggle">›</span>
+        </div>
+        <div class="step-details">
+          <div class="detail-block">
+            <div class="detail-label">Como fazer</div>
+            <ol class="detail-steps">
+              <li><span class="step-dot">1</span>Abrir <strong>notebooklm.google.com</strong></li>
+              <li><span class="step-dot">2</span>Clicar em <strong>New Notebook</strong></li>
+              <li><span class="step-dot">3</span>Clicar em <strong>Add source</strong> → fazer upload do arquivo de transcrição</li>
+              <li><span class="step-dot">4</span>Conferir: deve ter <strong>exatamente 1 fonte</strong>. Se tiver mais, remover as extras</li>
+            </ol>
+          </div>
+          <div class="callout callout-danger">
+            <span class="callout-icon">🚫</span>
+            <span class="callout-text"><strong>Nunca colocar mais de 1 transcrição.</strong> O prompt foi feito pra analisar 1 aula de cada vez. Se misturar, as ações ficam embaralhadas entre aulas e o HTML sai errado.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 1.2b — Resposta longa -->
+      <div class="step-card">
+        <div class="step-main" onclick="toggleDetails(this)">
+          <input type="checkbox" class="step-checkbox" onclick="event.stopPropagation()">
+          <div class="step-content">
+            <div class="step-top-row"><span class="step-num">1.3</span></div>
+            <div class="step-title">Configurar resposta longa no NotebookLM</div>
+            <div class="step-subtitle">Sem isso o NotebookLM resume e corta ações da aula.</div>
+          </div>
+          <span class="step-toggle">›</span>
+        </div>
+        <div class="step-details">
+          <div class="detail-block">
+            <div class="detail-label">Como fazer</div>
+            <ol class="detail-steps">
+              <li><span class="step-dot">1</span>No painel lateral direito, procurar <strong>Notebook guide</strong> ou o ícone de engrenagem</li>
+              <li><span class="step-dot">2</span>Ativar a opção de <strong>resposta longa / detalhada</strong></li>
+              <li><span class="step-dot">3</span>Se a opção não existir, adicionar ao final do prompt: <code>Responda de forma completa e detalhada, sem resumir.</code></li>
+            </ol>
+          </div>
+          <div class="callout callout-warn">
+            <span class="callout-icon">⚠️</span>
+            <span class="callout-text">Esse passo é fácil de esquecer e é o que mais causa retrabalho. <strong>Resposta curta = ações perdidas</strong> — e aí o HTML sai incompleto sem você perceber.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 1.3 -->
+      <div class="step-card">
+        <div class="step-main" onclick="toggleDetails(this)">
+          <input type="checkbox" class="step-checkbox" onclick="event.stopPropagation()">
+          <div class="step-content">
+            <div class="step-top-row"><span class="step-num">1.4</span></div>
+            <div class="step-title">Colar o prompt de extração e enviar</div>
+            <div class="step-subtitle">Copiar o prompt v2 inteiro, colar no chat do NotebookLM e enviar.</div>
+          </div>
+          <span class="step-toggle">›</span>
+        </div>
+        <div class="step-details">
+          <div class="detail-block">
+            <div class="detail-label">Como fazer</div>
+            <ol class="detail-steps">
+              <li><span class="step-dot">1</span>Abrir o arquivo <code>prompt-notebooklm-extracao.md</code> (anexo na task pai)</li>
+              <li><span class="step-dot">2</span>Copiar TUDO dentro do bloco de código — de "Você é um extrator..." até "...seguindo essas regras."</li>
+              <li><span class="step-dot">3</span>Colar no chat do NotebookLM</li>
+              <li><span class="step-dot">4</span>Enviar e aguardar (pode levar 1-2 minutos)</li>
+            </ol>
+          </div>
+          <div class="callout callout-warn">
+            <span class="callout-icon">⚠️</span>
+            <span class="callout-text"><strong>Copiar o bloco INTEIRO.</strong> Se cortar no meio, o NotebookLM vai gerar "Análise Estratégica" em vez de blocos RESULTADO. Se isso acontecer, reenviar com o prompt completo.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 1.4 -->
+      <div class="step-card">
+        <div class="step-main" onclick="toggleDetails(this)">
+          <input type="checkbox" class="step-checkbox" onclick="event.stopPropagation()">
+          <div class="step-content">
+            <div class="step-top-row"><span class="step-num">1.5</span></div>
+            <div class="step-title">Verificar se a resposta tem o formato certo</div>
+            <div class="step-subtitle">A resposta precisa ter blocos RESULTADO com PLATAFORMA e AÇÕES.</div>
+          </div>
+          <span class="step-toggle">›</span>
+        </div>
+        <div class="step-details">
+          <div class="detail-block">
+            <div class="detail-label">O que procurar na resposta</div>
+            <div class="detail-text">A resposta do NotebookLM precisa conter blocos assim:</div>
+          </div>
+          <div class="naming-box">
+            <code class="naming-pattern">RESULTADO: Bio do Instagram posicionada para o nicho
+PLATAFORMA: Instagram
+AÇÕES:
+1. Definir nicho no nome do perfil
+   Como fazer:
+   - Escrever [nome] | [nicho]
+   Contexto da aula: "Seu nome precisa dizer o que você faz"</code>
+          </div>
+          <div class="detail-block" style="margin-top: 12px;">
+            <div class="detail-text"><strong>Se a resposta NÃO tem esse formato</strong> (ex: veio um texto corrido ou "Análise Estratégica"), o prompt não foi colado completo. Voltar ao passo 1.3 e colar novamente.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 1.5 -->
+      <div class="step-card">
+        <div class="step-main" onclick="toggleDetails(this)">
+          <input type="checkbox" class="step-checkbox" onclick="event.stopPropagation()">
+          <div class="step-content">
+            <div class="step-top-row"><span class="step-num">1.6</span></div>
+            <div class="step-title">Copiar a resposta inteira</div>
+            <div class="step-subtitle">Selecionar tudo e copiar — essa resposta é o insumo da próxima fase.</div>
+          </div>
+          <span class="step-toggle">›</span>
+        </div>
+        <div class="step-details">
+          <div class="detail-block">
+            <div class="detail-label">Como fazer</div>
+            <ol class="detail-steps">
+              <li><span class="step-dot">1</span>Clicar na resposta do NotebookLM</li>
+              <li><span class="step-dot">2</span>Selecionar TUDO (Ctrl+A no campo de resposta)</li>
+              <li><span class="step-dot">3</span>Copiar (Ctrl+C)</li>
+            </ol>
+          </div>
+          <div class="callout callout-warn">
+            <span class="callout-icon">⏱️</span>
+            <span class="callout-text"><strong>Aula com mais de 1 hora?</strong> Rodar o prompt em 2 rodadas: "Analise apenas os primeiros 60 minutos" → depois "Agora analise de 1h00 até o final". Copiar AMBAS as respostas juntas, separadas por uma linha <code>---</code>.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════ -->
+    <!-- FASE 2 — GERAR HTML COM A SKILL         -->
+    <!-- ═══════════════════════════════════════ -->
+    <div class="phase-section" data-phase="phase-2">
+      <div class="phase-header">
+        <div class="phase-icon generate">⚡</div>
+        <div class="phase-info">
+          <div class="phase-title">Fase 2 — Rodar a skill /cockpit-html</div>
+          <div class="phase-desc">A skill classifica a aula, salva o insumo, alimenta os cômodos da obra e gera o HTML</div>
+        </div>
+        <div class="phase-count">3 passos</div>
+      </div>
+
+      <div class="io-row" style="margin-bottom: 14px;">
+        <span class="io-tag io-input">↓ Input: texto com blocos RESULTADO</span>
+        <span class="io-tag io-output">↑ Output: 3 artefatos no repo</span>
+      </div>
+
+      <div class="callout callout-tip" style="margin-bottom: 14px;">
+        <span class="callout-icon">📦</span>
+        <span class="callout-text"><strong>A skill gera 3 arquivos, não 1.</strong> O HTML é só o último. Antes dele, ela salva o insumo bruto em <code>extracoes/</code> e alimenta os cômodos da obra em <code>obras/</code> — que é o que monta o Cockpit Builder no final.</span>
+      </div>
+
+      <!-- Step 2.1 -->
+      <div class="step-card">
+        <div class="step-main" onclick="toggleDetails(this)">
+          <input type="checkbox" class="step-checkbox" onclick="event.stopPropagation()">
+          <div class="step-content">
+            <div class="step-top-row"><span class="step-num">2.1</span></div>
+            <div class="step-title">Abrir a skill /cockpit-html e colar o insumo</div>
+            <div class="step-subtitle">No Claude Code ou Nimbalyst, invocar a skill e colar a resposta do NotebookLM.</div>
+          </div>
+          <span class="step-toggle">›</span>
+        </div>
+        <div class="step-details">
+          <div class="detail-block">
+            <div class="detail-label">Como fazer</div>
+            <ol class="detail-steps">
+              <li><span class="step-dot">1</span>Abrir o Claude Code / Nimbalyst no projeto <code>ecossistema_builder</code></li>
+              <li><span class="step-dot">2</span>Digitar <code>/cockpit-html</code> e pressionar Enter</li>
+              <li><span class="step-dot">3</span>Colar a resposta INTEIRA do NotebookLM</li>
+              <li><span class="step-dot">4</span>Informar <strong>curso</strong>, <strong>módulo</strong> e <strong>número da aula</strong> (está na subtask do ClickUp)</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2.2 -->
+      <div class="step-card">
+        <div class="step-main" onclick="toggleDetails(this)">
+          <input type="checkbox" class="step-checkbox" onclick="event.stopPropagation()">
+          <div class="step-content">
+            <div class="step-top-row"><span class="step-num">2.2</span></div>
+            <div class="step-title">Confirmar a classificação que a skill propõe</div>
+            <div class="step-subtitle">Pistão + etapa do funil + tipo da aula. A skill sugere, você confirma ou corrige.</div>
+          </div>
+          <span class="step-toggle">›</span>
+        </div>
+        <div class="step-details">
+          <div class="detail-block">
+            <div class="detail-label">Os 4 pistões do Cockpit</div>
+            <ol class="detail-steps">
+              <li><span class="step-dot">🔨</span><strong>Entrega de Alto Valor</strong> — design, construção, qualidade técnica</li>
+              <li><span class="step-dot">💎</span><strong>Valor Percebido</strong> — posicionamento, percepção, ticket, autoridade</li>
+              <li><span class="step-dot">⚙️</span><strong>Gestão e Eficiência</strong> — processos, controle, ganho de tempo</li>
+              <li><span class="step-dot">🧠</span><strong>Ambiente e Mentalidade</strong> — comunidade, Mentalidade Builder</li>
+            </ol>
+          </div>
+          <div class="detail-block">
+            <div class="detail-label">As 6 etapas do funil anti-prospecção</div>
+            <ol class="detail-steps">
+              <li><span class="step-dot">1</span><strong>Atração</strong> — fazer o lead certo aparecer</li>
+              <li><span class="step-dot">2</span><strong>Percepção</strong> — o lead entende o que você faz e por que vale</li>
+              <li><span class="step-dot">3</span><strong>Qualificação</strong> — separar quem pode e quer comprar</li>
+              <li><span class="step-dot">4</span><strong>Negociação</strong> — oferta, objeções, fechamento</li>
+              <li><span class="step-dot">5</span><strong>Entrega</strong> — executar com qualidade</li>
+              <li><span class="step-dot">6</span><strong>Retroalimentação</strong> — indicação, recorrência, o cliente vira fonte</li>
+            </ol>
+          </div>
+          <div class="detail-block">
+            <div class="detail-label">Tipo da aula (define o template)</div>
+            <ol class="detail-steps">
+              <li><span class="step-dot">🔧</span><strong>Prática</strong> — 3+ ações concretas. Gera HTML com checkboxes</li>
+              <li><span class="step-dot">🧠</span><strong>Conceitual</strong> — teoria/decisão. Gera Página de Insight</li>
+              <li><span class="step-dot">⚡</span><strong>Híbrida</strong> — conceito forte E ações. Gera os dois blocos</li>
+            </ol>
+          </div>
+          <div class="callout callout-warn">
+            <span class="callout-icon">⚠️</span>
+            <span class="callout-text"><strong>Se estiver em dúvida na classificação, pergunte ao Lorenzi.</strong> Essa categorização é o que organiza o Cockpit no final — se errar, o tijolo vai pro lugar errado do mapa.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2.3 -->
+      <div class="step-card">
+        <div class="step-main" onclick="toggleDetails(this)">
+          <input type="checkbox" class="step-checkbox" onclick="event.stopPropagation()">
+          <div class="step-content">
+            <div class="step-top-row"><span class="step-num">2.3</span></div>
+            <div class="step-title">Validar o título sugerido pela skill</div>
+            <div class="step-subtitle">O título deve dizer O QUE o Builder constrói na aula, não ser genérico.</div>
+          </div>
+          <span class="step-toggle">›</span>
+        </div>
+        <div class="step-details">
+          <div class="detail-block">
+            <div class="detail-label">Títulos bons vs ruins</div>
+            <div class="detail-text" style="margin-bottom: 8px;">O título resume o que a pessoa VAI CONSTRUIR ao seguir o HTML:</div>
+          </div>
+          <div class="naming-box">
+            <div class="naming-examples">
+              ✅ <code>Funil de Tráfego com R$7/dia</code><br>
+              ✅ <code>Perfil Profissional que Converte</code><br>
+              ✅ <code>Máquina de Prospecção via WhatsApp</code><br>
+              ❌ <code>Aula de Tráfego</code> — genérico demais<br>
+              ❌ <code>Como vender mais</code> — não diz o que constrói<br>
+              ❌ <code>Módulo 3 Aula 5</code> — isso é código, não título
+            </div>
+          </div>
+          <div class="callout callout-tip">
+            <span class="callout-icon">💡</span>
+            <span class="callout-text">Se o título sugerido for ruim, <strong>peça pra skill trocar</strong> no mesmo chat. Diga: "O título ficou genérico, trocar para algo que diga o que o Builder constrói".</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════ -->
+    <!-- FASE 3 — REVISAR                        -->
+    <!-- ═══════════════════════════════════════ -->
+    <div class="phase-section" data-phase="phase-3">
+      <div class="phase-header">
+        <div class="phase-icon review">🔎</div>
+        <div class="phase-info">
+          <div class="phase-title">Fase 3 — Revisar o que foi gerado</div>
+          <div class="phase-desc">Conferir os 3 artefatos antes de salvar e publicar</div>
+        </div>
+        <div class="phase-count">2 passos</div>
+      </div>
+
+      <!-- Step 3.1 -->
+      <div class="step-card">
+        <div class="step-main" onclick="toggleDetails(this)">
+          <input type="checkbox" class="step-checkbox" onclick="event.stopPropagation()">
+          <div class="step-content">
+            <div class="step-top-row"><span class="step-num">3.1</span></div>
+            <div class="step-title">Conferir se os 3 artefatos foram criados no repo</div>
+            <div class="step-subtitle">Insumo bruto, cômodos da obra e HTML da aula.</div>
+          </div>
+          <span class="step-toggle">›</span>
+        </div>
+        <div class="step-details">
+          <div class="detail-block">
+            <div class="detail-label">Estrutura de pastas</div>
+            <div class="naming-box">
+              <code class="naming-pattern">cockpit-builder/
+├── extracoes/{curso}/{modulo}/aula-XX-raw.md   ← insumo bruto
+├── obras/{obra}/{comodo}.md                     ← tijolos acumulados
+└── htmls/{curso}/XX-slug.html                   ← material da aula</code>
+              <div class="naming-examples">
+                <strong>extracoes/</strong> — o output do NotebookLM salvo sem edição. Se precisar regerar o HTML, o insumo original está aqui.<br><br>
+                <strong>obras/</strong> — os cômodos (instagram.md, whatsapp.md, meta-ads.md...). Cada aula ADICIONA tijolos aqui. É isso que monta o Cockpit.<br><br>
+                <strong>htmls/</strong> — o material que vai pra área de membros.
+              </div>
+            </div>
+          </div>
+          <div class="callout callout-warn">
+            <span class="callout-icon">⚠️</span>
+            <span class="callout-text"><strong>Se só o HTML foi gerado, a skill falhou.</strong> Os 3 arquivos são obrigatórios. Sem os cômodos em <code>obras/</code>, o Cockpit Builder não recebe os tijolos daquela aula.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3.2 -->
+      <div class="step-card">
+        <div class="step-main" onclick="toggleDetails(this)">
+          <input type="checkbox" class="step-checkbox" onclick="event.stopPropagation()">
+          <div class="step-content">
+            <div class="step-top-row"><span class="step-num">3.2</span></div>
+            <div class="step-title">Conferir checklist de qualidade no preview do HTML</div>
+            <div class="step-subtitle">8 pontos obrigatórios antes de seguir.</div>
+          </div>
+          <span class="step-toggle">›</span>
+        </div>
+        <div class="step-details">
+          <div class="detail-block">
+            <div class="detail-label">Checklist de qualidade</div>
+            <ol class="detail-steps">
+              <li><span class="step-dot">✓</span><strong>Badges</strong> no topo mostram pistão + etapa do funil + tipo?</li>
+              <li><span class="step-dot">✓</span><strong>Título</strong> resume o que o Builder constrói? (não genérico)</li>
+              <li><span class="step-dot">✓</span><strong>Ações</strong> têm nome completo? ("Configurar bio do Instagram com nicho + resultado + CTA" e não só "Configurar perfil")</li>
+              <li><span class="step-dot">✓</span>Cada ação tem uma <strong>descrição</strong> logo abaixo do título explicando o que fazer?</li>
+              <li><span class="step-dot">✓</span>Cada ação tem <strong>sub-checkboxes</strong> com os passos?</li>
+              <li><span class="step-dot">✓</span><strong>Checkboxes funcionam?</strong> Clicar e ver se marca/desmarca</li>
+              <li><span class="step-dot">✓</span>A <strong>barra de progresso</strong> atualiza quando marca?</li>
+              <li><span class="step-dot">✓</span>As <strong>plataformas</strong> estão separadas? (Instagram ≠ WhatsApp ≠ Meta Ads)</li>
+            </ol>
+          </div>
+          <div class="callout callout-tip">
+            <span class="callout-icon">💡</span>
+            <span class="callout-text">Se algo estiver errado, <strong>pedir pra skill corrigir no mesmo chat.</strong> Não precisa começar de novo.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════ -->
+    <!-- FASE 4 — SALVAR NO DRIVE                -->
+    <!-- ═══════════════════════════════════════ -->
+    <div class="phase-section" data-phase="phase-4">
+      <div class="phase-header">
+        <div class="phase-icon save">💾</div>
+        <div class="phase-info">
+          <div class="phase-title">Fase 4 — Salvar e publicar</div>
+          <div class="phase-desc">Drive organizado por curso, HTML na área de membros e título ajustado</div>
+        </div>
+        <div class="phase-count">3 passos</div>
+      </div>
+
+      <!-- Step 4.1 -->
+      <div class="step-card">
+        <div class="step-main" onclick="toggleDetails(this)">
+          <input type="checkbox" class="step-checkbox" onclick="event.stopPropagation()">
+          <div class="step-content">
+            <div class="step-top-row"><span class="step-num">4.1</span></div>
+            <div class="step-title">Fazer upload do HTML com nome correto</div>
+            <div class="step-subtitle">Padrão: {curso}/{numero}-{titulo-em-slug}.html — tudo minúsculo, sem acentos.</div>
+          </div>
+          <span class="step-toggle">›</span>
+        </div>
+        <div class="step-details">
+          <div class="detail-block">
+            <div class="detail-label">Pasta do Drive</div>
+            <div class="detail-text">Abrir a pasta <strong>Cockpit Builder - HTMLs</strong> no Drive. <strong>Cada curso tem sua própria pasta</strong> — criar se não existir. Nunca jogar tudo na raiz.</div>
+          </div>
+          <div class="callout callout-warn">
+            <span class="callout-icon">📁</span>
+            <span class="callout-text"><strong>Drive organizado é obrigatório.</strong> São 67 arquivos no total. Sem pasta por curso e sem número na frente do nome, vira bagunça em uma semana.</span>
+          </div>
+          <div class="detail-block">
+            <div class="detail-label">Padrão de nome</div>
+            <div class="naming-box">
+              <code class="naming-pattern">{nome-do-curso}/{numero-da-aula}-{titulo-em-slug}.html</code>
+              <div class="naming-examples">
+                <code>easy-sales/01-funil-de-trafego-com-7-reais-dia.html</code><br>
+                <code>easy-sales/02-perfil-profissional-que-converte.html</code><br>
+                <code>easy-optimize/01-nocoes-gerais-alinhamento-essencial.html</code><br><br>
+                <strong>Regras:</strong> tudo minúsculo · sem acentos · espaços viram hífens · número com 2 dígitos
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4.2 -->
+      <div class="step-card">
+        <div class="step-main" onclick="toggleDetails(this)">
+          <input type="checkbox" class="step-checkbox" onclick="event.stopPropagation()">
+          <div class="step-content">
+            <div class="step-top-row"><span class="step-num">4.2</span></div>
+            <div class="step-title">Colar o HTML na área de membros da Hotmart</div>
+            <div class="step-subtitle">Editar a aula correspondente e colar no campo de descrição ou bloco HTML.</div>
+          </div>
+          <span class="step-toggle">›</span>
+        </div>
+        <div class="step-details">
+          <div class="detail-block">
+            <div class="detail-label">Como fazer</div>
+            <ol class="detail-steps">
+              <li><span class="step-dot">1</span>Acessar a área de membros do curso na Hotmart</li>
+              <li><span class="step-dot">2</span>Encontrar a aula correspondente</li>
+              <li><span class="step-dot">3</span>Editar a aula</li>
+              <li><span class="step-dot">4</span>Colar o HTML no campo de descrição (ou no bloco "HTML customizado" se a plataforma tiver)</li>
+              <li><span class="step-dot">5</span>Salvar e visualizar — conferir se os checkboxes aparecem e funcionam</li>
+            </ol>
+          </div>
+          <div class="callout callout-warn">
+            <span class="callout-icon">⚠️</span>
+            <span class="callout-text"><strong>Se o HTML não renderizar:</strong> tentar usar a opção de iframe. Se mesmo assim não funcionar, avisar o Lorenzi antes de pular pra próxima aula.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4.3 — Trocar título da aula -->
+      <div class="step-card">
+        <div class="step-main" onclick="toggleDetails(this)">
+          <input type="checkbox" class="step-checkbox" onclick="event.stopPropagation()">
+          <div class="step-content">
+            <div class="step-top-row"><span class="step-num">4.3</span></div>
+            <div class="step-title">Trocar o título da aula na área de membros se o original for genérico</div>
+            <div class="step-subtitle">Se o título que a skill sugeriu for melhor que o atual, renomear a aula na Hotmart.</div>
+          </div>
+          <span class="step-toggle">›</span>
+        </div>
+        <div class="step-details">
+          <div class="detail-block">
+            <div class="detail-label">Quando trocar</div>
+            <div class="detail-text">Comparar o título atual da aula com o que a skill sugeriu. Trocar <strong>só se o sugerido for claramente melhor</strong> — ou seja, se ele diz o que o Builder constrói e o original não diz.</div>
+          </div>
+          <div class="naming-box">
+            <div class="naming-examples">
+              <strong>Trocar:</strong><br>
+              <code>Aula 07: Como aplicar corretamente</code> → <code>Aplicando o Plano de Negócio na Prática</code><br>
+              <code>Aula 11: Sem isso nada funciona!</code> → <code>Fundamentos que Sustentam a Operação</code><br><br>
+              <strong>Não trocar:</strong><br>
+              <code>Generalista VS Especialista</code> — já é claro e direto<br>
+              <code>Posicione seu Whatsapp</code> — já diz o que faz
+            </div>
+          </div>
+          <div class="callout callout-warn">
+            <span class="callout-icon">⚠️</span>
+            <span class="callout-text"><strong>Na dúvida, não troca.</strong> Título de aula é decisão de produto — se você achar que precisa trocar mas não tem certeza, deixa como está e comenta na subtask pro Lorenzi decidir.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════ -->
+    <!-- FASE 5 — MARCAR NO CLICKUP              -->
+    <!-- ═══════════════════════════════════════ -->
+    <div class="phase-section" data-phase="phase-5">
+      <div class="phase-header">
+        <div class="phase-icon publish">✅</div>
+        <div class="phase-info">
+          <div class="phase-title">Fase 5 — Registrar entrega no ClickUp</div>
+          <div class="phase-desc">Marcar subtask como concluída e documentar com links</div>
+        </div>
+        <div class="phase-count">2 passos</div>
+      </div>
+
+      <!-- Step 5.1 -->
+      <div class="step-card">
+        <div class="step-main" onclick="toggleDetails(this)">
+          <input type="checkbox" class="step-checkbox" onclick="event.stopPropagation()">
+          <div class="step-content">
+            <div class="step-top-row"><span class="step-num">5.1</span></div>
+            <div class="step-title">Marcar subtask como concluída e comentar</div>
+            <div class="step-subtitle">Documentar com os links do Drive e da área de membros.</div>
+          </div>
+          <span class="step-toggle">›</span>
+        </div>
+        <div class="step-details">
+          <div class="detail-block">
+            <div class="detail-label">Formato do comentário</div>
+            <div class="naming-box">
+              <code class="naming-pattern">Extração concluída.
+HTML salvo no Drive: {link do arquivo}
+HTML inserido na área de membros: {link da aula}</code>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 5.2 -->
+      <div class="step-card">
+        <div class="step-main" onclick="toggleDetails(this)">
+          <input type="checkbox" class="step-checkbox" onclick="event.stopPropagation()">
+          <div class="step-content">
+            <div class="step-top-row"><span class="step-num">5.2</span></div>
+            <div class="step-title">Pegar a próxima subtask e voltar pra Fase 1</div>
+            <div class="step-subtitle">Repetir o ciclo completo para cada aula.</div>
+          </div>
+          <span class="step-toggle">›</span>
+        </div>
+        <div class="step-details">
+          <div class="detail-block">
+            <div class="detail-text">Voltar pra Fase 1 com a próxima aula. Processar na ordem dos módulos. Cada aula leva em média <strong>15-25 minutos</strong> dependendo do tamanho da transcrição.</div>
+          </div>
+          <div class="callout callout-tip">
+            <span class="callout-icon">💡</span>
+            <span class="callout-text"><strong>Ritmo recomendado:</strong> 3-5 aulas por sessão de trabalho. Fazer muitas de uma vez cansa e a qualidade da revisão cai.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ ERROS COMUNS ═══ -->
+    <div class="error-section">
+      <div class="section-title">🚨 Erros comuns e como resolver</div>
+      <table class="error-table">
+        <thead>
+          <tr>
+            <th style="width: 40%;">O que aconteceu</th>
+            <th>O que fazer</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>NotebookLM não gerou blocos RESULTADO</td>
+            <td>O prompt não foi colado completo. Copiar de novo desde "Você é um extrator..." até "...seguindo essas regras."</td>
+          </tr>
+          <tr>
+            <td>Ações vagas tipo "Configurar perfil"</td>
+            <td>Pedir pra skill reescrever: "As ações estão vagas, reescrever com ação + contexto + resultado"</td>
+          </tr>
+          <tr>
+            <td>HTML não renderiza na área de membros</td>
+            <td>Testar com bloco HTML em vez de descrição. Se não funcionar, tentar iframe. Último caso: avisar Lorenzi</td>
+          </tr>
+          <tr>
+            <td>Skill /cockpit-html não aparece</td>
+            <td>Verificar se o SKILL.md está em <code>.claude/skills/cockpit-html/SKILL.md</code> — fechar e abrir o Claude Code</td>
+          </tr>
+          <tr>
+            <td>Aula muito longa (>1h), resposta cortada</td>
+            <td>Rodar em rodadas de 1h: "Analise os primeiros 60 min" → "Analise de 1h até o final". Juntar com ---</td>
+          </tr>
+          <tr>
+            <td>Título sugerido genérico</td>
+            <td>Trocar por algo que diga O QUE o Builder constrói na aula. Ex: "Funil de Tráfego com R$7/dia"</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ═══ RECURSOS ═══ -->
+    <div class="resources">
+      <div class="section-title">📎 Recursos</div>
+      <div class="resource-grid">
+        <a class="resource-card" href="https://notebooklm.google.com" target="_blank">
+          <div class="resource-icon">📓</div>
+          <div class="resource-info">
+            <div class="resource-name">Google NotebookLM</div>
+            <div class="resource-desc">Onde roda o prompt de extração</div>
+          </div>
+        </a>
+        <a class="resource-card" href="https://drive.google.com/open?id=1rF725Q8r2ae6J1E1ZJePGEKOHi7wfGV0" target="_blank">
+          <div class="resource-icon">📁</div>
+          <div class="resource-info">
+            <div class="resource-name">Pasta Cockpit Builder</div>
+            <div class="resource-desc">Onde salva os HTMLs no Drive</div>
+          </div>
+        </a>
+        <a class="resource-card" href="#">
+          <div class="resource-icon">📋</div>
+          <div class="resource-info">
+            <div class="resource-name">Prompt de Extração v2</div>
+            <div class="resource-desc">prompt-notebooklm-extracao.md</div>
+          </div>
+        </a>
+        <a class="resource-card" href="#">
+          <div class="resource-icon">🎯</div>
+          <div class="resource-info">
+            <div class="resource-name">Tasks no ClickUp</div>
+            <div class="resource-desc">67 subtasks nos 3 cursos</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- ═══ FOOTER ═══ -->
+    <div class="lesson-footer">
+      <div class="footer-brand">
+        <span class="brand-dot"></span>
+        Cockpit Builder — Easy Builder
+      </div>
+      <div class="footer-version">SOP-EBU-EXT-001 v1.0</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let showAll = false;
+
+  function showPhase(phaseId, stageEl) {
+    if (showAll) return;
+    document.querySelectorAll('.pipeline-stage').forEach(s => s.classList.remove('active'));
+    stageEl.classList.add('active');
+    document.querySelectorAll('.phase-section').forEach(p => p.classList.remove('visible'));
+    const target = document.querySelector(`[data-phase="${phaseId}"]`);
+    if (target) target.classList.add('visible');
+  }
+
+  function toggleShowAll() {
+    showAll = !showAll;
+    const btn = document.getElementById('showAllBtn');
+    if (showAll) {
+      btn.textContent = 'Mostrar uma fase por vez';
+      btn.classList.add('active');
+      document.querySelectorAll('.phase-section').forEach(p => p.classList.add('visible'));
+      document.querySelectorAll('.pipeline-stage').forEach(s => s.classList.remove('active'));
+    } else {
+      btn.textContent = 'Mostrar todas as fases';
+      btn.classList.remove('active');
+      document.querySelectorAll('.phase-section').forEach(p => p.classList.remove('visible'));
+      const first = document.querySelector('[data-phase="phase-1"]');
+      if (first) first.classList.add('visible');
+      const firstStage = document.querySelector('.pipeline-stage');
+      if (firstStage) firstStage.classList.add('active');
+    }
+  }
+
+  function toggleDetails(mainEl) {
+    const card = mainEl.closest('.step-card');
+    const details = card.querySelector('.step-details');
+    const toggle = card.querySelector('.step-toggle');
+    if (details.classList.contains('open')) {
+      details.classList.remove('open');
+      toggle.classList.remove('open');
+    } else {
+      details.classList.add('open');
+      toggle.classList.add('open');
+    }
+  }
+
+  const checkboxes = document.querySelectorAll('.step-checkbox');
+
+  checkboxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      const card = cb.closest('.step-card');
+      card.classList.toggle('completed', cb.checked);
+      updateProgress();
+    });
+  });
+
+  function updateProgress() {
+    const total = checkboxes.length;
+    let done = 0;
+    checkboxes.forEach(cb => { if (cb.checked) done++; });
+    document.getElementById('progressFill').style.width = `${(done / total) * 100}%`;
+    document.getElementById('progressLabel').innerHTML = `<strong>${done}</strong> de ${total} passos`;
+  }
+
+  updateProgress();
+</script>
+
+</body>
+</html>
