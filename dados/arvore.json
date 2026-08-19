@@ -86,7 +86,7 @@
   {
     "pasta": {
       "id": "revisao",
-      "nome": "Revisão (interno)",
+      "nome": "Revisão",
       "ordem": 2
     },
     "paginas": [
@@ -95,7 +95,7 @@
         "nome": "Revisão da Obra 10k",
         "pastaId": "revisao",
         "ordem": 0,
-        "resumo": "Board de conferência: obras, extrações e HTMLs do bootcamp-10k lado a lado — não publicar pro aluno.",
+        "resumo": "Board de conferência: obras, extrações e HTMLs do bootcamp-10k lado a lado.",
         "vistas": []
       }
     ]
