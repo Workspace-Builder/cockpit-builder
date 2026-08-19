@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cockpit Builder — Meta Financeira Quebrada e Operação Sob Controle</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --bg-base: #0a0a0a;
+    --bg-surface: #111111;
+    --bg-card: #0e0e0e;
+    --bg-elevated: #1a1a1a;
+    --bg-input: #161616;
+    --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-medium: rgba(255, 255, 255, 0.10);
+    --border-strong: rgba(255, 255, 255, 0.14);
+    --accent: #b8ff04;
+    --accent-dim: rgba(184, 255, 4, 0.10);
+    --accent-glow: rgba(184, 255, 4, 0.05);
+    --blue: #60a5fa;
+    --blue-dim: rgba(96, 165, 250, 0.10);
+    --orange: #fb923c;
+    --orange-dim: rgba(251, 146, 60, 0.10);
+    --purple: #a78bfa;
+    --purple-dim: rgba(167, 139, 250, 0.10);
+    --emerald: #34d399;
+    --emerald-dim: rgba(52, 211, 153, 0.10);
+    --text-primary: #f0f0f0;
+    --text-secondary: #888888;
+    --text-tertiary: #555555;
+    --text-on-accent: #0a0a0a;
+    --radius-xs: 6px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+
+  /* ─── Window ─── */
+  .window {
+    max-width: 840px;
+    margin: 0 auto;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.2);
+  }
+
+  .window-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 20px;
+    background: rgba(255,255,255,0.015);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+
+  .window-title {
+    flex: 1;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    letter-spacing: 0.03em;
+  }
+
+  .window-spacer { width: 52px; }
+
+  .window-body { padding: 32px 28px 40px; }
+
+  /* ─── Header ─── */
+  .lesson-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 11px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(184,255,4,0.15);
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 14px;
+  }
+
+  .badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 14px;
+  }
+
+  .badge-row .lesson-badge { margin-bottom: 0; }
+
+  .badge-blue {
+    background: var(--blue-dim);
+    border-color: rgba(96,165,250,0.15);
+    color: var(--blue);
+  }
+
+  .badge-purple {
+    background: var(--purple-dim);
+    border-color: rgba(167,139,250,0.15);
+    color: var(--purple);
+  }
+
+  .badge-muted {
+    background: rgba(255,255,255,0.03);
+    border-color: var(--border-medium);
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  .badge-sep {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .lesson-title {
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 6px;
+    letter-spacing: -0.02em;
+  }
+  .lesson-title span { color: var(--accent); }
+
+  .lesson-subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    max-width: 620px;
+    margin-bottom: 28px;
+  }
+
+  /* ─── Context Box ─── */
+  .context-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 28px;
+  }
+
+  .context-box h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 16px;
+  }
+
+  .context-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .context-card {
+    padding: 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+  }
+
+  .context-card-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+    margin-bottom: 10px;
+  }
+
+  .context-card ul {
+    list-style: none;
+  }
+
+  .context-card li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    padding: 4px 0;
+  }
+
+  .context-card li::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    min-width: 5px;
+    border-radius: 50%;
+    margin-top: 6px;
+  }
+
+  .deliverable li::before { background: var(--accent); }
+  .prereq li::before { background: var(--text-tertiary); }
+
+  .context-summary {
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: var(--accent-glow);
+    border-left: 2px solid rgba(184,255,4,0.20);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .context-summary strong { color: var(--accent); font-weight: 600; }
+
+  /* ─── Progress ─── */
+  .progress-section {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 5px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #d4ff4a);
+    border-radius: 100px;
+    transition: width 0.4s ease;
+  }
+
+  .progress-label {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+  .progress-label strong { color: var(--accent); font-weight: 700; }
+
+  /* ─── Parede (RESULTADO nomeado) ─── */
+  .parede-header {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 18px 0 10px;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.02);
+    border-left: 2px solid var(--accent);
+    border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  }
+
+  .parede-header:first-of-type { margin-top: 0; }
+
+  .parede-name {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+
+  .parede-meta {
+    margin-left: auto;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+
+  .parede-meta strong { color: var(--accent); font-weight: 700; }
+
+  .parede-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0 0 10px 12px;
+    padding-left: 10px;
+    border-left: 2px solid var(--border-medium);
+  }
+
+  .parede-ref {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px 12px;
+    padding: 5px 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+
+  .parede-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    margin: 0 0 12px 12px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    line-height: 1.45;
+  }
+
+  /* ─── Platform Section ─── */
+  .platform-section { margin-bottom: 28px; }
+
+  .platform-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .platform-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-xs);
+    font-size: 15px;
+  }
+
+  .platform-name {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .platform-count {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    background: rgba(255,255,255,0.04);
+    padding: 2px 9px;
+    border-radius: 100px;
+  }
+
+  /* ─── Action Card ─── */
+  .action-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    margin-bottom: 10px;
+    transition: border-color 0.2s ease;
+    overflow: hidden;
+  }
+
+  .action-card:hover { border-color: var(--border-medium); }
+
+  .action-card.done { opacity: 0.45; }
+  .action-card.done .action-title { text-decoration: line-through; text-decoration-color: var(--text-tertiary); }
+
+  .action-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 18px 20px 0;
+    cursor: pointer;
+  }
+
+  .action-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    border: 2px solid var(--text-tertiary);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    margin-top: 1px;
+    position: relative;
+  }
+
+  .action-checkbox:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .action-checkbox:checked::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 4px;
+    width: 5px;
+    height: 9px;
+    border: solid var(--text-on-accent);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  .action-checkbox:hover { border-color: var(--accent); }
+
+  .action-content { flex: 1; }
+
+  .action-top-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .action-category {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+
+  .cat-setup { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(184,255,4,0.12); }
+  .cat-posts { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(96,165,250,0.12); }
+  .cat-trafego { background: var(--orange-dim); color: var(--orange); border: 1px solid rgba(251,146,60,0.12); }
+  .cat-vendas { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(167,139,250,0.12); }
+  .cat-gestao { background: var(--emerald-dim); color: var(--emerald); border: 1px solid rgba(52,211,153,0.12); }
+  .cat-lp { background: rgba(244,114,182,0.10); color: #f472b6; border: 1px solid rgba(244,114,182,0.12); }
+
+  .action-title {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--text-primary);
+  }
+
+  .action-description {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    margin-top: 6px;
+    padding-left: 10px;
+    border-left: 2px solid var(--border-medium);
+  }
+
+  .action-card.done .action-description { color: var(--text-tertiary); }
+
+  /* ─── Sub-Checklist ─── */
+  .sub-checklist {
+    list-style: none;
+    padding: 12px 20px 0 50px;
+  }
+
+  .sub-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 4px 0;
+  }
+
+  .sub-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    min-width: 14px;
+    border: 1.5px solid var(--text-tertiary);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    margin-top: 2px;
+    position: relative;
+  }
+
+  .sub-checkbox:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .sub-checkbox:checked::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 3px;
+    width: 4px;
+    height: 7px;
+    border: solid var(--text-on-accent);
+    border-width: 0 1.5px 1.5px 0;
+    transform: rotate(45deg);
+  }
+
+  .sub-checkbox:hover { border-color: rgba(184,255,4,0.5); }
+
+  .sub-checkbox:checked + .sub-text {
+    color: var(--text-tertiary);
+    text-decoration: line-through;
+    text-decoration-color: var(--text-tertiary);
+  }
+
+  .sub-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    transition: color 0.15s ease;
+  }
+
+  /* ─── Context Insight ─── */
+  .action-insight {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 12px 20px 16px 50px;
+    padding: 8px 12px;
+    background: var(--accent-glow);
+    border-left: 2px solid rgba(184,255,4,0.20);
+    border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  }
+
+  .insight-icon {
+    font-size: 12px;
+    line-height: 1;
+    margin-top: 2px;
+    opacity: 0.5;
+  }
+
+  .insight-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    font-style: italic;
+  }
+
+  /* ─── Divider ─── */
+  .divider {
+    height: 1px;
+    background: var(--border-subtle);
+    margin: 24px 0;
+  }
+
+  /* ─── Cross References ─── */
+  .cross-refs {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .section-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-title svg {
+    width: 14px;
+    height: 14px;
+    stroke: var(--text-tertiary);
+    fill: none;
+  }
+
+  .ref-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .ref-card:hover {
+    border-color: rgba(184,255,4,0.2);
+    background: rgba(184,255,4,0.02);
+  }
+
+  .ref-pilar {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .ref-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    flex: 1;
+  }
+
+  .ref-arrow {
+    color: var(--text-tertiary);
+    font-size: 14px;
+    transition: transform 0.2s ease;
+  }
+
+  .ref-card:hover .ref-arrow { transform: translateX(3px); color: var(--accent); }
+
+  /* ─── Footer ─── */
+  .lesson-footer {
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+
+  .brand-dot {
+    width: 5px;
+    height: 5px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  .footer-source {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    padding: 3px 9px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 100px;
+  }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 640px) {
+    body { padding: 16px 8px; }
+    .window-body { padding: 20px 16px 28px; }
+    .lesson-title { font-size: 20px; }
+    .context-grid { grid-template-columns: 1fr; }
+    .sub-checklist { padding-left: 38px; }
+    .action-insight { margin-left: 38px; }
+    .parede-header { flex-wrap: wrap; }
+    .parede-meta { margin-left: 0; white-space: normal; }
+  }
+</style>
+</head>
+<body>
+
+<div class="window">
+  <div class="window-bar">
+    <div class="dot dot-r"></div>
+    <div class="dot dot-y"></div>
+    <div class="dot dot-g"></div>
+    <div class="window-title">Cockpit Builder — Material de Apoio</div>
+    <div class="window-spacer"></div>
+  </div>
+
+  <div class="window-body">
+
+    <!-- ═══ HEADER ═══ -->
+    <div class="badge-row">
+      <span class="lesson-badge">⚙️ Gestão e Eficiência</span>
+      <span class="lesson-badge badge-blue">📦 Entrega</span>
+      <span class="lesson-badge badge-purple">🔧 Prática</span>
+    </div>
+    <div class="badge-row">
+      <span class="badge-sep">Também toca:</span>
+      <span class="lesson-badge badge-muted">Negociação</span>
+      <span class="lesson-badge badge-muted">Retroalimentação</span>
+    </div>
+    <h1 class="lesson-title">Meta Financeira Quebrada <span>e Operação Sob Controle</span></h1>
+    <p class="lesson-subtitle">Transformar o objetivo de faturamento em ticket mínimo por serviço — e montar o controle de clientes, arquivos e finanças que sustenta a entrega.</p>
+
+    <!-- ═══ CONTEXTO DA AULA ═══ -->
+    <div class="context-box">
+      <h3>Contexto da aula</h3>
+      <div class="context-grid">
+        <div class="context-card deliverable">
+          <div class="context-card-label">O que você vai construir</div>
+          <ul>
+            <li>Meta mensal quebrada em meta diária</li>
+            <li>Ticket mínimo por serviço definido</li>
+            <li>Quadro de acompanhamento de clientes no Trello</li>
+            <li>Estrutura de pastas e assets organizada</li>
+            <li>Planilha de controle financeiro com as divisões da empresa</li>
+          </ul>
+        </div>
+        <div class="context-card prereq">
+          <div class="context-card-label">Pré-requisitos</div>
+          <ul>
+            <li>Conta no Trello configurada</li>
+            <li>Software de planilha disponível (Excel, Sheets ou similar)</li>
+            <li>Organização física/digital de pastas já iniciada no computador</li>
+          </ul>
+        </div>
+      </div>
+      <div class="context-summary">
+        <strong>Objetivo central:</strong> Parar de trabalhar como freelancer sem controle e passar a operar o negócio a partir de números — saber quanto vale o seu dia antes de dar preço, e ter processo para o que entra e o que sai.
+      </div>
+    </div>
+
+    <!-- ═══ PROGRESS ═══ -->
+    <div class="progress-section">
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-label" id="progressLabel"><strong>0</strong> de 11 ações</div>
+    </div>
+
+    <!-- ═══════════════════════════════════ -->
+    <!-- GESTÃO -->
+    <!-- ═══════════════════════════════════ -->
+    <div class="platform-section" id="plat-gestao">
+      <div class="platform-header">
+        <div class="platform-icon">📊</div>
+        <div class="platform-name">Gestão</div>
+        <div class="platform-count">11 ações</div>
+      </div>
+
+      <!-- ─────────── PAREDE 0 ─────────── -->
+      <div class="parede-header" id="parede-0">
+        <span class="parede-name">Ferramentas de gestão configuradas</span>
+        <span class="parede-meta">Setup · <strong>Trello · Planilha · Computador</strong></span>
+      </div>
+      <p class="parede-desc">O que precisa existir antes de rodar qualquer processo desta aula.</p>
+      <div class="parede-note"><span>📌</span><span>Esta parede foi derivada do bloco PRÉ-REQUISITOS da aula.</span></div>
+
+      <!-- Ação 1 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-setup">Setup</span>
+            </div>
+            <div class="action-title">Criar conta no Trello e deixar um quadro de clientes pronto para receber cartões</div>
+            <div class="action-description">O quadro é onde cada cliente vira um cartão rastreável — sem ele o acompanhamento vive na memória.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Criar conta no Trello</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Criar um quadro dedicado a clientes</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Deixar as listas prontas para receber os cartões</span></li>
+        </ul>
+      </div>
+
+      <!-- Ação 2 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-setup">Setup</span>
+            </div>
+            <div class="action-title">Ter uma planilha (Excel ou Google Sheets) disponível para o controle financeiro</div>
+            <div class="action-description">O controle de entradas e saídas precisa de um lugar fixo antes de existirem lançamentos.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Escolher Excel, Google Sheets ou similar</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Criar o arquivo de controle</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Deixar acessível no dia a dia</span></li>
+        </ul>
+      </div>
+
+      <!-- Ação 3 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-setup">Setup</span>
+            </div>
+            <div class="action-title">Iniciar a organização de pastas no computador ou HD externo</div>
+            <div class="action-description">A estrutura de arquivos é pré-requisito para separar clientes e assets depois.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Definir onde a estrutura vai viver (computador ou HD externo)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Criar a pasta raiz do negócio</span></li>
+        </ul>
+      </div>
+
+      <!-- ─────────── PAREDE 1 ─────────── -->
+      <div class="parede-header" id="parede-1">
+        <span class="parede-name">Planejamento de Metas Financeiras</span>
+        <span class="parede-meta">Gestão · <strong>Geral (papel e caneta ou digital)</strong></span>
+      </div>
+      <div class="parede-ref"><span class="ref-pilar">Pilar Gestão</span><span>Plano de Negócio</span></div>
+
+      <!-- Ação 4 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-gestao">Gestão</span>
+            </div>
+            <div class="action-title">Dividir a meta de faturamento mensal em meta semanal e valor necessário por dia trabalhado</div>
+            <div class="action-description">Quebrar o número grande é o que revela quanto o seu dia precisa render — e é a partir daí que o ticket é ajustado.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Pegue o seu objetivo de faturamento mensal (ex: R$ 10.000)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Divida por 4 para descobrir a meta semanal (ex: R$ 2.500)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Divida a meta semanal pelo número de dias trabalhados na semana (ex: 6 dias) para encontrar o valor necessário por dia (ex: R$ 416)</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">"A gente quebrando isso aqui sabendo quanto que a gente precisa fazer a gente consegue ajustar o nosso ticket pro valor da nossa hora"</span>
+        </div>
+      </div>
+
+      <!-- Ação 5 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-gestao">Gestão</span>
+            </div>
+            <div class="action-title">Ajustar o ticket médio dos serviços a partir do valor do seu dia e do tempo de execução</div>
+            <div class="action-description">O preço mínimo do serviço deixa de ser chute e passa a ser conta — dias de execução vezes o valor do dia.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Calcule quantos dias você leva para executar um serviço (ex: 3 dias para uma Landing Page)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Multiplique o valor necessário por dia pelo tempo de execução para definir o preço mínimo do serviço (ex: 3 dias x R$ 416 = R$ 1.250)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Verifique se o número de entregas possíveis no mês cobre a meta total (ex: 2 LPs por semana para bater R$ 10.000)</span></li>
+        </ul>
+      </div>
+
+      <!-- ─────────── PAREDE 2 ─────────── -->
+      <div class="parede-header" id="parede-2">
+        <span class="parede-name">Sistema de Acompanhamento de Clientes (CRM/Workflow)</span>
+        <span class="parede-meta">Gestão · <strong>Trello</strong></span>
+      </div>
+      <div class="parede-ref"><span class="ref-pilar">Pilar Vendas</span><span>Aula do Vine / Aula do R (Funil e Nível de Consciência)</span></div>
+
+      <!-- Ação 6 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-gestao">Gestão</span>
+            </div>
+            <div class="action-title">Registrar no Trello cada etapa da chegada do cliente, do briefing ao acesso de hospedagem</div>
+            <div class="action-description">Mapear o processo desde a prospecção até o interno é o que impede etapa perdida e retrabalho.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Crie cartões ou listas para cada novo cliente que chegar</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Marque a realização da coleta de briefing</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Registre a confirmação de pagamento</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Salve o contato do cliente e as informações para nota fiscal</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Registre os acessos necessários (ex: hospedagem)</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">"Melhorar o processo de venda é isso mapear os processos desde o momento da prospecção do cara chegar até você até o processo interno"</span>
+        </div>
+      </div>
+
+      <!-- Ação 7 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-gestao">Gestão</span>
+            </div>
+            <div class="action-title">Fazer follow-up dos clientes que não fecharam e seguem em negociação</div>
+            <div class="action-description">O cartão parado no quadro é dinheiro parado — o follow-up retoma a conversa e gera valor antes do fechamento.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Identifique clientes que não fecharam ou que estão aguardando resposta</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Entre em contato para dar continuidade à negociação e gerar valor</span></li>
+        </ul>
+      </div>
+
+      <!-- ─────────── PAREDE 3 ─────────── -->
+      <div class="parede-header" id="parede-3">
+        <span class="parede-name">Estrutura de Arquivos e Assets Organizada</span>
+        <span class="parede-meta">Gestão · <strong>Computador / HD Externo</strong></span>
+      </div>
+
+      <!-- Ação 8 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-gestao">Gestão</span>
+            </div>
+            <div class="action-title">Separar as pastas de clientes entre fixos e esporádicos organizados por mês</div>
+            <div class="action-description">Achar o arquivo do cliente em segundos em vez de minutos é tempo que volta para a produção.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Crie uma pasta principal para "Clientes Fixos"</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Crie uma pasta para "Outros Clientes", subdividida por meses (ex: Janeiro, Fevereiro) para trabalhos esporádicos</span></li>
+        </ul>
+      </div>
+
+      <!-- Ação 9 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-gestao">Gestão</span>
+            </div>
+            <div class="action-title">Categorizar a biblioteca de assets por software e por tipo de recurso</div>
+            <div class="action-description">Asset organizado é tempo economizado em toda entrega futura — e tempo economizado vira dinheiro.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Separe os arquivos por software (ex: Premiere, Canva, After Effects)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Dentro de cada software, crie subpastas por tipo de recurso: 3D, Assets, Fumaça, Looping, Overlay, Texturas, Flare, Brushes</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">"Deixar até mesmo os assets organizados... para economizar tempo porque tempo me dá dinheiro"</span>
+        </div>
+      </div>
+
+      <!-- ─────────── PAREDE 4 ─────────── -->
+      <div class="parede-header" id="parede-4">
+        <span class="parede-name">Gestão Financeira e Operacional do Negócio</span>
+        <span class="parede-meta">Gestão · <strong>Planilha (Excel / Google Sheets)</strong></span>
+      </div>
+
+      <!-- Ação 10 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-gestao">Gestão</span>
+            </div>
+            <div class="action-title">Montar a planilha de entradas, saídas e taxa de conversão de reuniões em contratos</div>
+            <div class="action-description">Sem registro de entrada, saída e quantos leads viram cliente, não existe diagnóstico do negócio — só sensação.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Crie campos para registrar todas as entradas (recebimentos) e saídas (gastos)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Registre quantos clientes chegam até a fase de reunião e quantos efetivamente fecham o contrato</span></li>
+        </ul>
+      </div>
+
+      <!-- Ação 11 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-gestao">Gestão</span>
+            </div>
+            <div class="action-title">Estabelecer as divisões financeiras da empresa: pró-labore, reserva, investimento e pessoa física</div>
+            <div class="action-description">Separar o dinheiro da empresa do dinheiro pessoal é o que diferencia dono de negócio de freelancer.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Defina um valor fixo de Pró-labore (salário do dono) — o professor sugere iniciar com um salário mínimo</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Separe uma "Reserva de Segurança" para a empresa</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Defina um montante para "Investimento"</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Na conta pessoa física, separe valores para custos fixos, investimentos pessoais, lazer e reserva de emergência</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">"Se vocês não olharem pro negócio de vocês... se vocês não tiverem planejamento financeiro... vocês sempre vão ser freelancers"</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ REFERÊNCIAS CRUZADAS ═══ -->
+    <div class="cross-refs">
+      <div class="section-title">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        Veja também em outras aulas
+      </div>
+
+      <a class="ref-card" href="#">
+        <span class="ref-pilar">Posicionamento</span>
+        <span class="ref-text">Processo de venda e fechamento (Aula do Vine e Aula do R)</span>
+        <span class="ref-arrow">→</span>
+      </a>
+
+      <a class="ref-card" href="#">
+        <span class="ref-pilar">Gestão</span>
+        <span class="ref-text">Plano de negócio e definição de metas iniciais</span>
+        <span class="ref-arrow">→</span>
+      </a>
+
+      <a class="ref-card" href="#">
+        <span class="ref-pilar">Pós-venda</span>
+        <span class="ref-text">Coleta de cases e depoimentos para fidelização</span>
+        <span class="ref-arrow">→</span>
+      </a>
+    </div>
+
+    <!-- ═══ FOOTER ═══ -->
+    <div class="lesson-footer">
+      <div class="footer-brand">
+        <span class="brand-dot"></span>
+        Cockpit Builder — Easy Builder
+      </div>
+      <div class="footer-source">Easy Sales — Aula 03 · "Como bater suas metas"</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const mainBoxes = document.querySelectorAll('.action-checkbox');
+  const subBoxes = document.querySelectorAll('.sub-checkbox');
+
+  mainBoxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      const card = cb.closest('.action-card');
+      card.classList.toggle('done', cb.checked);
+      const subs = card.querySelectorAll('.sub-checkbox');
+      subs.forEach(s => { s.checked = cb.checked; });
+      updateProgress();
+    });
+  });
+
+  subBoxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      updateProgress();
+    });
+  });
+
+  function updateProgress() {
+    const total = mainBoxes.length;
+    let done = 0;
+    mainBoxes.forEach(cb => {
+      const card = cb.closest('.action-card');
+      const subs = card.querySelectorAll('.sub-checkbox');
+      const subsChecked = card.querySelectorAll('.sub-checkbox:checked');
+      if (subs.length > 0 && subsChecked.length === subs.length) {
+        cb.checked = true;
+        card.classList.add('done');
+        done++;
+      } else if (cb.checked && subs.length > 0 && subsChecked.length < subs.length) {
+        // keep done if manually checked
+        done++;
+      } else if (cb.checked) {
+        done++;
+      }
+    });
+    document.getElementById('progressFill').style.width = `${(done / total) * 100}%`;
+    document.getElementById('progressLabel').innerHTML = `<strong>${done}</strong> de ${total} ações`;
+    updateCadeia();
+  }
+
+  // Retorna os action-cards que pertencem a uma parede:
+  // tudo entre o cabeçalho dela e o próximo cabeçalho de parede.
+  function cardsDaParede(paredeEl) {
+    const cards = [];
+    let el = paredeEl.nextElementSibling;
+    while (el && !el.classList.contains('parede-header')) {
+      if (el.classList.contains('action-card')) cards.push(el);
+      el = el.nextElementSibling;
+    }
+    return cards;
+  }
+
+  // Cada passo da cadeia acende quando TODAS as ações daquela parede estão feitas
+  function updateCadeia() {
+    document.querySelectorAll('.cadeia-step').forEach(step => {
+      const parede = document.querySelector(step.getAttribute('href'));
+      if (!parede) return;
+      const cards = cardsDaParede(parede);
+      const feitos = cards.filter(c => c.querySelector('.action-checkbox').checked);
+      step.classList.toggle('done', cards.length > 0 && feitos.length === cards.length);
+    });
+  }
+
+  // Rolagem suave ao clicar num passo da cadeia
+  document.querySelectorAll('.cadeia-step').forEach(step => {
+    step.addEventListener('click', e => {
+      e.preventDefault();
+      const alvo = document.querySelector(step.getAttribute('href'));
+      if (alvo) alvo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  updateProgress();
+
+  // ─── Persistência local (chave única desta aula) ───
+  const STORAGE_KEY = 'easy-sales-03';
+  const allBoxes = document.querySelectorAll('.action-checkbox, .sub-checkbox');
+
+  function salvarEstado() {
+    const marcados = [];
+    allBoxes.forEach((cb, i) => { if (cb.checked) marcados.push(i); });
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(marcados)); } catch (e) {}
+  }
+
+  function restaurarEstado() {
+    let marcados = [];
+    try { marcados = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch (e) { marcados = []; }
+    marcados.forEach(i => { if (allBoxes[i]) allBoxes[i].checked = true; });
+    document.querySelectorAll('.action-card').forEach(card => {
+      const cb = card.querySelector('.action-checkbox');
+      card.classList.toggle('done', cb.checked);
+    });
+    updateProgress();
+  }
+
+  allBoxes.forEach(cb => cb.addEventListener('change', salvarEstado));
+  restaurarEstado();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cockpit Builder — Especialização Definida: ICP, Feed Direcionado, Método Próprio e Preço de Autoridade</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --bg-base: #0a0a0a;
+    --bg-surface: #111111;
+    --bg-card: #0e0e0e;
+    --bg-elevated: #1a1a1a;
+    --bg-input: #161616;
+    --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-medium: rgba(255, 255, 255, 0.10);
+    --border-strong: rgba(255, 255, 255, 0.14);
+    --accent: #b8ff04;
+    --accent-dim: rgba(184, 255, 4, 0.10);
+    --accent-glow: rgba(184, 255, 4, 0.05);
+    --blue: #60a5fa;
+    --blue-dim: rgba(96, 165, 250, 0.10);
+    --orange: #fb923c;
+    --orange-dim: rgba(251, 146, 60, 0.10);
+    --purple: #a78bfa;
+    --purple-dim: rgba(167, 139, 250, 0.10);
+    --emerald: #34d399;
+    --emerald-dim: rgba(52, 211, 153, 0.10);
+    --text-primary: #f0f0f0;
+    --text-secondary: #888888;
+    --text-tertiary: #555555;
+    --text-on-accent: #0a0a0a;
+    --radius-xs: 6px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+
+  /* ─── Window ─── */
+  .window {
+    max-width: 840px;
+    margin: 0 auto;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.2);
+  }
+
+  .window-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 20px;
+    background: rgba(255,255,255,0.015);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+
+  .window-title {
+    flex: 1;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    letter-spacing: 0.03em;
+  }
+
+  .window-spacer { width: 52px; }
+
+  .window-body { padding: 32px 28px 40px; }
+
+  /* ─── Header ─── */
+  .lesson-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .lesson-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 11px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(184,255,4,0.15);
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .lesson-title {
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 6px;
+    letter-spacing: -0.02em;
+  }
+  .lesson-title span { color: var(--accent); }
+
+  .lesson-subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    max-width: 620px;
+    margin-bottom: 28px;
+  }
+
+  /* ─── Context Box ─── */
+  .context-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 28px;
+  }
+
+  .context-box h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 16px;
+  }
+
+  .context-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .context-card {
+    padding: 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+  }
+
+  .context-card-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+    margin-bottom: 10px;
+  }
+
+  .context-card ul {
+    list-style: none;
+  }
+
+  .context-card li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    padding: 4px 0;
+  }
+
+  .context-card li::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    min-width: 5px;
+    border-radius: 50%;
+    margin-top: 6px;
+  }
+
+  .deliverable li::before { background: var(--accent); }
+  .prereq li::before { background: var(--text-tertiary); }
+
+  .context-summary {
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: var(--accent-glow);
+    border-left: 2px solid rgba(184,255,4,0.20);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .context-summary strong { color: var(--accent); font-weight: 600; }
+
+  /* ─── Progress ─── */
+  .progress-section {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 5px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #d4ff4a);
+    border-radius: 100px;
+    transition: width 0.4s ease;
+  }
+
+  .progress-label {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+  .progress-label strong { color: var(--accent); font-weight: 700; }
+
+  /* ─── Parede (RESULTADO nomeado) ─── */
+  .parede-header {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 18px 0 10px;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.02);
+    border-left: 2px solid var(--accent);
+    border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  }
+
+  .parede-header:first-of-type { margin-top: 0; }
+
+  .parede-name {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+
+  .parede-meta {
+    margin-left: auto;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+
+  .parede-meta strong { color: var(--accent); font-weight: 700; }
+
+  /* ─── Depende de (adaptação local — esta aula não tem cadeia de execução) ─── */
+  .parede-depends {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    margin: -2px 0 12px 12px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    line-height: 1.4;
+  }
+  .parede-depends strong { color: var(--text-secondary); font-weight: 600; }
+
+  /* ─── Platform Section ─── */
+  .platform-section { margin-bottom: 28px; }
+
+  .platform-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .platform-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-xs);
+    font-size: 15px;
+  }
+
+  .platform-name {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .platform-count {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    background: rgba(255,255,255,0.04);
+    padding: 2px 9px;
+    border-radius: 100px;
+  }
+
+  /* ─── Action Card ─── */
+  .action-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    margin-bottom: 10px;
+    transition: border-color 0.2s ease;
+    overflow: hidden;
+  }
+
+  .action-card:hover { border-color: var(--border-medium); }
+
+  .action-card.done { opacity: 0.45; }
+  .action-card.done .action-title { text-decoration: line-through; text-decoration-color: var(--text-tertiary); }
+
+  .action-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 18px 20px 0;
+    cursor: pointer;
+  }
+
+  .action-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    border: 2px solid var(--text-tertiary);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    margin-top: 1px;
+    position: relative;
+  }
+
+  .action-checkbox:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .action-checkbox:checked::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 4px;
+    width: 5px;
+    height: 9px;
+    border: solid var(--text-on-accent);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  .action-checkbox:hover { border-color: var(--accent); }
+
+  .action-content { flex: 1; }
+
+  .action-top-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .action-category {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+
+  .cat-setup { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(184,255,4,0.12); }
+  .cat-posts { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(96,165,250,0.12); }
+  .cat-trafego { background: var(--orange-dim); color: var(--orange); border: 1px solid rgba(251,146,60,0.12); }
+  .cat-vendas { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(167,139,250,0.12); }
+  .cat-gestao { background: var(--emerald-dim); color: var(--emerald); border: 1px solid rgba(52,211,153,0.12); }
+  .cat-lp { background: rgba(244,114,182,0.10); color: #f472b6; border: 1px solid rgba(244,114,182,0.12); }
+
+  .action-title {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--text-primary);
+  }
+
+  .action-description {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    margin-top: 6px;
+    padding-left: 10px;
+    border-left: 2px solid var(--border-medium);
+  }
+
+  .action-card.done .action-description { color: var(--text-tertiary); }
+
+  /* ─── Sub-Checklist ─── */
+  .sub-checklist {
+    list-style: none;
+    padding: 12px 20px 0 50px;
+  }
+
+  .sub-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 4px 0;
+  }
+
+  .sub-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    min-width: 14px;
+    border: 1.5px solid var(--text-tertiary);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    margin-top: 2px;
+    position: relative;
+  }
+
+  .sub-checkbox:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .sub-checkbox:checked::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 3px;
+    width: 4px;
+    height: 7px;
+    border: solid var(--text-on-accent);
+    border-width: 0 1.5px 1.5px 0;
+    transform: rotate(45deg);
+  }
+
+  .sub-checkbox:hover { border-color: rgba(184,255,4,0.5); }
+
+  .sub-checkbox:checked + .sub-text {
+    color: var(--text-tertiary);
+    text-decoration: line-through;
+    text-decoration-color: var(--text-tertiary);
+  }
+
+  .sub-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    transition: color 0.15s ease;
+  }
+
+  /* ─── Context Insight ─── */
+  .action-insight {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 12px 20px 16px 50px;
+    padding: 8px 12px;
+    background: var(--accent-glow);
+    border-left: 2px solid rgba(184,255,4,0.20);
+    border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  }
+
+  .insight-icon {
+    font-size: 12px;
+    line-height: 1;
+    margin-top: 2px;
+    opacity: 0.5;
+  }
+
+  .insight-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    font-style: italic;
+  }
+
+  /* ─── Veja também (adaptação local) ─── */
+  .action-seealso {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 0 20px 16px 50px;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.02);
+    border-left: 2px solid var(--border-medium);
+    border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.45;
+  }
+  .action-seealso strong { color: var(--text-primary); font-weight: 600; }
+
+  /* ─── Divider ─── */
+  .divider {
+    height: 1px;
+    background: var(--border-subtle);
+    margin: 24px 0;
+  }
+
+  /* ─── Cross References ─── */
+  .cross-refs {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .section-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-title svg {
+    width: 14px;
+    height: 14px;
+    stroke: var(--text-tertiary);
+    fill: none;
+  }
+
+  .ref-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .ref-card:hover {
+    border-color: rgba(184,255,4,0.2);
+    background: rgba(184,255,4,0.02);
+  }
+
+  .ref-pilar {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .ref-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    flex: 1;
+  }
+
+  .ref-arrow {
+    color: var(--text-tertiary);
+    font-size: 14px;
+    transition: transform 0.2s ease;
+  }
+
+  .ref-card:hover .ref-arrow { transform: translateX(3px); color: var(--accent); }
+
+  /* ─── Footer ─── */
+  .lesson-footer {
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+
+  .brand-dot {
+    width: 5px;
+    height: 5px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  .footer-source {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    padding: 3px 9px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 100px;
+  }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 640px) {
+    body { padding: 16px 8px; }
+    .window-body { padding: 20px 16px 28px; }
+    .lesson-title { font-size: 20px; }
+    .context-grid { grid-template-columns: 1fr; }
+    .sub-checklist { padding-left: 38px; }
+    .action-insight { margin-left: 38px; }
+    .action-seealso { margin-left: 38px; }
+    .parede-depends { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="window">
+  <div class="window-bar">
+    <div class="dot dot-r"></div>
+    <div class="dot dot-y"></div>
+    <div class="dot dot-g"></div>
+    <div class="window-title">Cockpit Builder — Material de Apoio</div>
+    <div class="window-spacer"></div>
+  </div>
+
+  <div class="window-body">
+
+    <!-- ═══ HEADER ═══ -->
+    <div class="lesson-badges">
+      <span class="lesson-badge">💎 Valor Percebido</span>
+      <span class="lesson-badge">👁️ Percepção</span>
+      <span class="lesson-badge">🔧 Prática</span>
+    </div>
+    <h1 class="lesson-title">Especialização Definida: <span>ICP, Feed Direcionado, Método Próprio e Preço de Autoridade</span></h1>
+    <p class="lesson-subtitle">Easy Sales · Posicionamento · Aula 14</p>
+
+    <!-- ═══ CONTEXTO DA AULA ═══ -->
+    <div class="context-box">
+      <h3>Contexto da aula</h3>
+      <div class="context-grid">
+        <div class="context-card deliverable">
+          <div class="context-card-label">O que você vai construir</div>
+          <ul>
+            <li>Diagnóstico especialista-vs-generalista respondido</li>
+            <li>ICP mapeado (público-alvo e faixa de faturamento definidos)</li>
+            <li>Feed e Stories do Instagram redirecionados para o serviço de especialidade</li>
+            <li>1 vídeo viral no TikTok com fórmula AR3</li>
+            <li>Método próprio de entrega nomeado</li>
+            <li>Tabela de preços reajustada para ticket alto</li>
+          </ul>
+        </div>
+        <div class="context-card prereq">
+          <div class="context-card-label">Pré-requisitos</div>
+          <ul>
+            <li>Conta ativa no TikTok</li>
+            <li>Perfil no Instagram para portfólio e Stories</li>
+            <li>Material para anotação (papel ou digital) para os exercícios de diagnóstico</li>
+          </ul>
+        </div>
+      </div>
+      <div class="context-summary">
+        <strong>Objetivo central:</strong> Sair da aula com o posicionamento de especialista definido — do diagnóstico à precificação de autoridade.
+      </div>
+    </div>
+
+    <!-- ═══ PROGRESS ═══ -->
+    <div class="progress-section">
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-label" id="progressLabel"><strong>0</strong> de 7 ações</div>
+    </div>
+
+    <!-- ═══════════════════════════════════ -->
+    <!-- FUNDAMENTOS -->
+    <!-- ═══════════════════════════════════ -->
+    <div class="platform-section" id="plat-fundamentos">
+      <div class="platform-header">
+        <div class="platform-icon">📋</div>
+        <div class="platform-name">Fundamentos</div>
+        <div class="platform-count">4 ações</div>
+      </div>
+
+      <!-- PAREDE 1 -->
+      <div class="parede-header" id="parede-1">
+        <span class="parede-name">Diagnóstico de Especialização (Especialista vs Generalista)</span>
+      </div>
+
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-setup">Diagnóstico</span>
+            </div>
+            <div class="action-title">Responder ao diagnóstico de especialização: especialista vs. generalista, identificando seu 80-20 e o ritmo da transição</div>
+            <div class="action-description">Ponto de partida da aula: antes de mexer em feed, método ou preço, você precisa saber se hoje é especialista ou generalista — é a base de tudo que vem depois.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Anotar e responder se você é atualmente um especialista ou um generalista</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Identificar seu "80-20": qual serviço você mais gosta de fazer, qual dá mais retorno financeiro e perspectiva de futuro</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Definir se a transição para especialista será imediata ou gradual para não comprometer o caixa</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">Isso aqui é de extrema importância se você quer definir o seu posicionamento.</span>
+        </div>
+      </div>
+
+      <!-- PAREDE 2 -->
+      <div class="parede-header" id="parede-2">
+        <span class="parede-name">Definição de Público-Alvo e Perfil de Cliente Ideal</span>
+      </div>
+
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-setup">ICP</span>
+            </div>
+            <div class="action-title">Mapear o ICP (Perfil de Cliente Ideal): quem são, faixa de faturamento (R$50 a R$250 mil) e o que realmente precisam</div>
+            <div class="action-description">Mesma base do diagnóstico: sem saber quem é o cliente ideal, faixa de faturamento e o que ele realmente precisa, o direcionamento de feed, método e preço da aula não tem alvo certo.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Responder por escrito: Quem são os clientes?</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Definir a faixa de faturamento deles (ex: entre 50 e 250 mil reais)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Listar o que eles sabem, o que não sabem e o que deveriam saber sobre o seu serviço</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Identificar o que eles estão buscando e do que realmente precisam (ex: estrutura completa para atrair e converter)</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">Isso aqui é de extrema importância se você quer definir o seu posicionamento.</span>
+        </div>
+      </div>
+
+      <!-- PAREDE 3 -->
+      <div class="parede-header" id="parede-3">
+        <span class="parede-name">Método Próprio de Entrega</span>
+      </div>
+
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-gestao">Método</span>
+            </div>
+            <div class="action-title">Nomear e descrever um método próprio de entrega, transformando os pilares da sua solução em uma sigla de autoridade (ex: Método PARN)</div>
+            <div class="action-description">Com o diagnóstico e o ICP definidos, chegou a hora de estruturar como você entrega: um método nomeado é o que sustenta o preço de autoridade lá na frente.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Listar os pilares que sustentam a sua solução (ex: Copy, otimização, pós-venda)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Criar uma nomenclatura/sigla usando as iniciais desses pilares (ex: Método PARN)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Descrever por escrito o passo a passo de como você executa a transformação para o cliente</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">Nesse estágio de sofisticação, só vai sustentar quem tiver um método.</span>
+        </div>
+        <div class="action-seealso">
+          <span class="insight-icon">👁️</span>
+          <span><strong>Veja também:</strong> cômodo Fundamentos › "Definição da Solução Principal (Pitch de Posicionamento)"</span>
+        </div>
+      </div>
+
+      <!-- PAREDE 4 -->
+      <div class="parede-header" id="parede-4">
+        <span class="parede-name">Lista de Serviços Precificada e Rankeada</span>
+      </div>
+
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-vendas">Precificação</span>
+            </div>
+            <div class="action-title">Reajustar a tabela de preços para ticket de autoridade (R$2 a R$3 mil por projeto), abandonando tickets abaixo de R$700-900</div>
+            <div class="action-description">Com o método nomeado, a tabela de preços deixa de refletir insegurança e passa a comunicar autoridade — preço é posicionamento.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Abandonar tickets baixos (na casa de 700 a 900 reais) se a qualidade for superior</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Fixar o preço de projetos (ex: página de vendas) em patamares de autoridade, como 2 mil a 3 mil reais</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Ter autoconfiança no momento da fala para sustentar o novo preço perante o cliente</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">Preço é posicionamento.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════ -->
+    <!-- INSTAGRAM -->
+    <!-- ═══════════════════════════════════ -->
+    <div class="platform-section" id="plat-instagram">
+      <div class="platform-header">
+        <div class="platform-icon">📸</div>
+        <div class="platform-name">Instagram</div>
+        <div class="platform-count">2 ações</div>
+      </div>
+
+      <!-- PAREDE 5 -->
+      <div class="parede-header" id="parede-5">
+        <span class="parede-name">Feed e Stories Direcionados para Especialidade</span>
+      </div>
+      <div class="parede-depends">
+        <span>🔗</span>
+        <span><strong>Depende de:</strong> "Diagnóstico de Especialização (Especialista vs Generalista)" — cômodo Fundamentos, mesma aula</span>
+      </div>
+
+      <!-- Action A -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-posts">Posts</span>
+            </div>
+            <div class="action-title">Direcionar o feed do Instagram para postar predominantemente o serviço de especialidade escolhido (ex: Landing Page), parando de postar todos os serviços</div>
+            <div class="action-description">Com o serviço de especialidade já escolhido no diagnóstico, o feed passa a comunicar isso publicamente — você vai direcionando essa transição para não matar o seu faturamento.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Selecionar o serviço principal que deseja vender (ex: Landing Page)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Parar de postar sobre todos os serviços executados</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Postar predominantemente artes e resultados do serviço escolhido como especialidade</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">Você vai direcionando essa transição para não matar o seu faturamento.</span>
+        </div>
+      </div>
+
+      <!-- Action B -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-posts">Posts</span>
+            </div>
+            <div class="action-title">Adaptar a comunicação nos Stories para bastidores focados exclusivamente no serviço de especialidade</div>
+            <div class="action-description">Os Stories reforçam no dia a dia o mesmo direcionamento do feed, mostrando bastidores só do serviço de especialidade.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Trazer conteúdos e bastidores focados exclusivamente no serviço de especialidade</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════ -->
+    <!-- TIKTOK -->
+    <!-- ═══════════════════════════════════ -->
+    <div class="platform-section" id="plat-tiktok">
+      <div class="platform-header">
+        <div class="platform-icon">🎵</div>
+        <div class="platform-name">TikTok</div>
+        <div class="platform-count">1 ação</div>
+      </div>
+
+      <!-- PAREDE 6 -->
+      <div class="parede-header" id="parede-6">
+        <span class="parede-name">Vídeo Viral com Fórmula AR3</span>
+      </div>
+
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-trafego">Viral</span>
+            </div>
+            <div class="action-title">Criar vídeo de prospecção no TikTok usando a headline "Como roubar os clientes do seu concorrente" e a fórmula AR3 (Atenção, Retenção, Reação, Reserva/Reset)</div>
+            <div class="action-description">Com a especialidade, o ICP e o método já definidos, o TikTok vira o canal mais rápido pra colocar esse posicionamento na frente de gente nova — é a forma mais fácil de viralizar e ter audiência.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Utilizar a headline: "Como roubar os clientes do seu concorrente"</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Aplicar a fórmula AR3: Atenção (headline forte), Retenção (conteúdo que segura o usuário), Reação (pedir curtida) e Reserva/Reset (começar a gravar pelo final e cortar a frase no meio para gerar o loop)</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">TikTok é a forma mais fácil de tu viralizar e de ter audiência.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ REFERÊNCIAS CRUZADAS ═══ -->
+    <div class="cross-refs">
+      <div class="section-title">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        Veja também em outras aulas
+      </div>
+
+      <a class="ref-card" href="#">
+        <span class="ref-pilar">Posicionamento</span>
+        <span class="ref-text">Definição de ICP e Diferenciação por Método</span>
+        <span class="ref-arrow">→</span>
+      </a>
+
+      <a class="ref-card" href="#">
+        <span class="ref-pilar">Vendas</span>
+        <span class="ref-text">Negociação e precificação baseada em percepção de valor</span>
+        <span class="ref-arrow">→</span>
+      </a>
+
+      <a class="ref-card" href="#">
+        <span class="ref-pilar">Tráfego/Atração</span>
+        <span class="ref-text">Uso de TikTok e viralização para gerar audiência</span>
+        <span class="ref-arrow">→</span>
+      </a>
+
+      <a class="ref-card" href="#">
+        <span class="ref-pilar">Identidade/Percepção</span>
+        <span class="ref-text">Coerência entre o que se divulga e o que se entrega</span>
+        <span class="ref-arrow">→</span>
+      </a>
+    </div>
+
+    <!-- ═══ FOOTER ═══ -->
+    <div class="lesson-footer">
+      <div class="footer-brand">
+        <span class="brand-dot"></span>
+        Cockpit Builder — Easy Builder
+      </div>
+      <div class="footer-source">Posicionamento — Aula 14</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const mainBoxes = document.querySelectorAll('.action-checkbox');
+  const subBoxes = document.querySelectorAll('.sub-checkbox');
+
+  mainBoxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      const card = cb.closest('.action-card');
+      card.classList.toggle('done', cb.checked);
+      const subs = card.querySelectorAll('.sub-checkbox');
+      subs.forEach(s => { s.checked = cb.checked; });
+      updateProgress();
+    });
+  });
+
+  subBoxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      updateProgress();
+    });
+  });
+
+  function updateProgress() {
+    const total = mainBoxes.length;
+    let done = 0;
+    mainBoxes.forEach(cb => {
+      const card = cb.closest('.action-card');
+      const subs = card.querySelectorAll('.sub-checkbox');
+      const subsChecked = card.querySelectorAll('.sub-checkbox:checked');
+      if (subs.length > 0 && subsChecked.length === subs.length) {
+        cb.checked = true;
+        card.classList.add('done');
+        done++;
+      } else if (cb.checked && subs.length > 0 && subsChecked.length < subs.length) {
+        // keep done if manually checked
+        done++;
+      } else if (cb.checked) {
+        done++;
+      }
+    });
+    document.getElementById('progressFill').style.width = `${(done / total) * 100}%`;
+    document.getElementById('progressLabel').innerHTML = `<strong>${done}</strong> de ${total} ações`;
+  }
+
+  updateProgress();
+</script>
+
+</body>
+</html>

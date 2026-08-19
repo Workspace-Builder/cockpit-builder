@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cockpit Builder — Plano de Negócio, Perfil Base no Instagram e Mapeamento da Concorrência</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --bg-base: #0a0a0a;
+    --bg-surface: #111111;
+    --bg-card: #0e0e0e;
+    --bg-elevated: #1a1a1a;
+    --bg-input: #161616;
+    --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-medium: rgba(255, 255, 255, 0.10);
+    --border-strong: rgba(255, 255, 255, 0.14);
+    --accent: #b8ff04;
+    --accent-dim: rgba(184, 255, 4, 0.10);
+    --accent-glow: rgba(184, 255, 4, 0.05);
+    --blue: #60a5fa;
+    --blue-dim: rgba(96, 165, 250, 0.10);
+    --orange: #fb923c;
+    --orange-dim: rgba(251, 146, 60, 0.10);
+    --purple: #a78bfa;
+    --purple-dim: rgba(167, 139, 250, 0.10);
+    --emerald: #34d399;
+    --emerald-dim: rgba(52, 211, 153, 0.10);
+    --text-primary: #f0f0f0;
+    --text-secondary: #888888;
+    --text-tertiary: #555555;
+    --text-on-accent: #0a0a0a;
+    --radius-xs: 6px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+
+  /* ─── Window ─── */
+  .window {
+    max-width: 840px;
+    margin: 0 auto;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.2);
+  }
+
+  .window-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 20px;
+    background: rgba(255,255,255,0.015);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+
+  .window-title {
+    flex: 1;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    letter-spacing: 0.03em;
+  }
+
+  .window-spacer { width: 52px; }
+
+  .window-body { padding: 32px 28px 40px; }
+
+  /* ─── Header ─── */
+  .lesson-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .lesson-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 11px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(184,255,4,0.15);
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .lesson-title {
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 6px;
+    letter-spacing: -0.02em;
+  }
+  .lesson-title span { color: var(--accent); }
+
+  .lesson-subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    max-width: 620px;
+    margin-bottom: 28px;
+  }
+
+  /* ─── Context Box ─── */
+  .context-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 28px;
+  }
+
+  .context-box h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 16px;
+  }
+
+  .context-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .context-card {
+    padding: 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+  }
+
+  .context-card-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+    margin-bottom: 10px;
+  }
+
+  .context-card ul {
+    list-style: none;
+  }
+
+  .context-card li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    padding: 4px 0;
+  }
+
+  .context-card li::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    min-width: 5px;
+    border-radius: 50%;
+    margin-top: 6px;
+  }
+
+  .deliverable li::before { background: var(--accent); }
+  .prereq li::before { background: var(--text-tertiary); }
+
+  .context-summary {
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: var(--accent-glow);
+    border-left: 2px solid rgba(184,255,4,0.20);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .context-summary strong { color: var(--accent); font-weight: 600; }
+
+  /* ─── Progress ─── */
+  .progress-section {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 5px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #d4ff4a);
+    border-radius: 100px;
+    transition: width 0.4s ease;
+  }
+
+  .progress-label {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+  .progress-label strong { color: var(--accent); font-weight: 700; }
+
+  /* ─── Parede (RESULTADO nomeado) ─── */
+  .parede-header {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 18px 0 10px;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.02);
+    border-left: 2px solid var(--accent);
+    border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  }
+
+  .parede-header:first-of-type { margin-top: 0; }
+
+  .parede-name {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+
+  .parede-meta {
+    margin-left: auto;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+
+  .parede-meta strong { color: var(--accent); font-weight: 700; }
+
+  /* ─── Platform Section ─── */
+  .platform-section { margin-bottom: 28px; }
+
+  .platform-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .platform-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-xs);
+    font-size: 15px;
+  }
+
+  .platform-name {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .platform-count {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    background: rgba(255,255,255,0.04);
+    padding: 2px 9px;
+    border-radius: 100px;
+  }
+
+  /* ─── Action Card ─── */
+  .action-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    margin-bottom: 10px;
+    transition: border-color 0.2s ease;
+    overflow: hidden;
+  }
+
+  .action-card:hover { border-color: var(--border-medium); }
+
+  .action-card.done { opacity: 0.45; }
+  .action-card.done .action-title { text-decoration: line-through; text-decoration-color: var(--text-tertiary); }
+
+  .action-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 18px 20px 0;
+    cursor: pointer;
+  }
+
+  .action-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    border: 2px solid var(--text-tertiary);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    margin-top: 1px;
+    position: relative;
+  }
+
+  .action-checkbox:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .action-checkbox:checked::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 4px;
+    width: 5px;
+    height: 9px;
+    border: solid var(--text-on-accent);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  .action-checkbox:hover { border-color: var(--accent); }
+
+  .action-content { flex: 1; }
+
+  .action-top-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .action-category {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+
+  .cat-setup { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(184,255,4,0.12); }
+  .cat-posts { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(96,165,250,0.12); }
+  .cat-trafego { background: var(--orange-dim); color: var(--orange); border: 1px solid rgba(251,146,60,0.12); }
+  .cat-vendas { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(167,139,250,0.12); }
+  .cat-gestao { background: var(--emerald-dim); color: var(--emerald); border: 1px solid rgba(52,211,153,0.12); }
+  .cat-lp { background: rgba(244,114,182,0.10); color: #f472b6; border: 1px solid rgba(244,114,182,0.12); }
+
+  .action-title {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--text-primary);
+  }
+
+  .action-description {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    margin-top: 6px;
+    padding-left: 10px;
+    border-left: 2px solid var(--border-medium);
+  }
+
+  .action-card.done .action-description { color: var(--text-tertiary); }
+
+  /* ─── Sub-Checklist ─── */
+  .sub-checklist {
+    list-style: none;
+    padding: 12px 20px 0 50px;
+  }
+
+  .sub-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 4px 0;
+  }
+
+  .sub-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    min-width: 14px;
+    border: 1.5px solid var(--text-tertiary);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    margin-top: 2px;
+    position: relative;
+  }
+
+  .sub-checkbox:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .sub-checkbox:checked::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 3px;
+    width: 4px;
+    height: 7px;
+    border: solid var(--text-on-accent);
+    border-width: 0 1.5px 1.5px 0;
+    transform: rotate(45deg);
+  }
+
+  .sub-checkbox:hover { border-color: rgba(184,255,4,0.5); }
+
+  .sub-checkbox:checked + .sub-text {
+    color: var(--text-tertiary);
+    text-decoration: line-through;
+    text-decoration-color: var(--text-tertiary);
+  }
+
+  .sub-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    transition: color 0.15s ease;
+  }
+
+  /* ─── Context Insight ─── */
+  .action-insight {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 12px 20px 16px 50px;
+    padding: 8px 12px;
+    background: var(--accent-glow);
+    border-left: 2px solid rgba(184,255,4,0.20);
+    border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  }
+
+  .insight-icon {
+    font-size: 12px;
+    line-height: 1;
+    margin-top: 2px;
+    opacity: 0.5;
+  }
+
+  .insight-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    font-style: italic;
+  }
+
+  /* ─── Veja também (nota de referência inline no card) ─── */
+  .see-also {
+    margin: 0 20px 16px 50px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    line-height: 1.5;
+  }
+
+  .see-also strong {
+    color: var(--text-secondary);
+    font-weight: 600;
+  }
+
+  /* ─── Divider ─── */
+  .divider {
+    height: 1px;
+    background: var(--border-subtle);
+    margin: 24px 0;
+  }
+
+  /* ─── Cross References ─── */
+  .cross-refs {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .section-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-title svg {
+    width: 14px;
+    height: 14px;
+    stroke: var(--text-tertiary);
+    fill: none;
+  }
+
+  .ref-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .ref-card:hover {
+    border-color: rgba(184,255,4,0.2);
+    background: rgba(184,255,4,0.02);
+  }
+
+  .ref-pilar {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .ref-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    flex: 1;
+  }
+
+  .ref-arrow {
+    color: var(--text-tertiary);
+    font-size: 14px;
+    transition: transform 0.2s ease;
+  }
+
+  .ref-card:hover .ref-arrow { transform: translateX(3px); color: var(--accent); }
+
+  /* ─── Footer ─── */
+  .lesson-footer {
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+
+  .brand-dot {
+    width: 5px;
+    height: 5px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  .footer-source {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    padding: 3px 9px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 100px;
+  }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 640px) {
+    body { padding: 16px 8px; }
+    .window-body { padding: 20px 16px 28px; }
+    .lesson-title { font-size: 20px; }
+    .context-grid { grid-template-columns: 1fr; }
+    .sub-checklist { padding-left: 38px; }
+    .action-insight { margin-left: 38px; }
+    .see-also { margin-left: 38px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="window">
+  <div class="window-bar">
+    <div class="dot dot-r"></div>
+    <div class="dot dot-y"></div>
+    <div class="dot dot-g"></div>
+    <div class="window-title">Cockpit Builder — Material de Apoio</div>
+    <div class="window-spacer"></div>
+  </div>
+
+  <div class="window-body">
+
+    <!-- ═══ HEADER ═══ -->
+    <div class="lesson-badges">
+      <span class="lesson-badge">Valor Percebido</span>
+      <span class="lesson-badge">Percepção</span>
+      <span class="lesson-badge">🔧 Prática</span>
+    </div>
+    <h1 class="lesson-title">Plano de Negócio, Perfil Base no Instagram <span>e Mapeamento da Concorrência</span></h1>
+    <p class="lesson-subtitle">Aplicar na prática o plano de negócio — público-alvo, persona, missão, dores do cliente, escopo e precificação —, montar a base do perfil de Instagram para prospecção e mapear a concorrência e a reputação do mercado antes de sair prospectando.</p>
+
+    <!-- ═══ CONTEXTO DA AULA ═══ -->
+    <div class="context-box">
+      <h3>Contexto da aula</h3>
+      <div class="context-grid">
+        <div class="context-card deliverable">
+          <div class="context-card-label">O que você vai construir</div>
+          <ul>
+            <li>Plano de negócio aplicado: nicho, missão, dor do cliente, solução e escopo de serviço</li>
+            <li>Lista de serviços precificada, com ticket e limites claros do que é entregue</li>
+            <li>Levantamento de concorrência e reputação de mercado (sites, Google Meu Negócio, Reclame Aqui)</li>
+            <li>Base do perfil de Instagram: identidade visual, bio, destaques e 3 primeiros posts</li>
+          </ul>
+        </div>
+        <div class="context-card prereq">
+          <div class="context-card-label">Pré-requisitos</div>
+          <ul>
+            <li>Paredes de fundamentos já existentes de aulas anteriores do módulo Planejamento (serão enriquecidas aqui)</li>
+            <li>Acesso ao perfil de Instagram da empresa</li>
+          </ul>
+        </div>
+      </div>
+      <div class="context-summary">
+        <strong>Objetivo central:</strong> "Se vocês tiverem um plano de negócio baseado nisso aqui... não tem como vocês não saírem do CLT." Sair do achismo — plano de negócio formalizado, concorrência mapeada e perfil pronto antes de começar a prospectar.
+      </div>
+    </div>
+
+    <!-- ═══ PROGRESS ═══ -->
+    <div class="progress-section">
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-label" id="progressLabel"><strong>0</strong> de 12 ações</div>
+    </div>
+
+    <!-- ═══════════════════════════════════ -->
+    <!-- FUNDAMENTOS -->
+    <!-- ═══════════════════════════════════ -->
+    <div class="platform-section" id="plat-fundamentos">
+      <div class="platform-header">
+        <div class="platform-icon">📋</div>
+        <div class="platform-name">Fundamentos</div>
+        <div class="platform-count">8 ações</div>
+      </div>
+
+      <!-- PAREDE 1 -->
+      <div class="parede-header" id="parede-1">
+        <span class="parede-name">Definição de Público-Alvo e Perfil de Cliente Ideal</span>
+      </div>
+
+      <!-- Action 1 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-gestao">Definição</span>
+            </div>
+            <div class="action-title">Identificar o nicho de atuação (ex: clínicas odontológicas, esteticistas) e, em caso de dúvida conceitual, pesquisar no YouTube termos como "como definir meu público-alvo", "persona" e "missão"</div>
+            <div class="action-description">Fechar o nicho antes de seguir — sem isso, público-alvo e persona ficam genéricos e o resto do plano de negócio não tem base sólida.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Escolher um nicho de atuação concreto (ex: clínicas odontológicas, esteticistas)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Se tiver dúvida sobre o conceito, pesquisar no YouTube: "como definir meu público-alvo"</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Pesquisar também "persona" e "missão" caso o conceito não esteja claro</span></li>
+        </ul>
+      </div>
+
+      <!-- Action 2 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-gestao">Missão</span>
+            </div>
+            <div class="action-title">Formalizar a missão da empresa como parte do plano de negócio</div>
+            <div class="action-description">Colocar a missão no papel — é a peça do plano de negócio que orienta as decisões de posicionamento daqui pra frente.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Escrever a missão da empresa por escrito</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Registrar a missão como parte formal do plano de negócio</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">Se vocês tiverem um plano de negócio baseado nisso aqui... não tem como vocês não saírem do CLT</span>
+        </div>
+      </div>
+
+      <!-- PAREDE 2 -->
+      <div class="parede-header" id="parede-2">
+        <span class="parede-name">Mapa de Dores e Desejos do Público</span>
+      </div>
+
+      <!-- Action 3 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-gestao">Diagnóstico</span>
+            </div>
+            <div class="action-title">Descrever a principal dor do cliente (ex: necessidade de migrar para o online após queda de demanda presencial) e definir como a solução escolhida resolve essa dor, transmitindo autoridade</div>
+            <div class="action-description">Amarrar a dor real do cliente à solução que você vende — é isso que transmite autoridade na prospecção, não uma lista genérica de serviços.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Descrever a principal dor do cliente do nicho escolhido (ex: queda de demanda presencial forçando migração para o online)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Definir como a solução escolhida resolve especificamente essa dor</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Escrever essa conexão dor → solução de forma que transmita autoridade</span></li>
+        </ul>
+      </div>
+
+      <!-- PAREDE 3 -->
+      <div class="parede-header" id="parede-3">
+        <span class="parede-name">Definição da Solução Principal (Pitch de Posicionamento)</span>
+      </div>
+
+      <!-- Action 4 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-gestao">Posicionamento</span>
+            </div>
+            <div class="action-title">Listar exatamente o que será oferecido ao cliente (ex: estrutura completa do site, copy, webdesign e SEO) como parte da solução vendida</div>
+            <div class="action-description">Detalhar item por item o que compõe a solução vendida — é o que vira o pitch de posicionamento na hora de apresentar pro cliente.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Listar cada entrega que compõe a solução (ex: estrutura completa do site)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Incluir copy, webdesign e SEO na lista, quando fizerem parte do pacote</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Consolidar a lista como a base do pitch de posicionamento</span></li>
+        </ul>
+      </div>
+
+      <!-- PAREDE 4 -->
+      <div class="parede-header" id="parede-4">
+        <span class="parede-name">Lista de Serviços Precificada e Rankeada</span>
+      </div>
+
+      <!-- Action 5 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-gestao">Precificação</span>
+            </div>
+            <div class="action-title">Definir o ticket (preço) e o modelo de manutenção do serviço</div>
+            <div class="action-description">Colocar preço e recorrência no papel — sem isso a lista de serviços fica sem ranking real.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Definir o ticket (preço) de cada serviço</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Definir o modelo de manutenção do serviço (como funciona, o que inclui)</span></li>
+        </ul>
+      </div>
+
+      <!-- Action 6 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-gestao">Escopo</span>
+            </div>
+            <div class="action-title">Delimitar o escopo do que a empresa FAZ (ex: sites de vendas, biolink) e do que NÃO faz (ex: tráfego pago, social media)</div>
+            <div class="action-description">Deixar por escrito o limite do que é vendido — pra não prometer ao cliente algo que não vai ser entregue.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Listar o que a empresa faz (ex: sites de vendas, biolink)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Listar explicitamente o que a empresa NÃO faz (ex: tráfego pago, social media)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Usar essa delimitação para não prometer o que está fora do escopo</span></li>
+        </ul>
+      </div>
+
+      <!-- PAREDE 5 -->
+      <div class="parede-header" id="parede-5">
+        <span class="parede-name">Análise de Concorrência e Reputação de Mercado</span>
+      </div>
+
+      <!-- Action 7 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-vendas">Pesquisa</span>
+            </div>
+            <div class="action-title">Abrir sites de várias agências concorrentes em abas diferentes e comparar como elas apresentam seus serviços</div>
+            <div class="action-description">Ver como o mercado já se posiciona antes de sair prospectando — abrir várias referências lado a lado revela padrões de apresentação e precificação.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Abrir sites de várias agências concorrentes, uma em cada aba do navegador</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Comparar como cada uma apresenta seus serviços</span></li>
+        </ul>
+      </div>
+
+      <!-- Action 8 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-vendas">Reputação</span>
+            </div>
+            <div class="action-title">Pesquisar depoimentos de clientes no Google Meu Negócio e no Reclame Aqui para entender insatisfações e expectativas reais do mercado antes de prospectar</div>
+            <div class="action-description">Levantar reclamações e expectativas reais do mercado antes de prospectar — informação que evita repetir os erros dos concorrentes.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Pesquisar avaliações e depoimentos no Google Meu Negócio das agências concorrentes</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Pesquisar reclamações no Reclame Aqui</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">Eu não saio na louca... Eu olho o site dos clientes. Eu vejo o nicho. Eu vejo concorrência</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════ -->
+    <!-- INSTAGRAM -->
+    <!-- ═══════════════════════════════════ -->
+    <div class="platform-section" id="plat-instagram">
+      <div class="platform-header">
+        <div class="platform-icon">📸</div>
+        <div class="platform-name">Instagram</div>
+        <div class="platform-count">4 ações</div>
+      </div>
+
+      <!-- PAREDE 6 -->
+      <div class="parede-header" id="parede-6">
+        <span class="parede-name">Perfil profissional posicionado para percepção de valor</span>
+      </div>
+
+      <!-- Action 9 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-setup">Setup</span>
+            </div>
+            <div class="action-title">Definir o nome da empresa e a identidade visual do perfil</div>
+            <div class="action-description">Fechar nome e identidade visual antes de montar o resto do perfil — é a base visual que sustenta bio, destaques e posts.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Definir o nome da empresa</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Definir a identidade visual do perfil (cores, estilo)</span></li>
+        </ul>
+      </div>
+
+      <!-- Action 10 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-setup">Setup</span>
+            </div>
+            <div class="action-title">Escolher a foto de perfil e escrever a bio focada em conversão</div>
+            <div class="action-description">A foto e a bio são o que o lead vê primeiro — precisam converter, não só decorar o perfil.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Escolher a foto de perfil</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Escrever a bio com foco em conversão</span></li>
+        </ul>
+      </div>
+
+      <!-- Action 11 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-setup">Setup</span>
+            </div>
+            <div class="action-title">Organizar os destaques com informações estratégicas</div>
+            <div class="action-description">Usar os destaques para reforçar as informações estratégicas que sustentam a percepção de valor do perfil.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Selecionar as informações estratégicas que vão virar destaque</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Organizar os destaques no perfil</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">Mapeando aqui o que precisa ser feito para que isso funcione</span>
+        </div>
+        <div class="see-also"><strong>Veja também:</strong> este perfil é a base do passo 1 da cadeia "Funil de Tráfego com R$7/dia" — é sobre ele que o tráfego pago vai rodar.</div>
+      </div>
+
+      <!-- PAREDE 7 -->
+      <div class="parede-header" id="parede-7">
+        <span class="parede-name">Primeiros Posts de Validação da Grade</span>
+      </div>
+
+      <!-- Action 12 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-posts">Posts</span>
+            </div>
+            <div class="action-title">Criar e publicar 3 posts iniciais para preencher a grade do perfil e gerar percepção de atividade</div>
+            <div class="action-description">Preencher a grade antes de partir para uma grade de conteúdo estratégica mais avançada — perfil vazio passa impressão de inatividade pro lead que chega.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Criar 3 posts iniciais</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Publicar os 3 posts para preencher a grade do perfil</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ═══ REFERÊNCIAS CRUZADAS ═══ -->
+    <div class="cross-refs">
+      <div class="section-title">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        Veja também em outras aulas
+      </div>
+
+      <a class="ref-card" href="#">
+        <span class="ref-pilar">Posicionamento</span>
+        <span class="ref-text">Definição de público e persona</span>
+        <span class="ref-arrow">→</span>
+      </a>
+
+      <a class="ref-card" href="#">
+        <span class="ref-pilar">Posicionamento</span>
+        <span class="ref-text">Identidade Visual e Bio</span>
+        <span class="ref-arrow">→</span>
+      </a>
+
+      <a class="ref-card" href="#">
+        <span class="ref-pilar">Prospecção</span>
+        <span class="ref-text">Estudo de mercado</span>
+        <span class="ref-arrow">→</span>
+      </a>
+    </div>
+
+    <!-- ═══ FOOTER ═══ -->
+    <div class="lesson-footer">
+      <div class="footer-brand">
+        <span class="brand-dot"></span>
+        Cockpit Builder — Easy Builder
+      </div>
+      <div class="footer-source">Easy Sales · Planejamento · Aula 07</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const mainBoxes = document.querySelectorAll('.action-checkbox');
+  const subBoxes = document.querySelectorAll('.sub-checkbox');
+
+  mainBoxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      const card = cb.closest('.action-card');
+      card.classList.toggle('done', cb.checked);
+      const subs = card.querySelectorAll('.sub-checkbox');
+      subs.forEach(s => { s.checked = cb.checked; });
+      updateProgress();
+    });
+  });
+
+  subBoxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      updateProgress();
+    });
+  });
+
+  function updateProgress() {
+    const total = mainBoxes.length;
+    let done = 0;
+    mainBoxes.forEach(cb => {
+      const card = cb.closest('.action-card');
+      const subs = card.querySelectorAll('.sub-checkbox');
+      const subsChecked = card.querySelectorAll('.sub-checkbox:checked');
+      if (subs.length > 0 && subsChecked.length === subs.length) {
+        cb.checked = true;
+        card.classList.add('done');
+        done++;
+      } else if (cb.checked && subs.length > 0 && subsChecked.length < subs.length) {
+        // keep done if manually checked
+        done++;
+      } else if (cb.checked) {
+        done++;
+      }
+    });
+    document.getElementById('progressFill').style.width = `${(done / total) * 100}%`;
+    document.getElementById('progressLabel').innerHTML = `<strong>${done}</strong> de ${total} ações`;
+  }
+
+  updateProgress();
+</script>
+
+</body>
+</html>

@@ -65,10 +65,13 @@ export type DadosNo = {
     x?: number,
     y?: number,
   ) => void;
+  /** Nó `iframe`: abre o conteúdo num modal por cima do board, em vez de
+   * deixar o iframe embutido roubar o scroll/zoom do canvas. */
+  aoAbrirIframe?: (src: string, label: string) => void;
 };
 
 function NoDoBoardBase({ data, selected }: NodeProps) {
-  const { no, editando, temConteudo, aoRedimensionar } = data as unknown as DadosNo;
+  const { no, editando, temConteudo, aoRedimensionar, aoAbrirIframe } = data as unknown as DadosNo;
 
   return (
     <>
@@ -108,7 +111,7 @@ function NoDoBoardBase({ data, selected }: NodeProps) {
         <Handle key={lado} type="source" id={lado} position={pos} />
       ))}
 
-      <Corpo no={no} selecionado={!!selected} temConteudo={!!temConteudo} />
+      <Corpo no={no} selecionado={!!selected} temConteudo={!!temConteudo} aoAbrirIframe={aoAbrirIframe} />
     </>
   );
 }
@@ -127,12 +130,15 @@ function Corpo({
   no,
   selecionado,
   temConteudo,
+  aoAbrirIframe,
 }: {
   no: NoBoard;
   selecionado: boolean;
   temConteudo: boolean;
+  aoAbrirIframe?: (src: string, label: string) => void;
 }) {
   const anel = selecionado ? "outline outline-2 outline-azul" : "";
+  const guardaRef = useRef<HTMLDivElement>(null);
 
   /**
    * Som do vídeo — estado do React, não só um `.muted = false` na hora do
@@ -271,10 +277,35 @@ function Corpo({
     );
   }
 
-  if (no.tipo === "iframe" || no.tipo === "video") {
+  if (no.tipo === "iframe") {
     // O conteúdo veio do legado já montado (janela, barra, proporção). Ver
     // nota sobre `html` na migration 003.
     //
+    // `.ifr-guard` (globals.css) cobre o iframe inteiro: sem ele, passar o
+    // mouse ou dar scroll em cima do nó entrega o evento pro DOCUMENTO DE
+    // DENTRO do iframe, não pro board — e como o board só faz zoom com
+    // Ctrl/Cmd+scroll, o gesto vira "zoom da página embutida" (ou nem chega
+    // no canvas nenhum), e ninguém consegue navegar por cima de um nó. Um
+    // clique na guarda abre o mesmo conteúdo grande, num modal por cima do
+    // board (ver `iframeAberto` no BoardCanvas) — aí sim dá pra rolar/
+    // interagir com a página de dentro sem brigar com o pan/zoom do canvas.
+    return (
+      <div ref={guardaRef} className={clsx("relative h-full w-full", anel)}>
+        <div className="h-full w-full" dangerouslySetInnerHTML={{ __html: no.html ?? "" }} />
+        <div
+          className="ifr-guard"
+          onClick={() => {
+            const ifr = guardaRef.current?.querySelector("iframe");
+            const src = ifr?.getAttribute("src");
+            if (!src) return;
+            aoAbrirIframe?.(src, ifr?.getAttribute("title") ?? no.txt ?? "");
+          }}
+        />
+      </div>
+    );
+  }
+
+  if (no.tipo === "video") {
     // Mudo por padrão (o dado já vem `muted`) — sem isso são vários vídeos
     // com `autoplay` na mesma tela, cada um tocando o próprio áudio ao entrar
     // na página. Clique em qualquer ponto do nó liga o som DESTE vídeo; quem
@@ -284,7 +315,7 @@ function Corpo({
         ref={somRef}
         className={clsx("h-full w-full", anel)}
         dangerouslySetInnerHTML={{ __html: no.html ?? "" }}
-        onClick={no.tipo === "video" ? () => setComSom(true) : undefined}
+        onClick={() => setComSom(true)}
       />
     );
   }

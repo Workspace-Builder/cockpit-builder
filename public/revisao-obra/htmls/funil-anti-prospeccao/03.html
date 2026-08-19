@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cockpit Builder — Sobrinho VS Profissional Que Resolve Problemas</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --bg-base: #0a0a0a;
+    --bg-surface: #111111;
+    --bg-card: #0e0e0e;
+    --bg-elevated: #1a1a1a;
+    --bg-input: #161616;
+    --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-medium: rgba(255, 255, 255, 0.10);
+    --border-strong: rgba(255, 255, 255, 0.14);
+    --accent: #b8ff04;
+    --accent-dim: rgba(184, 255, 4, 0.10);
+    --accent-glow: rgba(184, 255, 4, 0.05);
+    --blue: #60a5fa;
+    --blue-dim: rgba(96, 165, 250, 0.10);
+    --orange: #fb923c;
+    --orange-dim: rgba(251, 146, 60, 0.10);
+    --purple: #a78bfa;
+    --purple-dim: rgba(167, 139, 250, 0.10);
+    --emerald: #34d399;
+    --emerald-dim: rgba(52, 211, 153, 0.10);
+    --rose: #f472b6;
+    --rose-dim: rgba(244, 114, 182, 0.10);
+    --amber: #fbbf24;
+    --amber-dim: rgba(251, 191, 36, 0.10);
+    --text-primary: #f0f0f0;
+    --text-secondary: #888888;
+    --text-tertiary: #555555;
+    --text-on-accent: #0a0a0a;
+    --radius-xs: 6px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+
+  /* ─── Window (same as practical) ─── */
+  .window {
+    max-width: 840px;
+    margin: 0 auto;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.2);
+  }
+
+  .window-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 20px;
+    background: rgba(255,255,255,0.015);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+
+  .window-title {
+    flex: 1;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    letter-spacing: 0.03em;
+  }
+
+  .window-spacer { width: 52px; }
+  .window-body { padding: 32px 28px 40px; }
+
+  /* ─── Header (same as practical) ─── */
+  .lesson-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 11px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(184,255,4,0.15);
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 14px;
+  }
+
+  .type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 11px;
+    background: var(--purple-dim);
+    border: 1px solid rgba(167,139,250,0.15);
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--purple);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 14px;
+    margin-left: 8px;
+  }
+
+  .type-badge-etapa {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 11px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(184,255,4,0.15);
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 14px;
+    margin-left: 8px;
+  }
+
+  .lesson-title {
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 6px;
+    letter-spacing: -0.02em;
+  }
+  .lesson-title span { color: var(--accent); }
+
+  .lesson-subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    max-width: 620px;
+    margin-bottom: 28px;
+  }
+
+  /* ─── Hero Quote ─── */
+  .hero-quote {
+    position: relative;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+    padding: 28px 32px;
+    margin-bottom: 28px;
+  }
+
+  .hero-quote::before {
+    content: '"';
+    position: absolute;
+    top: 8px;
+    left: 16px;
+    font-size: 48px;
+    font-weight: 800;
+    color: var(--accent);
+    opacity: 0.15;
+    line-height: 1;
+  }
+
+  .quote-text {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.55;
+    color: var(--text-primary);
+    position: relative;
+    z-index: 1;
+  }
+
+  .quote-author {
+    margin-top: 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+  }
+
+  /* ─── Context Box (same as practical) ─── */
+  .context-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 28px;
+  }
+
+  .context-box h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 16px;
+  }
+
+  .context-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+  }
+
+  .context-card {
+    padding: 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+  }
+
+  .context-card-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+    margin-bottom: 10px;
+  }
+
+  .context-card p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .context-card ul {
+    list-style: none;
+  }
+
+  .context-card li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    padding: 4px 0;
+  }
+
+  .context-card li::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    min-width: 5px;
+    border-radius: 50%;
+    margin-top: 6px;
+    background: var(--accent);
+  }
+
+  /* ─── Progress (adapted: "Conceitos dominados") ─── */
+  .progress-section {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 5px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--purple), var(--accent));
+    border-radius: 100px;
+    transition: width 0.4s ease;
+  }
+
+  .progress-label {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+  .progress-label strong { color: var(--accent); font-weight: 700; }
+
+  /* ─── Section Headers ─── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .section-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-xs);
+    font-size: 15px;
+  }
+
+  .section-name {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .section-count {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    background: rgba(255,255,255,0.04);
+    padding: 2px 9px;
+    border-radius: 100px;
+  }
+
+  /* ─── Insight Card ─── */
+  .insight-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    margin-bottom: 10px;
+    transition: border-color 0.2s ease;
+    overflow: hidden;
+  }
+
+  .insight-card:hover { border-color: var(--border-medium); }
+  .insight-card.absorbed { opacity: 0.45; }
+
+  .insight-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 18px 20px;
+    cursor: pointer;
+  }
+
+  .insight-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    border: 2px solid var(--text-tertiary);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    margin-top: 1px;
+    position: relative;
+  }
+
+  .insight-checkbox:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .insight-checkbox:checked::after {
+    content: '✓';
+    position: absolute;
+    top: -1px;
+    left: 2px;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text-on-accent);
+  }
+
+  .insight-checkbox:hover { border-color: var(--accent); }
+
+  .insight-content { flex: 1; }
+
+  .insight-top-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .insight-category {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+
+  .cat-decisao { background: var(--orange-dim); color: var(--orange); border: 1px solid rgba(251,146,60,0.12); }
+  .cat-insight { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(184,255,4,0.12); }
+  .cat-principio { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(96,165,250,0.12); }
+  .cat-modelo { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(167,139,250,0.12); }
+  .cat-metrica { background: var(--emerald-dim); color: var(--emerald); border: 1px solid rgba(52,211,153,0.12); }
+  .cat-erro { background: var(--rose-dim); color: var(--rose); border: 1px solid rgba(244,114,182,0.12); }
+
+  .insight-title {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--text-primary);
+  }
+
+  .insight-body {
+    padding: 0 20px 0 50px;
+  }
+
+  .insight-explanation {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.55;
+    margin-bottom: 12px;
+  }
+
+  .insight-quote {
+    font-size: 13px;
+    font-style: italic;
+    color: var(--text-primary);
+    line-height: 1.55;
+    border-left: 2px solid var(--border-medium);
+    padding: 2px 0 2px 12px;
+    margin-bottom: 12px;
+  }
+
+  .insight-practical {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 14px;
+    margin-bottom: 18px;
+    background: var(--accent-glow);
+    border-left: 2px solid rgba(184,255,4,0.20);
+    border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  }
+
+  .practical-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+
+  .practical-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  /* ─── VS Comparison ─── */
+  .comparison-section { margin-bottom: 28px; }
+
+  .vs-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .vs-header {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .vs-label {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .vs-label-left { color: var(--text-tertiary); text-align: left; }
+  .vs-label-right { color: var(--accent); text-align: right; }
+
+  .vs-badge {
+    font-size: 10px;
+    font-weight: 800;
+    padding: 4px 12px;
+    border-radius: 100px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-medium);
+    color: var(--text-secondary);
+    letter-spacing: 0.06em;
+  }
+
+  .vs-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .vs-row:last-child { border-bottom: none; }
+
+  .vs-cell {
+    padding: 14px 24px;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .vs-cell:first-child {
+    border-right: 1px solid var(--border-subtle);
+    color: var(--text-tertiary);
+  }
+
+  .vs-cell:last-child { color: var(--text-secondary); }
+
+  .vs-dimension {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-tertiary);
+    margin-bottom: 4px;
+  }
+
+  .vs-value { font-size: 13px; }
+  .vs-value.weak { color: var(--text-tertiary); }
+  .vs-value.strong { color: var(--accent); font-weight: 600; }
+
+  /* ─── Divider ─── */
+  .divider {
+    height: 1px;
+    background: var(--border-subtle);
+    margin: 24px 0;
+  }
+
+  /* ─── Footer (same as practical) ─── */
+  .lesson-footer {
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+
+  .brand-dot {
+    width: 5px;
+    height: 5px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  .footer-source {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    padding: 3px 9px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 100px;
+  }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 640px) {
+    body { padding: 16px 8px; }
+    .window-body { padding: 20px 16px 28px; }
+    .lesson-title { font-size: 20px; }
+    .context-grid { grid-template-columns: 1fr; }
+    .insight-body { padding-left: 38px; }
+    .vs-header { padding: 12px 16px; }
+    .vs-cell { padding: 10px 16px; }
+    .hero-quote { padding: 20px 24px; }
+    .quote-text { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="window">
+  <div class="window-bar">
+    <div class="dot dot-r"></div>
+    <div class="dot dot-y"></div>
+    <div class="dot dot-g"></div>
+    <div class="window-title">Cockpit Builder — Página de Insight</div>
+    <div class="window-spacer"></div>
+  </div>
+
+  <div class="window-body">
+
+    <!-- ═══ HEADER ═══ -->
+    <div>
+      <span class="lesson-badge">Ambiente e Mentalidade</span>
+      <span class="type-badge-etapa">Percepção</span>
+      <span class="type-badge">🧠 Conceitual</span>
+    </div>
+    <div style="font-size: 11px; color: var(--text-tertiary); margin-top: -8px; margin-bottom: 14px;">Etapas secundárias: Atração, Negociação</div>
+    <h1 class="lesson-title">Sobrinho <span>VS Profissional Que Resolve Problemas</span></h1>
+    <p class="lesson-subtitle">Vencedores e perdedores têm os mesmos objetivos — a diferença é agir em vez de procrastinar os fundamentos simples.</p>
+
+    <!-- ═══ HERO QUOTE ═══ -->
+    <div class="hero-quote">
+      <p class="quote-text">Vencedores e perdedores têm os mesmos objetivos. A diferença é que um age e outro não. O resultado que você não tem, tá na ação que você procrastina.</p>
+      <div class="quote-author">— Lorenzi</div>
+    </div>
+
+    <!-- ═══ CONTEXTO ═══ -->
+    <div class="context-box">
+      <h3>O que esta aula muda</h3>
+      <div class="context-grid">
+        <div class="context-card">
+          <div class="context-card-label">O que você vai entender</div>
+          <ul>
+            <li>Que a função do designer é resolver o problema do cliente, não vender arte ou estética</li>
+            <li>Que os fundamentos do sucesso são simples e poucos — a dificuldade está em executá-los com consistência, não em encontrar fórmulas novas</li>
+            <li>Que o resultado que falta está na ação que está sendo procrastinada, não em uma ferramenta ou curso que falta comprar</li>
+          </ul>
+        </div>
+        <div class="context-card">
+          <div class="context-card-label">Por que importa</div>
+          <p>O sucesso não depende de fórmulas mágicas ou complexas, mas da execução consistente de fundamentos que muitas vezes são ignorados por não serem "dopaminérgicos". Quem não entende que sua função é resolver problemas — e não apenas "fazer artes" — continua preso em um mercado saturado de "sobrinhos", enquanto quem assume a responsabilidade evolui o negócio e o faturamento.</p>
+        </div>
+        <div class="context-card">
+          <div class="context-card-label">Conexão prática</div>
+          <p>Essa mentalidade muda como você vende (foco na solução, não na estética), como você atende (mente de rei e braço de servo) e o que você prioriza no dia a dia (a ação simples que está sendo evitada, não a próxima ferramenta complexa).</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PROGRESS ═══ -->
+    <div class="progress-section">
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-label" id="progressLabel"><strong>0</strong> de 4 conceitos dominados</div>
+    </div>
+
+    <!-- ═══════════════════════════════════ -->
+    <!-- CONCEITOS-CHAVE -->
+    <!-- ═══════════════════════════════════ -->
+    <div style="margin-bottom: 28px;">
+      <div class="section-header">
+        <div class="section-icon">💡</div>
+        <div class="section-name">Conceitos-chave</div>
+        <div class="section-count">4 insights</div>
+      </div>
+
+      <!-- Insight 1 -->
+      <div class="insight-card">
+        <div class="insight-main">
+          <input type="checkbox" class="insight-checkbox">
+          <div class="insight-content">
+            <div class="insight-top-row">
+              <span class="insight-category cat-modelo">Modelo</span>
+            </div>
+            <div class="insight-title">Você resolve problemas, não presta serviços</div>
+          </div>
+        </div>
+        <div class="insight-body">
+          <p class="insight-explanation">O designer deve abandonar a visão de ser apenas um "fazedor de arte" ou vendedor de estética. Ser um empreendedor significa identificar e sanar uma dor específica do cliente — a entrega técnica é consequência, não o produto em si.</p>
+          <p class="insight-quote">"Você resolve problemas e não presta serviços. Tem muito designer que se acha o fazedor de arte, que vende uma página, que vende um design, que vende uma estética. Não. Vocês têm que ter a mentalidade de empreendedor e o empreendedor resolve problemas."</p>
+          <div class="insight-practical">
+            <span class="practical-label">Na prática →</span>
+            <span class="practical-text">Aplicar isso na comunicação e na abordagem de venda, focando na solução (o "salvamento") do cliente em vez de só nas características técnicas da entrega.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Insight 2 -->
+      <div class="insight-card">
+        <div class="insight-main">
+          <input type="checkbox" class="insight-checkbox">
+          <div class="insight-content">
+            <div class="insight-top-row">
+              <span class="insight-category cat-modelo">Modelo</span>
+            </div>
+            <div class="insight-title">Mente de rei e braço de servo</div>
+          </div>
+        </div>
+        <div class="insight-body">
+          <p class="insight-explanation">É o alinhamento entre ter uma visão estratégica elevada (mentalidade de rei) e a humildade e disposição para executar o trabalho com excelência e dedicação ao cliente (braço de servo).</p>
+          <p class="insight-quote">"Você é um servo. Mente de rei e braço de servo. Não importa o nível do cliente, não importa quem é que seja. Haja como se essa pessoa estivesse se afogando e você é o responsável por salvá-la."</p>
+          <div class="insight-practical">
+            <span class="practical-label">Na prática →</span>
+            <span class="practical-text">Aplicar no atendimento ao cliente, tratando cada projeto com a máxima responsabilidade de entrega, independentemente do tamanho do contrato.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Insight 3 -->
+      <div class="insight-card">
+        <div class="insight-main">
+          <input type="checkbox" class="insight-checkbox">
+          <div class="insight-content">
+            <div class="insight-top-row">
+              <span class="insight-category cat-principio">Princípio</span>
+            </div>
+            <div class="insight-title">Simples não é fácil — os fundamentos doem, por isso fugimos deles</div>
+          </div>
+        </div>
+        <div class="insight-body">
+          <p class="insight-explanation">Os fundamentos do sucesso são diretos e poucos ("feijão com arroz"), mas a execução é difícil porque exige passar por processos que doem e evitar a fuga para a complexidade desnecessária.</p>
+          <p class="insight-quote">"O processo às vezes dói, é por isso que a gente foge do processo. E às vezes é justamente por isso que a gente foge para coisas complexas. Porque de tão simples que é para fazer algumas ações, a gente não faz porque a gente julga que aquela ação é muito simples."</p>
+          <div class="insight-practical">
+            <span class="practical-label">Na prática →</span>
+            <span class="practical-text">Quando o aluno se sentir travado, buscar a ação mais simples e fundamental que está ignorando, em vez de comprar novas ferramentas ou cursos complexos.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Insight 4 -->
+      <div class="insight-card">
+        <div class="insight-main">
+          <input type="checkbox" class="insight-checkbox">
+          <div class="insight-content">
+            <div class="insight-top-row">
+              <span class="insight-category cat-principio">Princípio</span>
+            </div>
+            <div class="insight-title">Autorresponsabilidade: o resultado que falta está na ação que você procrastina</div>
+          </div>
+        </div>
+        <div class="insight-body">
+          <p class="insight-explanation">O progresso da empresa e os resultados financeiros dependem exclusivamente das decisões e ações que o profissional escolhe executar ou adiar.</p>
+          <p class="insight-quote">"Eu olho pra minha empresa... eu sei que tem uma porrada de coisa para melhorar. E eu procrastino muitas delas. E é por isso que eu não estou evoluindo mais rápido do que eu estou."</p>
+          <div class="insight-practical">
+            <span class="practical-label">Na prática →</span>
+            <span class="practical-text">Fazer uma análise periódica do negócio em "terceira pessoa" para identificar gargalos e assumir a execução das melhorias sem dar desculpas externas.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════ -->
+    <!-- COMPARAÇÃO VISUAL -->
+    <!-- ═══════════════════════════════════ -->
+    <div class="comparison-section">
+      <div class="section-header">
+        <div class="section-icon">🔄</div>
+        <div class="section-name">Comparação</div>
+      </div>
+
+      <div class="vs-container">
+        <div class="vs-header">
+          <span class="vs-label vs-label-left">Sobrinho</span>
+          <span class="vs-badge">VS</span>
+          <span class="vs-label vs-label-right">Profissional</span>
+        </div>
+
+        <div class="vs-row">
+          <div class="vs-cell">
+            <div class="vs-dimension">Foco da Venda</div>
+            <div class="vs-value weak">Vende arte, página e estética</div>
+          </div>
+          <div class="vs-cell">
+            <div class="vs-dimension">Foco da Venda</div>
+            <div class="vs-value strong">Vende a solução de um problema</div>
+          </div>
+        </div>
+
+        <div class="vs-row">
+          <div class="vs-cell">
+            <div class="vs-dimension">Visão de Mercado</div>
+            <div class="vs-value weak">Acha que o mercado está saturado</div>
+          </div>
+          <div class="vs-cell">
+            <div class="vs-dimension">Visão de Mercado</div>
+            <div class="vs-value strong">Sabe que sempre há demanda para quem resolve problemas</div>
+          </div>
+        </div>
+
+        <div class="vs-row">
+          <div class="vs-cell">
+            <div class="vs-dimension">Posicionamento</div>
+            <div class="vs-value weak">Não sabe se vender nem agir como profissional</div>
+          </div>
+          <div class="vs-cell">
+            <div class="vs-dimension">Posicionamento</div>
+            <div class="vs-value strong">Age como um servo responsável por salvar o cliente</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 14px; padding: 0 4px;">
+        <p class="insight-explanation">O mercado não está saturado de profissionais de verdade, apenas de quem não sabe se posicionar; se você resolve um problema, sempre haverá alguém precisando da sua solução.</p>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════ -->
+    <!-- DECISÕES E AÇÕES -->
+    <!-- ═══════════════════════════════════ -->
+    <div style="margin-bottom: 28px;">
+      <div class="section-header">
+        <div class="section-icon">✅</div>
+        <div class="section-name">Decisões e ações</div>
+      </div>
+
+      <div class="context-box" style="margin-bottom: 0;">
+        <div class="context-grid" style="grid-template-columns: 1fr 1fr;">
+          <div class="context-card">
+            <div class="context-card-label">Decisões que você precisa tomar</div>
+            <ul>
+              <li>Qual é exatamente o problema que você resolve para o seu cliente?</li>
+              <li>Você está disposto a passar pelo processo necessário, mesmo que ele doa, ou vai continuar buscando fórmulas complexas?</li>
+              <li>Você vai assumir a autorresponsabilidade pelos resultados que ainda não tem ou vai continuar procrastinando as ações simples?</li>
+            </ul>
+          </div>
+          <div class="context-card">
+            <div class="context-card-label">Ações derivadas</div>
+            <ul>
+              <li>Definir o problema central que seu serviço resolve — listar as dificuldades dos clientes e escrever como sua entrega elimina essas dores</li>
+              <li>Identificar 3 tarefas negligenciadas na empresa — analisar o negócio "de fora" e priorizar a ação mais simples</li>
+              <li>Implementar o "feijão com arroz" com consistência — rotina diária de ações fundamentais por pelo menos 30 dias, sem buscar atalhos</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ FOOTER ═══ -->
+    <div class="lesson-footer">
+      <div class="footer-brand">
+        <span class="brand-dot"></span>
+        Cockpit Builder — Easy Builder
+      </div>
+      <div class="footer-source">Easy Sales — Funil Anti Prospecção — Aula 03</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const checkboxes = document.querySelectorAll('.insight-checkbox');
+
+  checkboxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      const card = cb.closest('.insight-card');
+      card.classList.toggle('absorbed', cb.checked);
+      updateProgress();
+    });
+  });
+
+  function updateProgress() {
+    const total = checkboxes.length;
+    let done = 0;
+    checkboxes.forEach(cb => { if (cb.checked) done++; });
+    document.getElementById('progressFill').style.width = `${(done / total) * 100}%`;
+    document.getElementById('progressLabel').innerHTML = `<strong>${done}</strong> de ${total} conceitos dominados`;
+  }
+
+  updateProgress();
+</script>
+
+</body>
+</html>

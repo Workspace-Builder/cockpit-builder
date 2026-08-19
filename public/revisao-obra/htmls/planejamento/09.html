@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cockpit Builder — Processo Operacional Completo: do Onboarding à Entrega e Pós-Venda</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --bg-base: #0a0a0a;
+    --bg-surface: #111111;
+    --bg-card: #0e0e0e;
+    --bg-elevated: #1a1a1a;
+    --bg-input: #161616;
+    --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-medium: rgba(255, 255, 255, 0.10);
+    --border-strong: rgba(255, 255, 255, 0.14);
+    --accent: #b8ff04;
+    --accent-dim: rgba(184, 255, 4, 0.10);
+    --accent-glow: rgba(184, 255, 4, 0.05);
+    --blue: #60a5fa;
+    --blue-dim: rgba(96, 165, 250, 0.10);
+    --orange: #fb923c;
+    --orange-dim: rgba(251, 146, 60, 0.10);
+    --purple: #a78bfa;
+    --purple-dim: rgba(167, 139, 250, 0.10);
+    --emerald: #34d399;
+    --emerald-dim: rgba(52, 211, 153, 0.10);
+    --text-primary: #f0f0f0;
+    --text-secondary: #888888;
+    --text-tertiary: #555555;
+    --text-on-accent: #0a0a0a;
+    --radius-xs: 6px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+
+  /* ─── Window ─── */
+  .window {
+    max-width: 840px;
+    margin: 0 auto;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.2);
+  }
+
+  .window-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 20px;
+    background: rgba(255,255,255,0.015);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+
+  .window-title {
+    flex: 1;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    letter-spacing: 0.03em;
+  }
+
+  .window-spacer { width: 52px; }
+
+  .window-body { padding: 32px 28px 40px; }
+
+  /* ─── Header ─── */
+  .lesson-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .lesson-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 11px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(184,255,4,0.15);
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .lesson-title {
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 6px;
+    letter-spacing: -0.02em;
+  }
+  .lesson-title span { color: var(--accent); }
+
+  .lesson-subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    max-width: 620px;
+    margin-bottom: 28px;
+  }
+
+  /* ─── Context Box ─── */
+  .context-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 28px;
+  }
+
+  .context-box h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 16px;
+  }
+
+  .context-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .context-card {
+    padding: 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+  }
+
+  .context-card-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+    margin-bottom: 10px;
+  }
+
+  .context-card ul {
+    list-style: none;
+  }
+
+  .context-card li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    padding: 4px 0;
+  }
+
+  .context-card li::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    min-width: 5px;
+    border-radius: 50%;
+    margin-top: 6px;
+  }
+
+  .deliverable li::before { background: var(--accent); }
+  .prereq li::before { background: var(--text-tertiary); }
+
+  .context-summary {
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: var(--accent-glow);
+    border-left: 2px solid rgba(184,255,4,0.20);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .context-summary + .context-summary { margin-top: 10px; }
+
+  .context-summary strong { color: var(--accent); font-weight: 600; }
+
+  /* ─── Progress ─── */
+  .progress-section {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 5px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #d4ff4a);
+    border-radius: 100px;
+    transition: width 0.4s ease;
+  }
+
+  .progress-label {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+  .progress-label strong { color: var(--accent); font-weight: 700; }
+
+  /* ─── Cadeia de Execução ─── */
+  .cadeia-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 20px 22px;
+    margin-bottom: 28px;
+  }
+
+  .cadeia-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+
+  .cadeia-icon {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-xs);
+    font-size: 14px;
+  }
+
+  .cadeia-title {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .cadeia-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+
+  .cadeia-flow {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .cadeia-step {
+    flex: 1;
+    min-width: 118px;
+    padding: 12px 10px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s ease;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .cadeia-step:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+  .cadeia-step:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+  .cadeia-step + .cadeia-step { border-left: none; }
+
+  .cadeia-step:hover {
+    background: rgba(184,255,4,0.04);
+    border-color: rgba(184,255,4,0.2);
+  }
+
+  .cadeia-step.done { opacity: 0.45; }
+
+  .cadeia-step-top {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .cadeia-step-num {
+    font-size: 9px;
+    font-weight: 800;
+    color: var(--text-tertiary);
+    background: rgba(255,255,255,0.05);
+    width: 15px;
+    height: 15px;
+    min-width: 15px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cadeia-step.done .cadeia-step-num {
+    background: var(--accent);
+    color: var(--text-on-accent);
+  }
+
+  .cadeia-step-plat {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+  }
+
+  .cadeia-step-name {
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--text-secondary);
+  }
+
+  .cadeia-step:hover .cadeia-step-name { color: var(--text-primary); }
+
+  .cadeia-arrow {
+    position: absolute;
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 11px;
+    color: var(--text-tertiary);
+    z-index: 2;
+    background: var(--bg-card);
+    padding: 0 1px;
+  }
+
+  /* ─── Parede (RESULTADO nomeado) ─── */
+  .parede-header {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 18px 0 10px;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.02);
+    border-left: 2px solid var(--accent);
+    border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  }
+
+  .parede-header:first-of-type { margin-top: 0; }
+
+  .parede-name {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+
+  .parede-meta {
+    margin-left: auto;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+
+  .parede-meta strong { color: var(--accent); font-weight: 700; }
+
+  /* ─── Platform Section ─── */
+  .platform-section { margin-bottom: 28px; }
+
+  .platform-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .platform-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-xs);
+    font-size: 15px;
+  }
+
+  .platform-name {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .platform-count {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    background: rgba(255,255,255,0.04);
+    padding: 2px 9px;
+    border-radius: 100px;
+  }
+
+  /* ─── Action Card ─── */
+  .action-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    margin-bottom: 10px;
+    transition: border-color 0.2s ease;
+    overflow: hidden;
+  }
+
+  .action-card:hover { border-color: var(--border-medium); }
+
+  .action-card.done { opacity: 0.45; }
+  .action-card.done .action-title { text-decoration: line-through; text-decoration-color: var(--text-tertiary); }
+
+  .action-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 18px 20px 0;
+    cursor: pointer;
+  }
+
+  .action-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    border: 2px solid var(--text-tertiary);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    margin-top: 1px;
+    position: relative;
+  }
+
+  .action-checkbox:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .action-checkbox:checked::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 4px;
+    width: 5px;
+    height: 9px;
+    border: solid var(--text-on-accent);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  .action-checkbox:hover { border-color: var(--accent); }
+
+  .action-content { flex: 1; }
+
+  .action-top-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .action-category {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+
+  .cat-setup { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(184,255,4,0.12); }
+  .cat-posts { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(96,165,250,0.12); }
+  .cat-trafego { background: var(--orange-dim); color: var(--orange); border: 1px solid rgba(251,146,60,0.12); }
+  .cat-vendas { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(167,139,250,0.12); }
+  .cat-gestao { background: var(--emerald-dim); color: var(--emerald); border: 1px solid rgba(52,211,153,0.12); }
+  .cat-lp { background: rgba(244,114,182,0.10); color: #f472b6; border: 1px solid rgba(244,114,182,0.12); }
+
+  .action-title {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--text-primary);
+  }
+
+  .action-description {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    margin-top: 6px;
+    padding-left: 10px;
+    border-left: 2px solid var(--border-medium);
+  }
+
+  .action-card.done .action-description { color: var(--text-tertiary); }
+
+  /* ─── Sub-Checklist ─── */
+  .sub-checklist {
+    list-style: none;
+    padding: 12px 20px 0 50px;
+  }
+
+  .sub-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 4px 0;
+  }
+
+  .sub-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    min-width: 14px;
+    border: 1.5px solid var(--text-tertiary);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    margin-top: 2px;
+    position: relative;
+  }
+
+  .sub-checkbox:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .sub-checkbox:checked::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 3px;
+    width: 4px;
+    height: 7px;
+    border: solid var(--text-on-accent);
+    border-width: 0 1.5px 1.5px 0;
+    transform: rotate(45deg);
+  }
+
+  .sub-checkbox:hover { border-color: rgba(184,255,4,0.5); }
+
+  .sub-checkbox:checked + .sub-text {
+    color: var(--text-tertiary);
+    text-decoration: line-through;
+    text-decoration-color: var(--text-tertiary);
+  }
+
+  .sub-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    transition: color 0.15s ease;
+  }
+
+  /* ─── Context Insight ─── */
+  .action-insight {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 12px 20px 16px 50px;
+    padding: 8px 12px;
+    background: var(--accent-glow);
+    border-left: 2px solid rgba(184,255,4,0.20);
+    border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  }
+
+  .insight-icon {
+    font-size: 12px;
+    line-height: 1;
+    margin-top: 2px;
+    opacity: 0.5;
+  }
+
+  .insight-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    font-style: italic;
+  }
+
+  /* ─── Veja também (nota de referência inline no card) ─── */
+  .see-also {
+    margin: 0 20px 16px 50px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    line-height: 1.5;
+  }
+
+  .see-also strong {
+    color: var(--text-secondary);
+    font-weight: 600;
+  }
+
+  /* ─── Divider ─── */
+  .divider {
+    height: 1px;
+    background: var(--border-subtle);
+    margin: 24px 0;
+  }
+
+  /* ─── Cross References ─── */
+  .cross-refs {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .section-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-title svg {
+    width: 14px;
+    height: 14px;
+    stroke: var(--text-tertiary);
+    fill: none;
+  }
+
+  .ref-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .ref-card:hover {
+    border-color: rgba(184,255,4,0.2);
+    background: rgba(184,255,4,0.02);
+  }
+
+  .ref-pilar {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .ref-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    flex: 1;
+  }
+
+  .ref-arrow {
+    color: var(--text-tertiary);
+    font-size: 14px;
+    transition: transform 0.2s ease;
+  }
+
+  .ref-card:hover .ref-arrow { transform: translateX(3px); color: var(--accent); }
+
+  /* ─── Footer ─── */
+  .lesson-footer {
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+
+  .brand-dot {
+    width: 5px;
+    height: 5px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  .footer-source {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    padding: 3px 9px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 100px;
+  }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 640px) {
+    body { padding: 16px 8px; }
+    .window-body { padding: 20px 16px 28px; }
+    .lesson-title { font-size: 20px; }
+    .context-grid { grid-template-columns: 1fr; }
+    .sub-checklist { padding-left: 38px; }
+    .action-insight { margin-left: 38px; }
+    .see-also { margin-left: 38px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="window">
+  <div class="window-bar">
+    <div class="dot dot-r"></div>
+    <div class="dot dot-y"></div>
+    <div class="dot dot-g"></div>
+    <div class="window-title">Cockpit Builder — Material de Apoio</div>
+    <div class="window-spacer"></div>
+  </div>
+
+  <div class="window-body">
+
+    <!-- ═══ HEADER ═══ -->
+    <div class="lesson-badges">
+      <span class="lesson-badge">⚙️ Gestão e Eficiência</span>
+      <span class="lesson-badge">📦 Entrega</span>
+      <span class="lesson-badge">🔧 Prática</span>
+    </div>
+    <h1 class="lesson-title">Processo Operacional Completo: <span>do Onboarding à Entrega e Pós-Venda</span></h1>
+    <p class="lesson-subtitle">Fechar o ciclo operacional do projeto do cliente — do recebimento do pagamento de entrada até o pós-venda, passando por onboarding, coleta de briefing, produção de layout, publicação do site e atualização de portfólio.</p>
+
+    <!-- ═══ CONTEXTO DA AULA ═══ -->
+    <div class="context-box">
+      <h3>Contexto da aula</h3>
+      <div class="context-grid">
+        <div class="context-card deliverable">
+          <div class="context-card-label">O que você vai construir</div>
+          <ul>
+            <li>Onboarding e gestão de contato do cliente concluídos, com pagamento de entrada recebido</li>
+            <li>Briefing completo e ativos do projeto organizados e centralizados no Notion</li>
+            <li>Layout da página criado, revisado e aprovado pelo cliente</li>
+            <li>Site publicado no WordPress, com performance otimizada (WP Rocket + Cloudflare)</li>
+            <li>Feedback de pós-venda coletado, com recovery de 14 dias realizado</li>
+            <li>Portfólio atualizado no Instagram e no Behance com o resultado entregue</li>
+          </ul>
+        </div>
+        <div class="context-card prereq">
+          <div class="context-card-label">Pré-requisitos</div>
+          <ul>
+            <li>Acesso à hospedagem do cliente</li>
+            <li>Acesso ao pixel de tagueamento e URL de e-mail marketing do cliente</li>
+            <li>Plugins de otimização instalados no WordPress</li>
+            <li>Conta ativa no Cloudflare</li>
+          </ul>
+        </div>
+      </div>
+      <div class="context-summary">
+        <strong>Frase-guia do professor:</strong> "Processos, processos, processos." Esta aula fecha o ciclo operacional do projeto — do onboarding ao pós-venda — padronizando cada etapa para reduzir a energia mental gasta na execução.
+      </div>
+      <div class="context-summary">
+        <strong>Nota para o time:</strong> a padronização do tamanho de fontes do projeto ainda está em aberto — decisão pendente, não é uma ação desta aula.
+      </div>
+    </div>
+
+    <!-- ═══ PROGRESS ═══ -->
+    <div class="progress-section">
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-label" id="progressLabel"><strong>0</strong> de 16 ações</div>
+    </div>
+
+    <!-- ═══════════════════════════════════ -->
+    <!-- GESTÃO -->
+    <!-- ═══════════════════════════════════ -->
+    <div class="platform-section" id="plat-gestao">
+      <div class="platform-header">
+        <div class="platform-icon">📊</div>
+        <div class="platform-name">Gestão</div>
+        <div class="platform-count">3 ações</div>
+      </div>
+
+      <!-- PAREDE 1 -->
+      <div class="parede-header" id="parede-1">
+        <span class="parede-name">Onboarding e Gestão de Contato concluídos</span>
+      </div>
+
+      <!-- Action 1 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-setup">Onboarding</span>
+            </div>
+            <div class="action-title">Receber o pagamento da entrada</div>
+            <div class="action-description">Solicitar o pagamento antes de iniciar a execução para evitar preocupações futuras.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Solicitar o pagamento da entrada antes de iniciar qualquer execução do projeto</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Confirmar o recebimento antes de abrir o card do projeto na produção</span></li>
+        </ul>
+      </div>
+
+      <!-- Action 2 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-gestao">CRM</span>
+            </div>
+            <div class="action-title">Salvar o contato do cliente</div>
+            <div class="action-description">Salvar o número na agenda para futuras ações de remarketing, status ou lista de transmissão.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Salvar o número do cliente na agenda/CRM</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Adicionar o contato à lista de transmissão ou grupo de remarketing</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Usar o contato para ações futuras via status do WhatsApp</span></li>
+        </ul>
+      </div>
+
+      <!-- Action 3 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-gestao">Fiscal</span>
+            </div>
+            <div class="action-title">Coletar dados fiscais</div>
+            <div class="action-description">Solicitar as informações necessárias para a emissão imediata da nota fiscal.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Solicitar ao cliente os dados fiscais necessários (CPF/CNPJ, endereço, razão social)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Emitir a nota fiscal imediatamente após o recebimento dos dados</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">Isso tudo vai demonstrar profissionalismo</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════ -->
+    <!-- PRODUÇÃO -->
+    <!-- ═══════════════════════════════════ -->
+    <div class="platform-section" id="plat-producao">
+      <div class="platform-header">
+        <div class="platform-icon">📁</div>
+        <div class="platform-name">Produção</div>
+        <div class="platform-count">6 ações</div>
+      </div>
+
+      <!-- PAREDE 2 -->
+      <div class="parede-header" id="parede-2">
+        <span class="parede-name">Briefing e Ativos organizados</span>
+        <span class="parede-meta">Depende de: <strong>Onboarding e Gestão de Contato concluídos</strong></span>
+      </div>
+
+      <!-- Action 4 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-setup">Setup</span>
+            </div>
+            <div class="action-title">Criar pasta no Drive</div>
+            <div class="action-description">Criar a estrutura de pastas para organizar os arquivos do projeto.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Criar a pasta do projeto no Google Drive</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Organizar subpastas para separar os arquivos por tipo (briefing, ativos, layout, entrega)</span></li>
+        </ul>
+      </div>
+
+      <!-- Action 5 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-gestao">Briefing</span>
+            </div>
+            <div class="action-title">Organizar a cópia da página</div>
+            <div class="action-description">Preparar um arquivo de Word com o texto da página dividido em seções.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Criar um arquivo de Word com o texto da página</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Dividir o texto por seções da página (ex: hero, sobre, serviços, depoimentos)</span></li>
+        </ul>
+      </div>
+
+      <!-- Action 6 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-gestao">Briefing</span>
+            </div>
+            <div class="action-title">Coletar ativos e acessos do cliente</div>
+            <div class="action-description">Solicitar acesso à hospedagem, fotos do expert, logo, referências de design, tom de voz e pixel de tagueamento; coletar URL para integração de e-mail marketing e dados para o rodapé.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Solicitar acesso à hospedagem do cliente</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Solicitar fotos do expert, logo e referências de design</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Solicitar o tom de voz e o acesso ao pixel de tagueamento</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Coletar a URL para integração de e-mail marketing</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Coletar os dados que vão compor o rodapé do site</span></li>
+        </ul>
+      </div>
+
+      <!-- Action 7 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-gestao">Organização</span>
+            </div>
+            <div class="action-title">Centralizar informações no Notion</div>
+            <div class="action-description">Passar todos os dados e acessos coletados para uma página no Notion.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Criar uma página no Notion para o projeto</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Passar todos os dados e acessos coletados para essa página</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">Quanto menos energia mental vocês precisam investir pra executar determinada função, mais clareza vocês têm</span>
+        </div>
+      </div>
+
+      <!-- PAREDE 3 -->
+      <div class="parede-header" id="parede-3">
+        <span class="parede-name">Layout da Página Criado e Aprovado</span>
+        <span class="parede-meta">Depende de: <strong>Briefing e Ativos organizados</strong></span>
+      </div>
+
+      <!-- Action 8 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-lp">Design</span>
+            </div>
+            <div class="action-title">Criar o design da página</div>
+            <div class="action-description">Desenvolver o layout utilizando Photoshop ou Figma, verificando se todos os dados fornecidos estão corretos no layout.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Desenvolver o layout da página no Photoshop ou Figma</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Conferir se todos os dados fornecidos pelo cliente estão corretos no layout</span></li>
+        </ul>
+      </div>
+
+      <!-- Action 9 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-gestao">Aprovação</span>
+            </div>
+            <div class="action-title">Gerir o status de aprovação</div>
+            <div class="action-description">Salvar o arquivo, fazer o upload no card do projeto e mover o cartão para a coluna de "aprovação".</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Salvar o arquivo do layout finalizado</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Fazer o upload do arquivo no card do projeto</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Mover o cartão para a coluna de "aprovação"</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">Quanto mais vocês terem domínio dos processos, melhor vai ser entrega de vocês</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════ -->
+    <!-- SITE PRÓPRIO -->
+    <!-- ═══════════════════════════════════ -->
+    <div class="platform-section" id="plat-site">
+      <div class="platform-header">
+        <div class="platform-icon">🌐</div>
+        <div class="platform-name">Site próprio</div>
+        <div class="platform-count">3 ações</div>
+      </div>
+
+      <!-- PAREDE 4 -->
+      <div class="parede-header" id="parede-4">
+        <span class="parede-name">Site Publicado e Otimizado</span>
+        <span class="parede-meta">Depende de: <strong>Layout da Página Criado e Aprovado</strong></span>
+      </div>
+
+      <!-- Action 10 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-setup">Setup</span>
+            </div>
+            <div class="action-title">Configurar ambiente WordPress</div>
+            <div class="action-description">Criar a instalação do WordPress, instalar os plugins necessários, habilitar o tema e realizar o upload das fontes do projeto.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Criar a instalação do WordPress na hospedagem do cliente</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Instalar os plugins necessários</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Habilitar o tema do projeto</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Fazer o upload das fontes do projeto</span></li>
+        </ul>
+      </div>
+
+      <!-- Action 11 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-lp">Montagem</span>
+            </div>
+            <div class="action-title">Executar a montagem da página</div>
+            <div class="action-description">Criar a página e realizar os ajustes de logs; montar no desktop mantendo o tamanho das fontes padronizado; realizar a adaptação responsiva e testar o site em várias telas.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Criar a página e realizar os ajustes de logs</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Montar a página na versão desktop, mantendo o tamanho das fontes padronizado</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Realizar a adaptação responsiva da página</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Testar o site em várias telas (desktop, tablet, celular)</span></li>
+        </ul>
+      </div>
+
+      <!-- Action 12 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-gestao">Performance</span>
+            </div>
+            <div class="action-title">Realizar otimização de performance</div>
+            <div class="action-description">Configurar o WP Rocket e o Cloudflare, realizar teste de velocidade no Speedtest, e printar o resultado anexando ao card do projeto.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Configurar o plugin WP Rocket</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Configurar o Cloudflare</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Realizar teste de velocidade no Speedtest</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Printar o resultado do teste e anexar ao card do projeto</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">Fica muito mais fácil de vocês saberem e completarem todos os estágios</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════ -->
+    <!-- WHATSAPP -->
+    <!-- ═══════════════════════════════════ -->
+    <div class="platform-section" id="plat-whatsapp">
+      <div class="platform-header">
+        <div class="platform-icon">💬</div>
+        <div class="platform-name">WhatsApp</div>
+        <div class="platform-count">2 ações</div>
+      </div>
+
+      <!-- PAREDE 5 -->
+      <div class="parede-header" id="parede-5">
+        <span class="parede-name">Feedback e Recovery de Pós-Venda coletados</span>
+        <span class="parede-meta">Depende de: <strong>Site Publicado e Otimizado</strong></span>
+      </div>
+
+      <!-- Action 13 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-gestao">Pós-venda</span>
+            </div>
+            <div class="action-title">Coletar feedback imediato</div>
+            <div class="action-description">Pedir o feedback logo após a entrega do serviço, agradecer pela confiança, tirar um print do feedback e subir no card do projeto.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Pedir o feedback do cliente logo após a entrega do serviço</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Agradecer pela confiança depositada no projeto</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Tirar um print do feedback recebido</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Subir o print no card do projeto</span></li>
+        </ul>
+      </div>
+
+      <!-- Action 14 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-vendas">Recovery</span>
+            </div>
+            <div class="action-title">Realizar recovery de feedback</div>
+            <div class="action-description">Entrar em contato 14 dias depois para coletar feedback dos resultados obtidos, especialmente se estiver próximo ao lançamento.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Entrar em contato com o cliente 14 dias após a entrega</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Perguntar sobre os resultados obtidos com o projeto entregue</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Dar atenção especial a clientes próximos do lançamento</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">Processos, processos, processos</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════ -->
+    <!-- INSTAGRAM -->
+    <!-- ═══════════════════════════════════ -->
+    <div class="platform-section" id="plat-instagram">
+      <div class="platform-header">
+        <div class="platform-icon">📸</div>
+        <div class="platform-name">Instagram</div>
+        <div class="platform-count">1 ação</div>
+      </div>
+
+      <!-- PAREDE 6 -->
+      <div class="parede-header" id="parede-6">
+        <span class="parede-name">Vitrine profissional atualizada</span>
+        <span class="parede-meta">Depende de: <strong>Site Publicado e Otimizado</strong></span>
+      </div>
+
+      <!-- Action 15 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-posts">Portfólio</span>
+            </div>
+            <div class="action-title">Criar o template e postar o resultado no Instagram</div>
+            <div class="action-description">Salvar a imagem final do projeto entregue e criar um template de divulgação para postar o resultado no Instagram.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Salvar a imagem final do projeto entregue ao cliente</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Criar um template de divulgação com essa imagem</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Postar o resultado no Instagram</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">Processos, processos, processos</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════ -->
+    <!-- BEHANCE -->
+    <!-- ═══════════════════════════════════ -->
+    <div class="platform-section" id="plat-behance">
+      <div class="platform-header">
+        <div class="platform-icon">🎨</div>
+        <div class="platform-name">Behance</div>
+        <div class="platform-count">1 ação</div>
+      </div>
+
+      <!-- PAREDE 7 -->
+      <div class="parede-header" id="parede-7">
+        <span class="parede-name">Vitrine profissional atualizada</span>
+        <span class="parede-meta">Depende de: <strong>Site Publicado e Otimizado</strong></span>
+      </div>
+
+      <!-- Action 16 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-posts">Portfólio</span>
+            </div>
+            <div class="action-title">Salvar a imagem final do projeto e subir no portfólio do Behance</div>
+            <div class="action-description">Salvar a imagem final do projeto entregue ao cliente e publicá-la no Behance para atualizar a vitrine profissional.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Salvar a imagem final do projeto entregue ao cliente</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Publicar a imagem no Behance</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Atualizar a vitrine profissional do portfólio</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">Processos, processos, processos</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ REFERÊNCIAS CRUZADAS ═══ -->
+    <div class="cross-refs">
+      <div class="section-title">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        Veja também em outras aulas
+      </div>
+
+      <a class="ref-card" href="#">
+        <span class="ref-pilar">Negociação</span>
+        <span class="ref-text">Recebimento de sinal — o pagamento de entrada que destrava o onboarding</span>
+        <span class="ref-arrow">→</span>
+      </a>
+
+      <a class="ref-card" href="#">
+        <span class="ref-pilar">Entrega</span>
+        <span class="ref-text">Coleta de briefing — a base do que vira ativos e página no Notion</span>
+        <span class="ref-arrow">→</span>
+      </a>
+
+      <a class="ref-card" href="#">
+        <span class="ref-pilar">Percepção</span>
+        <span class="ref-text">Portfólio e Instagram — a vitrine que recebe o resultado publicado</span>
+        <span class="ref-arrow">→</span>
+      </a>
+    </div>
+
+    <!-- ═══ FOOTER ═══ -->
+    <div class="lesson-footer">
+      <div class="footer-brand">
+        <span class="brand-dot"></span>
+        Cockpit Builder — Easy Builder
+      </div>
+      <div class="footer-source">Easy Sales · Planejamento · Aula 09</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const mainBoxes = document.querySelectorAll('.action-checkbox');
+  const subBoxes = document.querySelectorAll('.sub-checkbox');
+
+  mainBoxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      const card = cb.closest('.action-card');
+      card.classList.toggle('done', cb.checked);
+      const subs = card.querySelectorAll('.sub-checkbox');
+      subs.forEach(s => { s.checked = cb.checked; });
+      updateProgress();
+    });
+  });
+
+  subBoxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      updateProgress();
+    });
+  });
+
+  function updateProgress() {
+    const total = mainBoxes.length;
+    let done = 0;
+    mainBoxes.forEach(cb => {
+      const card = cb.closest('.action-card');
+      const subs = card.querySelectorAll('.sub-checkbox');
+      const subsChecked = card.querySelectorAll('.sub-checkbox:checked');
+      if (subs.length > 0 && subsChecked.length === subs.length) {
+        cb.checked = true;
+        card.classList.add('done');
+        done++;
+      } else if (cb.checked && subs.length > 0 && subsChecked.length < subs.length) {
+        // keep done if manually checked
+        done++;
+      } else if (cb.checked) {
+        done++;
+      }
+    });
+    document.getElementById('progressFill').style.width = `${(done / total) * 100}%`;
+    document.getElementById('progressLabel').innerHTML = `<strong>${done}</strong> de ${total} ações`;
+    updateCadeia();
+  }
+
+  // Retorna os action-cards que pertencem a uma parede:
+  // tudo entre o cabeçalho dela e o próximo cabeçalho de parede.
+  function cardsDaParede(paredeEl) {
+    const cards = [];
+    let el = paredeEl.nextElementSibling;
+    while (el && !el.classList.contains('parede-header')) {
+      if (el.classList.contains('action-card')) cards.push(el);
+      el = el.nextElementSibling;
+    }
+    return cards;
+  }
+
+  // Cada passo da cadeia acende quando TODAS as ações daquela parede estão feitas
+  function updateCadeia() {
+    document.querySelectorAll('.cadeia-step').forEach(step => {
+      const parede = document.querySelector(step.getAttribute('href'));
+      if (!parede) return;
+      const cards = cardsDaParede(parede);
+      const feitos = cards.filter(c => c.querySelector('.action-checkbox').checked);
+      step.classList.toggle('done', cards.length > 0 && feitos.length === cards.length);
+    });
+  }
+
+  // Rolagem suave ao clicar num passo da cadeia
+  document.querySelectorAll('.cadeia-step').forEach(step => {
+    step.addEventListener('click', e => {
+      e.preventDefault();
+      const alvo = document.querySelector(step.getAttribute('href'));
+      if (alvo) alvo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  updateProgress();
+</script>
+
+</body>
+</html>

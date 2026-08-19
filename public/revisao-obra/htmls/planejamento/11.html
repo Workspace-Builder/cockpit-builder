@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cockpit Builder — Metas de Vida Mapeadas e Estrutura Operacional no Trello</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --bg-base: #0a0a0a;
+    --bg-surface: #111111;
+    --bg-card: #0e0e0e;
+    --bg-elevated: #1a1a1a;
+    --bg-input: #161616;
+    --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-medium: rgba(255, 255, 255, 0.10);
+    --border-strong: rgba(255, 255, 255, 0.14);
+    --accent: #b8ff04;
+    --accent-dim: rgba(184, 255, 4, 0.10);
+    --accent-glow: rgba(184, 255, 4, 0.05);
+    --blue: #60a5fa;
+    --blue-dim: rgba(96, 165, 250, 0.10);
+    --orange: #fb923c;
+    --orange-dim: rgba(251, 146, 60, 0.10);
+    --purple: #a78bfa;
+    --purple-dim: rgba(167, 139, 250, 0.10);
+    --emerald: #34d399;
+    --emerald-dim: rgba(52, 211, 153, 0.10);
+    --text-primary: #f0f0f0;
+    --text-secondary: #888888;
+    --text-tertiary: #555555;
+    --text-on-accent: #0a0a0a;
+    --radius-xs: 6px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+
+  /* ─── Window ─── */
+  .window {
+    max-width: 840px;
+    margin: 0 auto;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.2);
+  }
+
+  .window-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 20px;
+    background: rgba(255,255,255,0.015);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+
+  .window-title {
+    flex: 1;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    letter-spacing: 0.03em;
+  }
+
+  .window-spacer { width: 52px; }
+
+  .window-body { padding: 32px 28px 40px; }
+
+  /* ─── Header ─── */
+  .lesson-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .lesson-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 11px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(184,255,4,0.15);
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .lesson-badges-note {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-bottom: 14px;
+  }
+
+  .lesson-title {
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 6px;
+    letter-spacing: -0.02em;
+  }
+  .lesson-title span { color: var(--accent); }
+
+  .lesson-subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    max-width: 620px;
+    margin-bottom: 28px;
+  }
+
+  /* ─── Context Box ─── */
+  .context-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 28px;
+  }
+
+  .context-box h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 16px;
+  }
+
+  .context-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .context-card {
+    padding: 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+  }
+
+  .context-card-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+    margin-bottom: 10px;
+  }
+
+  .context-card ul {
+    list-style: none;
+  }
+
+  .context-card li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    padding: 4px 0;
+  }
+
+  .context-card li::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    min-width: 5px;
+    border-radius: 50%;
+    margin-top: 6px;
+  }
+
+  .deliverable li::before { background: var(--accent); }
+  .prereq li::before { background: var(--text-tertiary); }
+
+  .context-summary {
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: var(--accent-glow);
+    border-left: 2px solid rgba(184,255,4,0.20);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .context-summary strong { color: var(--accent); font-weight: 600; }
+
+  /* ─── Progress ─── */
+  .progress-section {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 5px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #d4ff4a);
+    border-radius: 100px;
+    transition: width 0.4s ease;
+  }
+
+  .progress-label {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+  .progress-label strong { color: var(--accent); font-weight: 700; }
+
+  /* ─── Parede (RESULTADO nomeado) ─── */
+  .parede-header {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 18px 0 10px;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.02);
+    border-left: 2px solid var(--accent);
+    border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  }
+
+  .parede-header:first-of-type { margin-top: 0; }
+
+  .parede-name {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+
+  .parede-meta {
+    margin-left: auto;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+
+  .parede-meta strong { color: var(--accent); font-weight: 700; }
+
+  /* ─── Platform Section ─── */
+  .platform-section { margin-bottom: 28px; }
+
+  .platform-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .platform-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-xs);
+    font-size: 15px;
+  }
+
+  .platform-name {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .platform-count {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    background: rgba(255,255,255,0.04);
+    padding: 2px 9px;
+    border-radius: 100px;
+  }
+
+  /* ─── Action Card ─── */
+  .action-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    margin-bottom: 10px;
+    transition: border-color 0.2s ease;
+    overflow: hidden;
+  }
+
+  .action-card:hover { border-color: var(--border-medium); }
+
+  .action-card.done { opacity: 0.45; }
+  .action-card.done .action-title { text-decoration: line-through; text-decoration-color: var(--text-tertiary); }
+
+  .action-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 18px 20px 0;
+    cursor: pointer;
+  }
+
+  .action-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    border: 2px solid var(--text-tertiary);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    margin-top: 1px;
+    position: relative;
+  }
+
+  .action-checkbox:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .action-checkbox:checked::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 4px;
+    width: 5px;
+    height: 9px;
+    border: solid var(--text-on-accent);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  .action-checkbox:hover { border-color: var(--accent); }
+
+  .action-content { flex: 1; }
+
+  .action-top-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .action-category {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+
+  .cat-setup { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(184,255,4,0.12); }
+  .cat-posts { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(96,165,250,0.12); }
+  .cat-trafego { background: var(--orange-dim); color: var(--orange); border: 1px solid rgba(251,146,60,0.12); }
+  .cat-vendas { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(167,139,250,0.12); }
+  .cat-gestao { background: var(--emerald-dim); color: var(--emerald); border: 1px solid rgba(52,211,153,0.12); }
+  .cat-lp { background: rgba(244,114,182,0.10); color: #f472b6; border: 1px solid rgba(244,114,182,0.12); }
+
+  .action-title {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--text-primary);
+  }
+
+  .action-description {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    margin-top: 6px;
+    padding-left: 10px;
+    border-left: 2px solid var(--border-medium);
+  }
+
+  .action-card.done .action-description { color: var(--text-tertiary); }
+
+  /* ─── Sub-Checklist ─── */
+  .sub-checklist {
+    list-style: none;
+    padding: 12px 20px 0 50px;
+  }
+
+  .sub-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 4px 0;
+  }
+
+  .sub-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    min-width: 14px;
+    border: 1.5px solid var(--text-tertiary);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    margin-top: 2px;
+    position: relative;
+  }
+
+  .sub-checkbox:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .sub-checkbox:checked::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 3px;
+    width: 4px;
+    height: 7px;
+    border: solid var(--text-on-accent);
+    border-width: 0 1.5px 1.5px 0;
+    transform: rotate(45deg);
+  }
+
+  .sub-checkbox:hover { border-color: rgba(184,255,4,0.5); }
+
+  .sub-checkbox:checked + .sub-text {
+    color: var(--text-tertiary);
+    text-decoration: line-through;
+    text-decoration-color: var(--text-tertiary);
+  }
+
+  .sub-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    transition: color 0.15s ease;
+  }
+
+  /* ─── Context Insight ─── */
+  .action-insight {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 12px 20px 16px 50px;
+    padding: 8px 12px;
+    background: var(--accent-glow);
+    border-left: 2px solid rgba(184,255,4,0.20);
+    border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  }
+
+  .insight-icon {
+    font-size: 12px;
+    line-height: 1;
+    margin-top: 2px;
+    opacity: 0.5;
+  }
+
+  .insight-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    font-style: italic;
+  }
+
+  /* ─── Veja também (nota de referência inline no card) ─── */
+  .see-also {
+    margin: 0 20px 16px 50px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    line-height: 1.5;
+  }
+
+  .see-also strong {
+    color: var(--text-secondary);
+    font-weight: 600;
+  }
+
+  /* ─── Divider ─── */
+  .divider {
+    height: 1px;
+    background: var(--border-subtle);
+    margin: 24px 0;
+  }
+
+  /* ─── Cross References ─── */
+  .cross-refs {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .section-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-title svg {
+    width: 14px;
+    height: 14px;
+    stroke: var(--text-tertiary);
+    fill: none;
+  }
+
+  .ref-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .ref-card:hover {
+    border-color: rgba(184,255,4,0.2);
+    background: rgba(184,255,4,0.02);
+  }
+
+  .ref-pilar {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .ref-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    flex: 1;
+  }
+
+  .ref-arrow {
+    color: var(--text-tertiary);
+    font-size: 14px;
+    transition: transform 0.2s ease;
+  }
+
+  .ref-card:hover .ref-arrow { transform: translateX(3px); color: var(--accent); }
+
+  /* ─── Footer ─── */
+  .lesson-footer {
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+
+  .brand-dot {
+    width: 5px;
+    height: 5px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  .footer-source {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    padding: 3px 9px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 100px;
+  }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 640px) {
+    body { padding: 16px 8px; }
+    .window-body { padding: 20px 16px 28px; }
+    .lesson-title { font-size: 20px; }
+    .context-grid { grid-template-columns: 1fr; }
+    .sub-checklist { padding-left: 38px; }
+    .action-insight { margin-left: 38px; }
+    .see-also { margin-left: 38px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="window">
+  <div class="window-bar">
+    <div class="dot dot-r"></div>
+    <div class="dot dot-y"></div>
+    <div class="dot dot-g"></div>
+    <div class="window-title">Cockpit Builder — Material de Apoio</div>
+    <div class="window-spacer"></div>
+  </div>
+
+  <div class="window-body">
+
+    <!-- ═══ HEADER ═══ -->
+    <div class="lesson-badges">
+      <span class="lesson-badge">Ambiente e Mentalidade</span>
+      <span class="lesson-badge">Entrega</span>
+      <span class="lesson-badge">🔧 Prática</span>
+    </div>
+    <div class="lesson-badges-note">Etapa secundária: Percepção</div>
+    <h1 class="lesson-title">Metas de Vida Mapeadas <span>e Estrutura Operacional no Trello</span></h1>
+    <p class="lesson-subtitle">Do planejamento de vida pessoal ao fluxo de entregas organizado — a base que sustenta toda a operação.</p>
+
+    <!-- ═══ CONTEXTO DA AULA ═══ -->
+    <div class="context-box">
+      <h3>Contexto da aula</h3>
+      <div class="context-grid">
+        <div class="context-card deliverable">
+          <div class="context-card-label">O que você vai construir</div>
+          <ul>
+            <li>Um mapa mental de planejamento de vida e metas</li>
+            <li>Uma estrutura operacional de metas e entregas organizada no Trello</li>
+          </ul>
+        </div>
+        <div class="context-card prereq">
+          <div class="context-card-label">Pré-requisitos</div>
+          <ul>
+            <li>Acesso a uma ferramenta de mapa mental ou papel e caneta</li>
+            <li>Conta ativa e configurada no Trello</li>
+            <li>Definição clara do pró-labore e dos dividendos desejados</li>
+          </ul>
+        </div>
+      </div>
+      <div class="context-summary">
+        <strong>Objetivo central:</strong> Dar ao Builder uma base de clareza pessoal (motivação, identidade, metas de longo prazo) e traduzir isso em uma operação organizada capaz de bater a meta de faturamento.
+      </div>
+    </div>
+
+    <!-- ═══ PROGRESS ═══ -->
+    <div class="progress-section">
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-label" id="progressLabel"><strong>0</strong> de 5 ações</div>
+    </div>
+
+    <!-- ═══════════════════════════════════ -->
+    <!-- GESTÃO -->
+    <!-- ═══════════════════════════════════ -->
+    <div class="platform-section" id="plat-gestao">
+      <div class="platform-header">
+        <div class="platform-icon">⚙️</div>
+        <div class="platform-name">Gestão</div>
+        <div class="platform-count">5 ações</div>
+      </div>
+
+      <!-- PAREDE 1 -->
+      <div class="parede-header" id="parede-1">
+        <span class="parede-name">Mapa Mental de Planejamento de Vida e Metas</span>
+      </div>
+
+      <!-- Action 1 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-gestao">Motivação</span>
+            </div>
+            <div class="action-title">Mapear motivações reais e objetivos</div>
+            <div class="action-description">Motivações reais (além de bens materiais) e objetivos pessoais e financeiros dão o norte para todo o resto do planejamento.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Definir o que realmente te faz feliz além de bens materiais (ex: família, legado, estilo de vida)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Listar objetivos pessoais específicos (ex: ajudar ONGs, ter um sítio, saúde da família)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Listar objetivos financeiros claros (ex: faturamento mensal necessário para sustentar os objetivos pessoais)</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">Se você define metas e quebra isso em etapas, você tem clareza do que precisa ser feito, você não foge do caminho</span>
+        </div>
+      </div>
+
+      <!-- Action 2 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-gestao">Identidade</span>
+            </div>
+            <div class="action-title">Definir a identidade necessária (quem preciso ser)</div>
+            <div class="action-description">As metas só se sustentam se a pessoa se transforma no perfil de caráter e maturidade necessário para chegar lá.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Identificar quais características de caráter e maturidade são necessárias para atingir as metas (ex: ser mais leal, fiel, maduro, técnico)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Listar ações de desenvolvimento pessoal necessárias para essa transformação (ex: ler livros específicos, lidar com crenças, trocar entretenimento por conteúdo)</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">Se você define metas e quebra isso em etapas, você tem clareza do que precisa ser feito, você não foge do caminho</span>
+        </div>
+      </div>
+
+      <!-- Action 3 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-gestao">Cronograma</span>
+            </div>
+            <div class="action-title">Quebrar metas em etapas cronológicas (10 → 5 → 2 → 1 ano → mês)</div>
+            <div class="action-description">A meta de longo prazo só vira execução quando é retroagida até virar tarefa do mês.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Definir o objetivo principal para daqui a 10 anos</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Determinar como você precisa estar daqui a 5 anos para que o plano de 10 anos seja concluído</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Retroceder o planejamento para 2 anos, 1 ano, e metas semestrais/trimestrais</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Definir as tarefas específicas que precisam ser feitas neste mês para cumprir o cronograma</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">Se você define metas e quebra isso em etapas, você tem clareza do que precisa ser feito, você não foge do caminho</span>
+        </div>
+        <div class="see-also"><strong>Veja também:</strong> Pilar Posicionamento → Definição de limites e comunicação</div>
+      </div>
+
+      <!-- PAREDE 2 -->
+      <div class="parede-header" id="parede-2">
+        <span class="parede-name">Estrutura Operacional de Metas e Entregas</span>
+        <span class="parede-meta">Depende de: <strong>Mapa Mental de Planejamento de Vida e Metas</strong></span>
+      </div>
+
+      <!-- Action 4 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-gestao">Cálculo</span>
+            </div>
+            <div class="action-title">Calcular volume de entregas por faturamento</div>
+            <div class="action-description">Transforma a meta de faturamento em quantidade exata de itens a produzir por tipo de serviço, para a meta parar de ser um número abstrato.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Pegar a meta de faturamento total desejada</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Dividir essa meta pelos tipos de serviços prestados (ex: edição de vídeo, criação de páginas, social media)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Calcular a quantidade exata de itens que precisam ser produzidos para bater o valor (ex: "X vídeos por dia", "uma página a cada 2 dias", "20 clientes de social media")</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">Na mente a gente não lembra o que precisa ser feito... tem que tirar e botar no papel</span>
+        </div>
+      </div>
+
+      <!-- Action 5 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-gestao">Trello</span>
+            </div>
+            <div class="action-title">Organizar o fluxo de trabalho no Trello</div>
+            <div class="action-description">Tirar tudo da cabeça e colocar em quadros e checklists é o que libera espaço mental para executar.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Criar quadros específicos para "Organização Pessoal" e "Projetos"</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Criar colunas de Backlog e checklists para cada etapa dos projetos</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Transferir todas as ideias e pendências da mente para as listas do Trello para liberar espaço mental</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">Na mente a gente não lembra o que precisa ser feito... tem que tirar e botar no papel</span>
+        </div>
+        <div class="see-also"><strong>Veja também:</strong> Pilar Gestão de Projetos → Processos e checklists</div>
+      </div>
+    </div>
+
+    <!-- ═══ REFERÊNCIAS CRUZADAS ═══ -->
+    <div class="cross-refs">
+      <div class="section-title">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        Veja também em outras aulas
+      </div>
+
+      <a class="ref-card" href="#">
+        <span class="ref-pilar">Posicionamento</span>
+        <span class="ref-text">Envelopar todo o planejamento pessoal e metas na comunicação do Instagram e na imposição de limites aos clientes</span>
+        <span class="ref-arrow">→</span>
+      </a>
+
+      <a class="ref-card" href="#">
+        <span class="ref-pilar">Gestão Financeira</span>
+        <span class="ref-text">Inteligência financeira aplicada em investimentos para gerar dividendos futuros</span>
+        <span class="ref-arrow">→</span>
+      </a>
+
+      <a class="ref-card" href="#">
+        <span class="ref-pilar">Posicionamento</span>
+        <span class="ref-text">Alinhamento de valores internos para evitar conflitos na hora de cobrar ou liderar</span>
+        <span class="ref-arrow">→</span>
+      </a>
+    </div>
+
+    <!-- ═══ FOOTER ═══ -->
+    <div class="lesson-footer">
+      <div class="footer-brand">
+        <span class="brand-dot"></span>
+        Cockpit Builder — Easy Builder
+      </div>
+      <div class="footer-source">Easy Sales · Planejamento · Aula 11</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const mainBoxes = document.querySelectorAll('.action-checkbox');
+  const subBoxes = document.querySelectorAll('.sub-checkbox');
+
+  mainBoxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      const card = cb.closest('.action-card');
+      card.classList.toggle('done', cb.checked);
+      const subs = card.querySelectorAll('.sub-checkbox');
+      subs.forEach(s => { s.checked = cb.checked; });
+      updateProgress();
+    });
+  });
+
+  subBoxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      updateProgress();
+    });
+  });
+
+  function updateProgress() {
+    const total = mainBoxes.length;
+    let done = 0;
+    mainBoxes.forEach(cb => {
+      const card = cb.closest('.action-card');
+      const subs = card.querySelectorAll('.sub-checkbox');
+      const subsChecked = card.querySelectorAll('.sub-checkbox:checked');
+      if (subs.length > 0 && subsChecked.length === subs.length) {
+        cb.checked = true;
+        card.classList.add('done');
+        done++;
+      } else if (cb.checked && subs.length > 0 && subsChecked.length < subs.length) {
+        // keep done if manually checked
+        done++;
+      } else if (cb.checked) {
+        done++;
+      }
+    });
+    document.getElementById('progressFill').style.width = `${(done / total) * 100}%`;
+    document.getElementById('progressLabel').innerHTML = `<strong>${done}</strong> de ${total} ações`;
+  }
+
+  updateProgress();
+</script>
+
+</body>
+</html>

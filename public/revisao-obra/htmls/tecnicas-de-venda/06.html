@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cockpit Builder — Anúncio em AIDA, Negociação em PAS e Landing Page de Alta Conversão</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --bg-base: #0a0a0a;
+    --bg-surface: #111111;
+    --bg-card: #0e0e0e;
+    --bg-elevated: #1a1a1a;
+    --bg-input: #161616;
+    --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-medium: rgba(255, 255, 255, 0.10);
+    --border-strong: rgba(255, 255, 255, 0.14);
+    --accent: #b8ff04;
+    --accent-dim: rgba(184, 255, 4, 0.10);
+    --accent-glow: rgba(184, 255, 4, 0.05);
+    --blue: #60a5fa;
+    --blue-dim: rgba(96, 165, 250, 0.10);
+    --orange: #fb923c;
+    --orange-dim: rgba(251, 146, 60, 0.10);
+    --purple: #a78bfa;
+    --purple-dim: rgba(167, 139, 250, 0.10);
+    --emerald: #34d399;
+    --emerald-dim: rgba(52, 211, 153, 0.10);
+    --text-primary: #f0f0f0;
+    --text-secondary: #888888;
+    --text-tertiary: #555555;
+    --text-on-accent: #0a0a0a;
+    --radius-xs: 6px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+
+  .window {
+    max-width: 840px;
+    margin: 0 auto;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.2);
+  }
+
+  .window-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 20px;
+    background: rgba(255,255,255,0.015);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+
+  .window-title {
+    flex: 1;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    letter-spacing: 0.03em;
+  }
+
+  .window-spacer { width: 52px; }
+
+  .window-body { padding: 32px 28px 40px; }
+
+  .lesson-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .lesson-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 11px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(184,255,4,0.15);
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .lesson-badge.secondary {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border-medium);
+    color: var(--text-secondary);
+  }
+
+  .lesson-title {
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 6px;
+    letter-spacing: -0.02em;
+  }
+  .lesson-title span { color: var(--accent); }
+
+  .lesson-subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    max-width: 620px;
+    margin-bottom: 28px;
+  }
+
+  .context-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 28px;
+  }
+
+  .context-box h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 16px;
+  }
+
+  .context-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .context-card {
+    padding: 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+  }
+
+  .context-card-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+    margin-bottom: 10px;
+  }
+
+  .context-card ul { list-style: none; }
+
+  .context-card li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    padding: 4px 0;
+  }
+
+  .context-card li::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    min-width: 5px;
+    border-radius: 50%;
+    margin-top: 6px;
+  }
+
+  .deliverable li::before { background: var(--accent); }
+  .prereq li::before { background: var(--text-tertiary); }
+
+  .context-summary {
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: var(--accent-glow);
+    border-left: 2px solid rgba(184,255,4,0.20);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .context-summary strong { color: var(--accent); font-weight: 600; }
+
+  .progress-section {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 5px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #d4ff4a);
+    border-radius: 100px;
+    transition: width 0.4s ease;
+  }
+
+  .progress-label {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+  .progress-label strong { color: var(--accent); font-weight: 700; }
+
+  .parede-header {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 18px 0 10px;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.02);
+    border-left: 2px solid var(--accent);
+    border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  }
+
+  .parede-header:first-of-type { margin-top: 0; }
+
+  .parede-name {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+
+  .parede-depende {
+    font-size: 11px;
+    font-style: italic;
+    color: var(--text-tertiary);
+    margin: -4px 0 12px 12px;
+  }
+
+  .platform-section { margin-bottom: 28px; }
+
+  .platform-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .platform-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-xs);
+    font-size: 15px;
+  }
+
+  .platform-name {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .platform-count {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    background: rgba(255,255,255,0.04);
+    padding: 2px 9px;
+    border-radius: 100px;
+  }
+
+  .action-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    margin-bottom: 10px;
+    transition: border-color 0.2s ease;
+    overflow: hidden;
+  }
+
+  .action-card:hover { border-color: var(--border-medium); }
+
+  .action-card.done { opacity: 0.45; }
+  .action-card.done .action-title { text-decoration: line-through; text-decoration-color: var(--text-tertiary); }
+
+  .action-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 18px 20px 0;
+    cursor: pointer;
+  }
+
+  .action-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    border: 2px solid var(--text-tertiary);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    margin-top: 1px;
+    position: relative;
+  }
+
+  .action-checkbox:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .action-checkbox:checked::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 4px;
+    width: 5px;
+    height: 9px;
+    border: solid var(--text-on-accent);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  .action-checkbox:hover { border-color: var(--accent); }
+
+  .action-content { flex: 1; }
+
+  .action-top-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .action-category {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+
+  .cat-setup { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(184,255,4,0.12); }
+  .cat-posts { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(96,165,250,0.12); }
+  .cat-trafego { background: var(--orange-dim); color: var(--orange); border: 1px solid rgba(251,146,60,0.12); }
+  .cat-vendas { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(167,139,250,0.12); }
+  .cat-gestao { background: var(--emerald-dim); color: var(--emerald); border: 1px solid rgba(52,211,153,0.12); }
+  .cat-lp { background: rgba(244,114,182,0.10); color: #f472b6; border: 1px solid rgba(244,114,182,0.12); }
+
+  .action-title {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--text-primary);
+  }
+
+  .action-description {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    margin-top: 6px;
+    padding-left: 10px;
+    border-left: 2px solid var(--border-medium);
+  }
+
+  .action-card.done .action-description { color: var(--text-tertiary); }
+
+  .sub-checklist {
+    list-style: none;
+    padding: 12px 20px 0 50px;
+  }
+
+  .sub-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 4px 0;
+  }
+
+  .sub-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    min-width: 14px;
+    border: 1.5px solid var(--text-tertiary);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    margin-top: 2px;
+    position: relative;
+  }
+
+  .sub-checkbox:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .sub-checkbox:checked::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 3px;
+    width: 4px;
+    height: 7px;
+    border: solid var(--text-on-accent);
+    border-width: 0 1.5px 1.5px 0;
+    transform: rotate(45deg);
+  }
+
+  .sub-checkbox:hover { border-color: rgba(184,255,4,0.5); }
+
+  .sub-checkbox:checked + .sub-text {
+    color: var(--text-tertiary);
+    text-decoration: line-through;
+    text-decoration-color: var(--text-tertiary);
+  }
+
+  .sub-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    transition: color 0.15s ease;
+  }
+
+  .sub-text em {
+    color: var(--accent);
+    font-style: normal;
+    font-weight: 600;
+  }
+
+  .action-insight {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 12px 20px 16px 50px;
+    padding: 8px 12px;
+    background: var(--accent-glow);
+    border-left: 2px solid rgba(184,255,4,0.20);
+    border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  }
+
+  .insight-icon {
+    font-size: 12px;
+    line-height: 1;
+    margin-top: 2px;
+    opacity: 0.5;
+  }
+
+  .insight-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    font-style: italic;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border-subtle);
+    margin: 24px 0;
+  }
+
+  .cross-refs {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .section-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-title svg {
+    width: 14px;
+    height: 14px;
+    stroke: var(--text-tertiary);
+    fill: none;
+  }
+
+  .ref-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .ref-card:hover {
+    border-color: rgba(184,255,4,0.2);
+    background: rgba(184,255,4,0.02);
+  }
+
+  .ref-pilar {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .ref-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    flex: 1;
+  }
+
+  .ref-arrow {
+    color: var(--text-tertiary);
+    font-size: 14px;
+    transition: transform 0.2s ease;
+  }
+
+  .ref-card:hover .ref-arrow { transform: translateX(3px); color: var(--accent); }
+
+  .lesson-footer {
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+
+  .brand-dot {
+    width: 5px;
+    height: 5px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  .footer-source {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    padding: 3px 9px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 100px;
+  }
+
+  @media (max-width: 640px) {
+    body { padding: 16px 8px; }
+    .window-body { padding: 20px 16px 28px; }
+    .lesson-title { font-size: 20px; }
+    .context-grid { grid-template-columns: 1fr; }
+    .sub-checklist { padding-left: 38px; }
+    .action-insight { margin-left: 38px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="window">
+  <div class="window-bar">
+    <div class="dot dot-r"></div>
+    <div class="dot dot-y"></div>
+    <div class="dot dot-g"></div>
+    <div class="window-title">Cockpit Builder — Material de Apoio</div>
+    <div class="window-spacer"></div>
+  </div>
+
+  <div class="window-body">
+
+    <!-- ═══ HEADER ═══ -->
+    <div class="lesson-badges">
+      <span class="lesson-badge">🔨 Entrega de Alto Valor</span>
+      <span class="lesson-badge">🧲 Atração</span>
+      <span class="lesson-badge">🔧 Prática</span>
+      <span class="lesson-badge secondary">Negociação</span>
+      <span class="lesson-badge secondary">Entrega</span>
+    </div>
+    <h1 class="lesson-title">Anúncio em AIDA, Negociação em PAS <span>e Landing Page de Alta Conversão</span></h1>
+    <p class="lesson-subtitle">Estruture o copy do anúncio em AIDA, conduza o diagnóstico e o fechamento da reunião com a lente PAS (Problema-Agitação-Solução), otimize a Landing Page do funil de tráfego pago para dobrar a taxa de conexão e planeje o engajamento dos posts com a fórmula AR3.</p>
+
+    <!-- ═══ CONTEXTO DA AULA ═══ -->
+    <div class="context-box">
+      <h3>Contexto da aula</h3>
+      <div class="context-grid">
+        <div class="context-card deliverable">
+          <div class="context-card-label">O que você vai construir</div>
+          <ul>
+            <li>Copy de anúncio (legenda + imagem) estruturada em AIDA — Atenção, Interesse, Desejo, Ação</li>
+            <li>Business Manager configurado com pixel de conversão instalado</li>
+            <li>Diagnóstico e fechamento da reunião de vendas enriquecidos com a lente PAS</li>
+            <li>Landing Page do funil de tráfego com taxa de conexão otimizada (passo 4 de 5 da cadeia Funil de Tráfego com R$7/dia)</li>
+            <li>Planejamento de engajamento dos posts do Instagram com a fórmula AR3</li>
+          </ul>
+        </div>
+        <div class="context-card prereq">
+          <div class="context-card-label">Pré-requisitos</div>
+          <ul>
+            <li>Hospedagem VPS (ex: TurboCloud) recomendada para sites em hospedagens lentas</li>
+            <li>Acesso ao Cloudflare para otimização de conexão</li>
+            <li>Plugins de Cache instalados no WordPress</li>
+            <li>Documento de "Palavras Persuasivas" para consulta durante a escrita da copy</li>
+          </ul>
+        </div>
+      </div>
+      <div class="context-summary">
+        <strong>Objetivo central:</strong> conduzir o cliente por um processo de venda completo — do anúncio que atrai (AIDA) à reunião que fecha (PAS) — sem deixar a Landing Page do funil pago perder metade dos leads por lentidão de carregamento.
+      </div>
+    </div>
+
+    <!-- ═══ PROGRESS ═══ -->
+    <div class="progress-section">
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-label" id="progressLabel"><strong>0</strong> de 11 ações</div>
+    </div>
+
+    <!-- ═══════════════════════════════════ -->
+    <!-- META ADS -->
+    <!-- ═══════════════════════════════════ -->
+    <div class="platform-section" id="plat-meta-ads">
+      <div class="platform-header">
+        <div class="platform-icon">📡</div>
+        <div class="platform-name">Meta Ads</div>
+        <div class="platform-count">2 ações</div>
+      </div>
+
+      <!-- PAREDE 1 -->
+      <div class="parede-header" id="parede-1">
+        <span class="parede-name">Conta de anúncios (Business Manager) configurada e pixel instalado</span>
+      </div>
+
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-setup">Setup</span>
+            </div>
+            <div class="action-title">Configurar Business Manager e instalar o pixel de conversão antes de qualquer campanha</div>
+            <div class="action-description">Sem uma conta de anúncios e pixel configurados, nenhuma campanha de Meta Ads pode ser veiculada nem medida.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Criar/acessar o Business Manager do cliente</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Instalar o pixel do Meta no site</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Verificar o domínio</span></li>
+        </ul>
+      </div>
+
+      <!-- PAREDE 2 -->
+      <div class="parede-header" id="parede-2">
+        <span class="parede-name">Copy de Anúncio Estruturada em AIDA</span>
+      </div>
+      <p class="parede-depende">Veja também: nível de sofisticação do cliente e mecanismo único (Pilar Posicionamento, fora deste cockpit)</p>
+
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-trafego">Tráfego</span>
+            </div>
+            <div class="action-title">Estruturar a legenda e a imagem do anúncio pautada em AIDA (Atenção, Interesse, Desejo, Ação)</div>
+            <div class="action-description">"Você conduz o teu cliente através de um processo de venda." A peça de copy (legenda + imagem) alimenta qualquer campanha de anúncio ou postagem e precisa conduzir o cliente pelas quatro etapas do processo de venda.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Atenção: fale de uma dor, sonho, desejo ou urgência oculta do cliente, ou algo que ele enfrenta com a concorrência (ex: "Você tem uma página bonita que não converte?")</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Interesse: mostre uma forma de resolver o problema indo além do óbvio (ex: a beleza é o detalhe menos importante)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Desejo: apresente seu mecanismo único (ex: Método XPTD) e use prova social de alunos/clientes</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Ação: CTA direto — "saiba mais" ou "garantir a vaga"</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">"Você conduz o teu cliente através de um processo de venda." — Easy Sales · Técnicas de Venda · Aula 06</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════ -->
+    <!-- REUNIÃO -->
+    <!-- ═══════════════════════════════════ -->
+    <div class="platform-section" id="plat-reuniao">
+      <div class="platform-header">
+        <div class="platform-icon">🎙️</div>
+        <div class="platform-name">Reunião</div>
+        <div class="platform-count">6 ações</div>
+      </div>
+
+      <!-- PAREDE 3 -->
+      <div class="parede-header" id="parede-3">
+        <span class="parede-name">Diagnóstico do Cliente Realizado</span>
+      </div>
+      <p class="parede-depende">Parede já existente no cômodo Reunião (Aulas 13 e 03) — enriquecida por esta aula com a lente PAS</p>
+
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-vendas">Vendas</span>
+            </div>
+            <div class="action-title">Executar a Investigação Estratégica (Atendimento Preocupado)</div>
+            <div class="action-description">Investigar o cliente para entender o problema real antes de virar apenas um tirador de pedidos que passa preço imediatamente. O último passo do checklist foi enriquecido por esta aula com a lente PAS: nomear o problema antes de agitar e ofertar.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Iniciar o contato criando um "rapor" (conversa inicial leve) antes de entrar no assunto técnico</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Fazer, no mínimo, 5 perguntas estratégicas antes de passar qualquer orçamento</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Perguntar sobre os objetivos do projeto (ex: captação de leads, lançamento, negócio local)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Questionar sobre o histórico e dados anteriores (ex: taxas de conversão passadas, o que deu errado anteriormente)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Identificar o prazo de entrega e a data de início da operação do cliente</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Verificar o investimento planejado e as metas numéricas do cliente</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Tomar notas de todas as respostas (dores, desejos, o que já testou) para usar como argumento na oferta</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Nomear explicitamente o problema central do cliente perguntando sobre nicho, produto e funil, antes de seguir para a agitação e a oferta <em>— Easy Sales · Técnicas de Venda · Aula 06 (lente PAS)</em></span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">"É necessário investigar o cliente para entender o problema real e não ser apenas um tirador de pedidos que passa preço imediatamente." — Easy Sales · Funil Anti Prospecção · Aula 13</span>
+        </div>
+      </div>
+
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-vendas">Vendas</span>
+            </div>
+            <div class="action-title">Aplicar rapport e escuta ativa nos primeiros minutos da call</div>
+            <div class="action-description">Antes de investigar a fundo, criar conexão genuína com o cliente e depois conduzir a conversa com perguntas certeiras, sem perder o controle do tempo da call.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Criar rapport nos primeiros 5–10 minutos: identificar pontos em comum no cenário/fala do cliente e sorrir para gerar espelhamento de comportamento</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Deixar o cliente falar sobre o projeto enquanto anota em bloco físico ou digital</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Fazer perguntas fechadas e certeiras sobre estratégia, cópia, fotos e prazos, pra evitar que o cliente se alongue em histórias pessoais</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Usar a técnica CCS (Concorda, Contorna e Sugere) quando houver divergência de ideias</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">"O momento da reunião é para você escutar e fazer as perguntas certas para o cliente trazer as dores específicas dele." — Easy Sales · Técnicas de Venda · Aula 03</span>
+        </div>
+      </div>
+
+      <!-- PAREDE 4 -->
+      <div class="parede-header" id="parede-4">
+        <span class="parede-name">Proposta de Valor e Fechamento</span>
+      </div>
+      <p class="parede-depende">Parede já existente no cômodo Reunião (Aulas 13, 14, 01 e 03) — enriquecida por esta aula com a lente PAS</p>
+
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-vendas">Vendas</span>
+            </div>
+            <div class="action-title">Empacotar e ofertar a solução</div>
+            <div class="action-description">O fechamento ocorre quando o cliente sente segurança total na capacidade do Builder de resolver o problema dele de forma profissional. O último passo do checklist foi enriquecido por esta aula: ofertar a solução exata para o problema que foi agitado.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Montar um pacote de serviços baseado estritamente nos argumentos e problemas que o cliente trouxe durante a investigação</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Antecipar objeções comuns (como hospedagem, prazos, suporte) explicando a solução antes mesmo de o cliente perguntar</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Apresentar o preço apenas após o cliente entender o valor da entrega e o processo</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Incluir condicionais exclusivos, como descontos pontuais ou suporte estendido durante o lançamento, para facilitar o fechamento</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Demonstrar autoridade ao sugerir a melhor solução técnica, mesmo que seja diferente do que o cliente pediu inicialmente (exemplo do capacete)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Ofertar a solução exata para o problema que foi agitado, sem genéricos (ex: oferecer migração para servidor VPS antes de iniciar o site) <em>— Easy Sales · Técnicas de Venda · Aula 06</em></span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">"O fechamento ocorre quando o cliente sente segurança total na sua capacidade de resolver o problema dele de forma profissional." — Easy Sales · Funil Anti Prospecção · Aula 13</span>
+        </div>
+      </div>
+
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-vendas">Vendas</span>
+            </div>
+            <div class="action-title">Apresentar os pacotes de serviço ao vivo, na reunião</div>
+            <div class="action-description">Apresentar a proposta ainda durante a chamada ao vivo, em vez de só enviar depois, evita perder a oportunidade de negociar e aumenta a taxa de fechamento.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Expor os pacotes formatados durante a chamada ao vivo</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Somar uma "oferta irresistível" para estimular o fechamento imediato</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Explicar claramente quais são os próximos passos do processo</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">"Apresentar a proposta na reunião evita a perda da oportunidade de negociar e aumenta a taxa de fechamento." — Easy Sales · Funil Anti Prospecção · Aula 14</span>
+        </div>
+      </div>
+
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-vendas">Vendas</span>
+            </div>
+            <div class="action-title">Conduzir a estrutura completa de fechamento comercial na call (rapport por hobbies, mini-consultoria, pitch e Pix imediato)</div>
+            <div class="action-description">O fechamento em call tem taxa de conversão infinitamente maior que o texto, permitindo quebrar objeções em tempo real — a estrutura deve ser conduzida do início ao fim, da confirmação até o pagamento.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Confirmar a call enviando mensagem ao lead 30 minutos antes do horário marcado</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Gerar identificação: pesquisar hobbies e vida pessoal do lead antes da call e iniciar os primeiros minutos falando sobre esses interesses comuns</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Agregar valor: identificar uma dor real (ex: página lenta, baixa conversão) e fazer uma "mini consultoria" usando ferramentas como GTmetrics</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Apresentar a solução mostrando o processo no Figma (Style Guide, Moodboard, Iconografia), em vez de mostrar apenas o resultado final</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Fazer o pitch de vendas com ancoragem de preço (ex: de 15k por 12k para fechar na call) e oferecer opções de pagamento (50/50 ou Pix à vista com desconto)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Finalizar imediatamente: enviar a chave Pix ainda na call, confirmar o recebimento e criar o grupo de WhatsApp em seguida</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Oferecer primeiro o pacote completo/maior valor e só depois reduzir para serviços menores, se necessário</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Falar o preço com segurança e silenciar em seguida</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">"O fechamento em call tem taxa de conversão infinitamente maior que o texto, permitindo quebrar objeções em tempo real." — Easy Sales · Técnicas de Venda · Aula 01</span>
+        </div>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">"O preço é o meio do caminho; você fala com segurança e parte para os próximos passos." — Easy Sales · Técnicas de Venda · Aula 03</span>
+        </div>
+      </div>
+
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-vendas">Vendas</span>
+            </div>
+            <div class="action-title">Conscientizar da dor, apresentar o estado ideal e fechar com resumo verbal</div>
+            <div class="action-description">"O cara aparece com um problema e eu oferto a solução." O cliente precisa sentir o custo de não resolver agora antes de ver a solução técnica — o segundo passo do checklist foi enriquecido por esta aula com a agitação das consequências de longo prazo.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Conscientizar o cliente da dor (o que ele perde se não resolver agora) antes de apresentar a solução</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Agitar as consequências negativas de longo prazo caso o problema não seja resolvido (ex: continuar perdendo vendas por falta de otimização) <em>— Easy Sales · Técnicas de Venda · Aula 06</em></span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Apresentar o "estado ideal" (o céu) e a solução técnica sem detalhar o "como"</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Abrir o PDF de apresentação/pitch só na hora de mostrar depoimentos, pilares e investimento (não antes)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Fechar com resumo verbal de tudo que foi decidido e listar as tarefas imediatas de cada lado (ex: cliente envia briefing, você envia Pix)</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">"O cara aparece com um problema e eu oferto a solução." — Easy Sales · Técnicas de Venda · Aula 06</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════ -->
+    <!-- SITE -->
+    <!-- ═══════════════════════════════════ -->
+    <div class="platform-section" id="plat-site">
+      <div class="platform-header">
+        <div class="platform-icon">🌐</div>
+        <div class="platform-name">Site</div>
+        <div class="platform-count">2 ações</div>
+      </div>
+
+      <!-- PAREDE 5 -->
+      <div class="parede-header" id="parede-5">
+        <span class="parede-name">Landing Page com formulário no ar</span>
+      </div>
+      <p class="parede-depende">Veja também: esta Landing Page corresponde ao passo 4 de 5 da cadeia "Funil de Tráfego com R$7/dia" (funil-7-reais)</p>
+
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-lp">Landing Page</span>
+            </div>
+            <div class="action-title">Otimizar a taxa de conexão da Landing Page para 80% entre clique e visualização</div>
+            <div class="action-description">Eliminar a perda de leads causada por carregamento lento entre o clique no anúncio e a página abrir — quanto mais rápido carrega, mais gente completa o cadastro.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Migrar para VPS: se o cliente usa hospedagem lenta (ex: LocalWeb), migre para um servidor VPS como a TurboCloud</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Otimizar imagens: converta e utilize imagens no formato WebP</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Configurar infraestrutura: utilize Cloudflare e instale plugins de cache para melhorar o carregamento</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">"Você tem mais do que o dobro de pessoas cadastradas, só melhorando o carregamento da página." — Easy Sales · Técnicas de Venda · Aula 06</span>
+        </div>
+      </div>
+
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-lp">Landing Page</span>
+            </div>
+            <div class="action-title">Ajustar a tipografia da Landing Page conforme a idade do público-alvo</div>
+            <div class="action-description">Evitar que o design atrapalhe a leitura da copy em público mais velho, aumentando o tamanho das fontes acima do padrão quando necessário.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Identifique a idade: verifique com o gestor de tráfego se o público-alvo tem 50 anos ou mais</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Aumente as fontes: configure as letras do site com tamanho bem maior do que o padrão de 12 (mobile) e 16 (desktop) para garantir que consigam ler a copy</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">"O meu design ia atrapalhar a copy." — Easy Sales · Técnicas de Venda · Aula 06</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════ -->
+    <!-- INSTAGRAM -->
+    <!-- ═══════════════════════════════════ -->
+    <div class="platform-section" id="plat-instagram">
+      <div class="platform-header">
+        <div class="platform-icon">📸</div>
+        <div class="platform-name">Instagram</div>
+        <div class="platform-count">1 ação</div>
+      </div>
+
+      <!-- PAREDE 6 -->
+      <div class="parede-header" id="parede-6">
+        <span class="parede-name">Planejamento de Engajamento de Posts com a Fórmula AR3</span>
+      </div>
+
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-posts">Posts</span>
+            </div>
+            <div class="action-title">Aplicar a fórmula AR3 (Atenção, Retenção, Reação, Reset) para manter a atenção do seguidor entre postagens</div>
+            <div class="action-description">O seguidor ignora o conteúdo quando percebe "mais do mesmo" — a fórmula AR3 estrutura cada post para capturar, segurar e converter atenção, e planeja a mudança de abordagem na postagem seguinte para não repetir o padrão.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Atenção: chame a atenção com algo visualmente impactante ou um tema forte</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Retenção: mantenha a pessoa no post através do interesse e desejo</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Reação: estimule uma reação (like, comentário ou clique)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Reset: mude o assunto, o cenário ou a abordagem na postagem seguinte para resetar a atenção e evitar que o seguidor ignore o conteúdo por ser "mais do mesmo"</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">"As lojas constantemente mudam as vitrines... pra resetar [a atenção]." — Easy Sales · Técnicas de Venda · Aula 06</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ REFERÊNCIAS CRUZADAS ═══ -->
+    <div class="cross-refs">
+      <div class="section-title">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        Veja também em outras aulas
+      </div>
+
+      <a class="ref-card" href="#">
+        <span class="ref-pilar">Posicionamento</span>
+        <span class="ref-text">Definição do nível de sofisticação do cliente e do mecanismo único — público high-ticket (relevante pro Copy AIDA)</span>
+        <span class="ref-arrow">→</span>
+      </a>
+
+      <a class="ref-card" href="#">
+        <span class="ref-pilar">Mentalidade</span>
+        <span class="ref-text">Manter a honestidade e a verdade na promessa do que o design entrega</span>
+        <span class="ref-arrow">→</span>
+      </a>
+
+      <a class="ref-card" href="#">
+        <span class="ref-pilar">Gestão e Eficiência</span>
+        <span class="ref-text">Comunicação presente com o cliente e acompanhamento de métricas pós-venda</span>
+        <span class="ref-arrow">→</span>
+      </a>
+
+      <a class="ref-card" href="#">
+        <span class="ref-pilar">Cadeia</span>
+        <span class="ref-text">A Landing Page desta aula é o passo 4 de 5 da cadeia "Funil de Tráfego com R$7/dia" (funil-7-reais)</span>
+        <span class="ref-arrow">→</span>
+      </a>
+    </div>
+
+    <!-- ═══ FOOTER ═══ -->
+    <div class="lesson-footer">
+      <div class="footer-brand">
+        <span class="brand-dot"></span>
+        Cockpit Builder — Easy Builder
+      </div>
+      <div class="footer-source">Técnicas de Venda — Aula 06</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const mainBoxes = document.querySelectorAll('.action-checkbox');
+  const subBoxes = document.querySelectorAll('.sub-checkbox');
+
+  mainBoxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      const card = cb.closest('.action-card');
+      card.classList.toggle('done', cb.checked);
+      const subs = card.querySelectorAll('.sub-checkbox');
+      subs.forEach(s => { s.checked = cb.checked; });
+      updateProgress();
+    });
+  });
+
+  subBoxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      updateProgress();
+    });
+  });
+
+  function updateProgress() {
+    const total = mainBoxes.length;
+    let done = 0;
+    mainBoxes.forEach(cb => {
+      const card = cb.closest('.action-card');
+      const subs = card.querySelectorAll('.sub-checkbox');
+      const subsChecked = card.querySelectorAll('.sub-checkbox:checked');
+      if (subs.length > 0 && subsChecked.length === subs.length) {
+        cb.checked = true;
+        card.classList.add('done');
+        done++;
+      } else if (cb.checked && subs.length > 0 && subsChecked.length < subs.length) {
+        done++;
+      } else if (cb.checked) {
+        done++;
+      }
+    });
+    document.getElementById('progressFill').style.width = `${(done / total) * 100}%`;
+    document.getElementById('progressLabel').innerHTML = `<strong>${done}</strong> de ${total} ações`;
+  }
+
+  updateProgress();
+</script>
+
+</body>
+</html>

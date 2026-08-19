@@ -1,0 +1,102 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Obra 10k — _cadeias</title><style>
+:root{color-scheme:dark;}
+*{box-sizing:border-box;}
+body{margin:0;background:#15171c;color:#e7e9ee;font:15px/1.65 -apple-system,Inter,Segoe UI,Roboto,sans-serif;}
+.wrap{max-width:760px;margin:0 auto;padding:28px 30px 60px;}
+h1{font-size:22px;margin:0 0 4px;color:#fff;}
+h2{font-size:17px;margin:28px 0 8px;color:#fff;border-top:1px solid #2a2d35;padding-top:16px;}
+h3{font-size:14.5px;margin:18px 0 6px;color:#dfe2ea;}
+h4{font-size:13.5px;margin:14px 0 4px;color:#c7cbd6;}
+p{margin:8px 0;color:#c7cbd6;}
+a{color:#7aa2ff;}
+code{background:#20232b;padding:1px 5px;border-radius:4px;font-size:.9em;color:#f2c078;}
+pre{background:#0f1114;border:1px solid #2a2d35;border-radius:8px;padding:12px 14px;overflow:auto;font-size:12.5px;color:#a9b0bf;white-space:pre-wrap;word-break:break-word;}
+pre code{background:none;padding:0;color:inherit;}
+blockquote{margin:10px 0;padding:6px 14px;border-left:3px solid #4e7df6;color:#a9adb8;background:#1c1f26;}
+ul,ol{margin:8px 0;padding-left:22px;color:#c7cbd6;}
+li{margin:3px 0;}
+hr{border:none;border-top:1px solid #2a2d35;margin:20px 0;}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:13px;}
+th,td{border:1px solid #2a2d35;padding:6px 9px;text-align:left;color:#c7cbd6;}
+th{background:#1c1f26;color:#fff;}
+strong{color:#fff;}
+details.fm{margin:10px 0 20px;background:#1c1f26;border:1px solid #2a2d35;border-radius:8px;padding:8px 12px;}
+details.fm summary{cursor:pointer;color:#8b93a5;font-size:12px;}
+details.fm pre{margin-top:8px;border:none;background:none;padding:0;font-size:11.5px;}
+.tag{display:inline-block;font-size:11px;color:#8b93a5;background:#1c1f26;border:1px solid #2a2d35;border-radius:999px;padding:2px 10px;margin-bottom:14px;}
+</style></head><body><div class="wrap"><div class="tag">obra bootcamp-10k · yaml</div><pre><code># Cadeias de Execução — Bootcamp Builder 10k
+#
+# Uma CADEIA é um entregável que atravessa vários cômodos.
+# Ex: o "funil de R$7/dia" passa por Instagram → Meta Ads → Site → WhatsApp.
+#
+# Sem esse arquivo, cada cômodo é uma ilha e ninguém enxerga a sequência.
+# Cada parede nos cômodos declara a qual cadeia pertence e em que posição.
+
+meta:
+  obra: bootcamp-10k
+  version: "1.0"
+  atualizado_em: "2026-08-04"
+
+cadeias:
+
+  - id: fundacao
+    nome: "Fundação — o que precisa existir antes de qualquer tráfego"
+    pistao: entrega-alto-valor
+    etapa_funil: entrega
+    icone: "🧱"
+    descricao: &gt;
+      Sem nível técnico e produto definido, tráfego é dinheiro queimado.
+      Esta cadeia não gera cliente — ela torna as outras possíveis.
+    passos:
+      - { ordem: 1, comodo: fundamentos, parede: "estudo-tecnico-30-dias", nome: "Nível técnico igualado aos top players" }
+      - { ordem: 2, comodo: fundamentos, parede: "redesign-expert-publicado", nome: "Redesign de expert publicado" }
+      - { ordem: 3, comodo: fundamentos, parede: "produto-padronizado", nome: "Produto padronizado definido" }
+
+  - id: funil-7-reais
+    nome: "Funil de Tráfego com R$7/dia"
+    pistao: valor-percebido
+    etapa_funil: atracao
+    icone: "📡"
+    descricao: &gt;
+      O caminho completo do lead: vê o carrossel, clica no anúncio,
+      preenche o formulário na landing page e cai no WhatsApp pronto pra conversar.
+    depende_de: fundacao
+    passos:
+      - { ordem: 1, comodo: instagram, parede: "perfil-profissional-configurado", nome: "Conta profissional configurada" }
+      - { ordem: 2, comodo: instagram, parede: "carrossel-dor-publicado", nome: "1 carrossel de dor publicado" }
+      - { ordem: 3, comodo: meta-ads, parede: "campanha-turbinar-ativa", nome: "Campanha turbinar ativa 7 dias" }
+      - { ordem: 4, comodo: site, parede: "landing-page-formulario", nome: "Landing Page com formulário no ar" }
+      - { ordem: 5, comodo: whatsapp, parede: "atendimento-fechamento", nome: "Atendimento e fechamento rodando" }
+
+  - id: retencao-recorrencia
+    nome: "Retenção e Recorrência"
+    pistao: gestao-eficiencia
+    etapa_funil: retroalimentacao
+    icone: "🔄"
+    descricao: &gt;
+      Transformar cliente pontual em receita previsível.
+      É o que faz o funil girar sem precisar de mais tráfego.
+    depende_de: funil-7-reais
+    passos:
+      - { ordem: 1, comodo: gestao, parede: "ranking-clientes", nome: "Ranking de clientes + clube" }
+      - { ordem: 2, comodo: gestao, parede: "contrato-trimestral", nome: "Contrato trimestral fechado" }
+
+# ══════════════════════════════════════════════════════════
+# REGRAS PARA A SKILL
+# ══════════════════════════════════════════════════════════
+#
+# 1. Ao processar uma aula, verificar se as paredes extraídas pertencem
+#    a alguma cadeia existente (comparar pelo RESULTADO).
+#
+# 2. Se pertencem → registrar `cadeia` e `posicao` no frontmatter da parede
+#    dentro do cômodo, e não criar cadeia nova.
+#
+# 3. Se a aula revela uma sequência que atravessa cômodos e não existe
+#    aqui → PERGUNTAR ao CEO antes de criar cadeia nova.
+#
+# 4. Uma parede pode pertencer a mais de uma cadeia. Nesse caso, listar
+#    todas em `cadeias:` no frontmatter da parede.
+#
+# 5. O `_index.md` da obra é GERADO a partir deste arquivo — nunca
+#    escrito à mão.
+</code></pre></div></body></html>

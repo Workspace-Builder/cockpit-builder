@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cockpit Builder — Funil de Tráfego com R$7/dia</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --bg-base: #0a0a0a;
+    --bg-surface: #111111;
+    --bg-card: #0e0e0e;
+    --bg-elevated: #1a1a1a;
+    --bg-input: #161616;
+    --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-medium: rgba(255, 255, 255, 0.10);
+    --border-strong: rgba(255, 255, 255, 0.14);
+    --accent: #b8ff04;
+    --accent-dim: rgba(184, 255, 4, 0.10);
+    --accent-glow: rgba(184, 255, 4, 0.05);
+    --blue: #60a5fa;
+    --blue-dim: rgba(96, 165, 250, 0.10);
+    --orange: #fb923c;
+    --orange-dim: rgba(251, 146, 60, 0.10);
+    --purple: #a78bfa;
+    --purple-dim: rgba(167, 139, 250, 0.10);
+    --emerald: #34d399;
+    --emerald-dim: rgba(52, 211, 153, 0.10);
+    --text-primary: #f0f0f0;
+    --text-secondary: #888888;
+    --text-tertiary: #555555;
+    --text-on-accent: #0a0a0a;
+    --radius-xs: 6px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+
+  /* ─── Window ─── */
+  .window {
+    max-width: 840px;
+    margin: 0 auto;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.2);
+  }
+
+  .window-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 20px;
+    background: rgba(255,255,255,0.015);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+
+  .window-title {
+    flex: 1;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    letter-spacing: 0.03em;
+  }
+
+  .window-spacer { width: 52px; }
+
+  .window-body { padding: 32px 28px 40px; }
+
+  /* ─── Header ─── */
+  .lesson-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 11px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(184,255,4,0.15);
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 14px;
+  }
+
+  .lesson-title {
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 6px;
+    letter-spacing: -0.02em;
+  }
+  .lesson-title span { color: var(--accent); }
+
+  .lesson-subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    max-width: 620px;
+    margin-bottom: 28px;
+  }
+
+  /* ─── Context Box ─── */
+  .context-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 28px;
+  }
+
+  .context-box h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 16px;
+  }
+
+  .context-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .context-card {
+    padding: 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+  }
+
+  .context-card-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+    margin-bottom: 10px;
+  }
+
+  .context-card ul {
+    list-style: none;
+  }
+
+  .context-card li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    padding: 4px 0;
+  }
+
+  .context-card li::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    min-width: 5px;
+    border-radius: 50%;
+    margin-top: 6px;
+  }
+
+  .deliverable li::before { background: var(--accent); }
+  .prereq li::before { background: var(--text-tertiary); }
+
+  .context-summary {
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: var(--accent-glow);
+    border-left: 2px solid rgba(184,255,4,0.20);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .context-summary strong { color: var(--accent); font-weight: 600; }
+
+  /* ─── Progress ─── */
+  .progress-section {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 5px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #d4ff4a);
+    border-radius: 100px;
+    transition: width 0.4s ease;
+  }
+
+  .progress-label {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+  .progress-label strong { color: var(--accent); font-weight: 700; }
+
+  /* ─── Cadeia de Execução ─── */
+  .cadeia-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 20px 22px;
+    margin-bottom: 28px;
+  }
+
+  .cadeia-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+
+  .cadeia-icon {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-xs);
+    font-size: 14px;
+  }
+
+  .cadeia-title {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .cadeia-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+
+  .cadeia-flow {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .cadeia-step {
+    flex: 1;
+    min-width: 118px;
+    padding: 12px 10px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s ease;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .cadeia-step:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+  .cadeia-step:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+  .cadeia-step + .cadeia-step { border-left: none; }
+
+  .cadeia-step:hover {
+    background: rgba(184,255,4,0.04);
+    border-color: rgba(184,255,4,0.2);
+  }
+
+  .cadeia-step.done { opacity: 0.45; }
+
+  .cadeia-step-top {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .cadeia-step-num {
+    font-size: 9px;
+    font-weight: 800;
+    color: var(--text-tertiary);
+    background: rgba(255,255,255,0.05);
+    width: 15px;
+    height: 15px;
+    min-width: 15px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cadeia-step.done .cadeia-step-num {
+    background: var(--accent);
+    color: var(--text-on-accent);
+  }
+
+  .cadeia-step-plat {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+  }
+
+  .cadeia-step-name {
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--text-secondary);
+  }
+
+  .cadeia-step:hover .cadeia-step-name { color: var(--text-primary); }
+
+  .cadeia-arrow {
+    position: absolute;
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 11px;
+    color: var(--text-tertiary);
+    z-index: 2;
+    background: var(--bg-card);
+    padding: 0 1px;
+  }
+
+  /* ─── Parede (RESULTADO nomeado) ─── */
+  .parede-header {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 18px 0 10px;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.02);
+    border-left: 2px solid var(--accent);
+    border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  }
+
+  .parede-header:first-of-type { margin-top: 0; }
+
+  .parede-name {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+
+  .parede-meta {
+    margin-left: auto;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+
+  .parede-meta strong { color: var(--accent); font-weight: 700; }
+
+  /* ─── Platform Section ─── */
+  .platform-section { margin-bottom: 28px; }
+
+  .platform-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .platform-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-xs);
+    font-size: 15px;
+  }
+
+  .platform-name {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .platform-count {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    background: rgba(255,255,255,0.04);
+    padding: 2px 9px;
+    border-radius: 100px;
+  }
+
+  /* ─── Action Card ─── */
+  .action-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    margin-bottom: 10px;
+    transition: border-color 0.2s ease;
+    overflow: hidden;
+  }
+
+  .action-card:hover { border-color: var(--border-medium); }
+
+  .action-card.done { opacity: 0.45; }
+  .action-card.done .action-title { text-decoration: line-through; text-decoration-color: var(--text-tertiary); }
+
+  .action-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 18px 20px 0;
+    cursor: pointer;
+  }
+
+  .action-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    border: 2px solid var(--text-tertiary);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    margin-top: 1px;
+    position: relative;
+  }
+
+  .action-checkbox:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .action-checkbox:checked::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 4px;
+    width: 5px;
+    height: 9px;
+    border: solid var(--text-on-accent);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  .action-checkbox:hover { border-color: var(--accent); }
+
+  .action-content { flex: 1; }
+
+  .action-top-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .action-category {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+
+  .cat-setup { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(184,255,4,0.12); }
+  .cat-posts { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(96,165,250,0.12); }
+  .cat-trafego { background: var(--orange-dim); color: var(--orange); border: 1px solid rgba(251,146,60,0.12); }
+  .cat-vendas { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(167,139,250,0.12); }
+  .cat-gestao { background: var(--emerald-dim); color: var(--emerald); border: 1px solid rgba(52,211,153,0.12); }
+  .cat-lp { background: rgba(244,114,182,0.10); color: #f472b6; border: 1px solid rgba(244,114,182,0.12); }
+
+  .action-title {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--text-primary);
+  }
+
+  .action-description {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    margin-top: 6px;
+    padding-left: 10px;
+    border-left: 2px solid var(--border-medium);
+  }
+
+  .action-card.done .action-description { color: var(--text-tertiary); }
+
+  /* ─── Sub-Checklist ─── */
+  .sub-checklist {
+    list-style: none;
+    padding: 12px 20px 0 50px;
+  }
+
+  .sub-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 4px 0;
+  }
+
+  .sub-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    min-width: 14px;
+    border: 1.5px solid var(--text-tertiary);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    margin-top: 2px;
+    position: relative;
+  }
+
+  .sub-checkbox:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .sub-checkbox:checked::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 3px;
+    width: 4px;
+    height: 7px;
+    border: solid var(--text-on-accent);
+    border-width: 0 1.5px 1.5px 0;
+    transform: rotate(45deg);
+  }
+
+  .sub-checkbox:hover { border-color: rgba(184,255,4,0.5); }
+
+  .sub-checkbox:checked + .sub-text {
+    color: var(--text-tertiary);
+    text-decoration: line-through;
+    text-decoration-color: var(--text-tertiary);
+  }
+
+  .sub-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    transition: color 0.15s ease;
+  }
+
+  /* ─── Context Insight ─── */
+  .action-insight {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 12px 20px 16px 50px;
+    padding: 8px 12px;
+    background: var(--accent-glow);
+    border-left: 2px solid rgba(184,255,4,0.20);
+    border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  }
+
+  .insight-icon {
+    font-size: 12px;
+    line-height: 1;
+    margin-top: 2px;
+    opacity: 0.5;
+  }
+
+  .insight-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    font-style: italic;
+  }
+
+  /* ─── Divider ─── */
+  .divider {
+    height: 1px;
+    background: var(--border-subtle);
+    margin: 24px 0;
+  }
+
+  /* ─── Cross References ─── */
+  .cross-refs {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .section-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-title svg {
+    width: 14px;
+    height: 14px;
+    stroke: var(--text-tertiary);
+    fill: none;
+  }
+
+  .ref-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .ref-card:hover {
+    border-color: rgba(184,255,4,0.2);
+    background: rgba(184,255,4,0.02);
+  }
+
+  .ref-pilar {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .ref-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    flex: 1;
+  }
+
+  .ref-arrow {
+    color: var(--text-tertiary);
+    font-size: 14px;
+    transition: transform 0.2s ease;
+  }
+
+  .ref-card:hover .ref-arrow { transform: translateX(3px); color: var(--accent); }
+
+  /* ─── Footer ─── */
+  .lesson-footer {
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+
+  .brand-dot {
+    width: 5px;
+    height: 5px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  .footer-source {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    padding: 3px 9px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 100px;
+  }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 640px) {
+    body { padding: 16px 8px; }
+    .window-body { padding: 20px 16px 28px; }
+    .lesson-title { font-size: 20px; }
+    .context-grid { grid-template-columns: 1fr; }
+    .sub-checklist { padding-left: 38px; }
+    .action-insight { margin-left: 38px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="window">
+  <div class="window-bar">
+    <div class="dot dot-r"></div>
+    <div class="dot dot-y"></div>
+    <div class="dot dot-g"></div>
+    <div class="window-title">Cockpit Builder — Material de Apoio</div>
+    <div class="window-spacer"></div>
+  </div>
+
+  <div class="window-body">
+
+    <!-- ═══ HEADER ═══ -->
+    <div class="lesson-badge">Pilar Tráfego</div>
+    <h1 class="lesson-title">Funil de Tráfego <span>com R$7/dia</span></h1>
+    <p class="lesson-subtitle">Montar a máquina de tráfego pago com R$7/dia: perfil profissional, carrossel de dor, turbinar no Meta Ads, Landing Page com formulário e atendimento comercial via WhatsApp.</p>
+
+    <!-- ═══ CONTEXTO DA AULA ═══ -->
+    <div class="context-box">
+      <h3>Contexto da aula</h3>
+      <div class="context-grid">
+        <div class="context-card deliverable">
+          <div class="context-card-label">O que você vai construir</div>
+          <ul>
+            <li>Perfil de Instagram profissional pronto para receber tráfego pago</li>
+            <li>1 carrossel de dor publicado sem música, pronto para turbinar</li>
+            <li>1 campanha de teste ativa no Meta Ads com R$7/dia por 7 dias</li>
+            <li>1 Landing Page com VSL de 2:30 e formulário de qualificação</li>
+            <li>WhatsApp Business configurado com script de atendimento comercial</li>
+          </ul>
+        </div>
+        <div class="context-card prereq">
+          <div class="context-card-label">Pré-requisitos</div>
+          <ul>
+            <li>Produto único definido e nomeado (ex: Visual DX)</li>
+            <li>Saber quem é seu ICP — dor, desejo, linguagem</li>
+            <li>Conta no Instagram (qualquer tipo — será convertida)</li>
+            <li>Cartão de crédito para investir R$7/dia em anúncios</li>
+          </ul>
+        </div>
+      </div>
+      <div class="context-summary">
+        <strong>Objetivo central:</strong> Sair da dependência de indicações. Ao final desta aula, você terá um funil mínimo rodando: anúncio → perfil → LP → formulário → WhatsApp → call de fechamento.
+      </div>
+    </div>
+
+    <!-- ═══ CADEIA DE EXECUÇÃO ═══ -->
+    <div class="cadeia-box">
+      <div class="cadeia-header">
+        <div class="cadeia-icon">📡</div>
+        <div class="cadeia-title">Cadeia de execução — Funil de Tráfego com R$7/dia</div>
+      </div>
+      <p class="cadeia-desc">O caminho completo do lead: vê o carrossel, clica no anúncio, preenche o formulário na landing page e cai no WhatsApp pronto pra conversar. Cada etapa depende da anterior estar pronta.</p>
+      <div class="cadeia-flow" id="cadeiaFlow">
+        <a class="cadeia-step" href="#parede-1">
+          <div class="cadeia-step-top">
+            <span class="cadeia-step-num">1</span>
+            <span class="cadeia-step-plat">Instagram</span>
+          </div>
+          <span class="cadeia-step-name">Conta profissional configurada</span>
+          <span class="cadeia-arrow">›</span>
+        </a>
+        <a class="cadeia-step" href="#parede-2">
+          <div class="cadeia-step-top">
+            <span class="cadeia-step-num">2</span>
+            <span class="cadeia-step-plat">Instagram</span>
+          </div>
+          <span class="cadeia-step-name">1 carrossel de dor publicado</span>
+          <span class="cadeia-arrow">›</span>
+        </a>
+        <a class="cadeia-step" href="#parede-3">
+          <div class="cadeia-step-top">
+            <span class="cadeia-step-num">3</span>
+            <span class="cadeia-step-plat">Meta Ads</span>
+          </div>
+          <span class="cadeia-step-name">Campanha turbinar ativa 7 dias</span>
+          <span class="cadeia-arrow">›</span>
+        </a>
+        <a class="cadeia-step" href="#parede-4">
+          <div class="cadeia-step-top">
+            <span class="cadeia-step-num">4</span>
+            <span class="cadeia-step-plat">Site</span>
+          </div>
+          <span class="cadeia-step-name">Landing Page com formulário no ar</span>
+          <span class="cadeia-arrow">›</span>
+        </a>
+        <a class="cadeia-step" href="#parede-5">
+          <div class="cadeia-step-top">
+            <span class="cadeia-step-num">5</span>
+            <span class="cadeia-step-plat">WhatsApp</span>
+          </div>
+          <span class="cadeia-step-name">Atendimento e fechamento rodando</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- ═══ PROGRESS ═══ -->
+    <div class="progress-section">
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-label" id="progressLabel"><strong>0</strong> de 12 ações</div>
+    </div>
+
+    <!-- ═══════════════════════════════════ -->
+    <!-- INSTAGRAM -->
+    <!-- ═══════════════════════════════════ -->
+    <div class="platform-section" id="plat-instagram">
+      <div class="platform-header">
+        <div class="platform-icon">📸</div>
+        <div class="platform-name">Instagram</div>
+        <div class="platform-count">3 ações</div>
+      </div>
+
+      <!-- PAREDE 1 -->
+      <div class="parede-header" id="parede-1">
+        <span class="parede-name">Conta profissional configurada</span>
+        <span class="parede-meta">Cadeia Funil R$7 · passo <strong>1</strong></span>
+      </div>
+
+      <!-- Action 1 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-setup">Setup</span>
+            </div>
+            <div class="action-title">Converter conta para profissional (Designer Gráfico) e conectar ao Facebook Business para habilitar turbinar</div>
+            <div class="action-description">Destravar as ferramentas de anúncio do Instagram. Sem esse vínculo, o botão de turbinar simplesmente não existe no seu perfil.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Ir em Configurações > Conta > Mudar para conta profissional</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Selecionar categoria: Designer / Design Gráfico</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Conectar ao Facebook Business (obrigatório para turbinar posts)</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">Sem conta profissional conectada ao Business, o botão de turbinar não aparece. Configure antes de criar qualquer conteúdo.</span>
+        </div>
+      </div>
+
+      <!-- Action 2 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-setup">Setup</span>
+            </div>
+            <div class="action-title">Montar bio com nicho + resultado + CTA, foto profissional e 3 destaques (Portfólio, Processo, Depoimentos) — remover posts que falam com designer</div>
+            <div class="action-description">Transformar o perfil em vitrine que o lead entende em 3 segundos: quem você atende, o que entrega e qual o próximo passo.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Escrever bio: o que faz + pra quem + resultado que entrega + CTA</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Colocar foto profissional (rosto real, não logo)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Criar 3 destaques com capas: Portfólio, Processo, Depoimentos</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Remover ou arquivar posts de "designer para designer" que não falam com o cliente</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">O perfil é onde o lead valida se você é profissional antes de responder qualquer mensagem. Se o perfil não convence em 3 segundos, o tráfego pago é dinheiro jogado fora.</span>
+        </div>
+      </div>
+
+      <!-- PAREDE 2 -->
+      <div class="parede-header" id="parede-2">
+        <span class="parede-name">1 carrossel de dor publicado</span>
+        <span class="parede-meta">Cadeia Funil R$7 · passo <strong>2</strong></span>
+      </div>
+
+      <!-- Action 3 -->
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-posts">Posts</span>
+            </div>
+            <div class="action-title">Criar carrossel estático atacando a dor do ICP (atraso de designer, sumiço) com referências visuais de infoprodutores na capa — publicar SEM música</div>
+            <div class="action-description">Produzir o criativo que vai ser turbinado depois. Ele precisa falar da dor do cliente e usar linguagem visual que o infoprodutor já reconhece.</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Identificar a dor principal do ICP: atrasos de prazo, sumiço do designer, retrabalho</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Montar capa com referências visuais familiares ao infoprodutor (Thiago Finch, Ícaro, Kayky, Kiwify)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Evitar imagens abstratas de Pinterest — usar elementos que o ICP reconhece</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Reduzir texto na capa — legibilidade primeiro</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Publicar SEM música (direitos autorais bloqueiam o turbinar)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Última lâmina: CTA direto pro produto ou perfil</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">Posts que atacam a dor do negócio atraem leads prontos pra pagar. O criativo precisa provar que você entende o problema antes de oferecer a solução.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════ -->
+    <!-- META ADS -->
+    <!-- ═══════════════════════════════════ -->
+    <div class="platform-section" id="plat-meta-ads">
+      <div class="platform-header">
+        <div class="platform-icon">📡</div>
+        <div class="platform-name">Meta Ads</div>
+        <div class="platform-count">2 ações</div>
+      </div>
+
+      <!-- PAREDE -->
+      <div class="parede-header" id="parede-3">
+        <span class="parede-name">Campanha turbinar ativa por 7 dias</span>
+        <span class="parede-meta">Cadeia Funil R$7 · passo <strong>3</strong></span>
+      </div>
+
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-setup">Setup</span>
+            </div>
+            <div class="action-title">Criar conta no Meta Business Suite, vincular Instagram + Facebook, instalar pixel no site e ativar método de pagamento</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Criar conta business em business.facebook.com</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Vincular página do Facebook + conta do Instagram profissional</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Instalar pixel do Meta no site ou landing page</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Verificar se o método de pagamento está ativo e aprovado</span></li>
+        </ul>
+      </div>
+
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-trafego">Tráfego</span>
+            </div>
+            <div class="action-title">Turbinar o carrossel de dor com R$7/dia por 7 dias — objetivo "Visitas no perfil", público de interesse do infoprodutor — para descobrir criativo campeão e aquecer pixel</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Selecionar o carrossel SEM música que ataca a dor do ICP</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Configurar objetivo: "Mais visitas no perfil"</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Definir público de interesse: referências do infoprodutor (Thiago Finch, Ícaro, Kayky)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Definir orçamento: exatamente R$7/dia</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Definir duração: exatamente 7 dias corridos</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Monitorar diariamente: CTR ideal entre 2-3%, CPC em centavos</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Se criativo provar ser campeão: escalar R$5 em R$5 gradualmente</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">R$7/dia não é pra vender — é pra descobrir qual criativo funciona e aquecer o pixel. Primeiro aprende, depois escala.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════ -->
+    <!-- SITE -->
+    <!-- ═══════════════════════════════════ -->
+    <div class="platform-section" id="plat-site">
+      <div class="platform-header">
+        <div class="platform-icon">🌐</div>
+        <div class="platform-name">Site</div>
+        <div class="platform-count">3 ações</div>
+      </div>
+
+      <!-- PAREDE -->
+      <div class="parede-header" id="parede-4">
+        <span class="parede-name">Landing Page com VSL e formulário no ar</span>
+        <span class="parede-meta">Cadeia Funil R$7 · passo <strong>4</strong></span>
+      </div>
+
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-setup">Setup</span>
+            </div>
+            <div class="action-title">Registrar domínio profissional (seunome.com.br) e ativar hospedagem ou builder de páginas</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Registrar domínio profissional no Registro.br ou similar</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Escolher e configurar hospedagem ou builder (WordPress, Webflow, etc.)</span></li>
+        </ul>
+      </div>
+
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-lp">Landing Page</span>
+            </div>
+            <div class="action-title">Construir LP de vendas com VSL de 2:30, depoimentos em vídeo, prints antes/depois e formulário de qualificação ANTES do WhatsApp</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Criar dobra de entrada com promessa clara do produto</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Gravar VSL de exatamente 2 minutos e meio e embutir na LP</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Inserir depoimentos em vídeo + prints de antes/depois de clientes</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Botão principal: direcionar para formulário de qualificação (não direto pro WhatsApp)</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Rodapé: assinatura sutil com @ do Instagram profissional</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">O formulário antes do WhatsApp filtra curiosos. O lead que preenche já está 70% convencido — você vende pra quem quer comprar.</span>
+        </div>
+      </div>
+
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-gestao">Monitoramento</span>
+            </div>
+            <div class="action-title">Acessar planilha de leads semanalmente, verificar perfil de cada lead no Instagram e contatar via WhatsApp quem preencheu mas não iniciou conversa</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Abrir planilha de respostas do formulário toda segunda-feira</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Verificar perfil do Instagram de cada lead para avaliar potencial</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Enviar mensagem via WhatsApp para todos que preencheram mas não iniciaram conversa</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">Cada lead da planilha é um prospect qualificado que levantou a mão. Não acompanhar é deixar dinheiro na mesa.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════════════════════════════ -->
+    <!-- WHATSAPP -->
+    <!-- ═══════════════════════════════════ -->
+    <div class="platform-section" id="plat-whatsapp">
+      <div class="platform-header">
+        <div class="platform-icon">💬</div>
+        <div class="platform-name">WhatsApp</div>
+        <div class="platform-count">3 ações</div>
+      </div>
+
+      <!-- PAREDE -->
+      <div class="parede-header" id="parede-5">
+        <span class="parede-name">Atendimento e fechamento rodando</span>
+        <span class="parede-meta">Cadeia Funil R$7 · passo <strong>5</strong></span>
+      </div>
+
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-setup">Setup</span>
+            </div>
+            <div class="action-title">Migrar para WhatsApp Business com foto profissional, descrição (oferta + nicho), catálogo de serviços e horário de atendimento definido</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Baixar WhatsApp Business e migrar a conta</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Colocar foto profissional coerente com Instagram</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Escrever descrição com oferta + nicho</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Criar catálogo com serviços principais e faixa de preço</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Definir horário de atendimento na configuração</span></li>
+        </ul>
+      </div>
+
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-vendas">Vendas</span>
+            </div>
+            <div class="action-title">Atender leads pessoalmente com pré-briefing técnico no chat (perguntas sobre projeto antes de preço) — nunca enviar tabela genérica, sempre ser o último a responder</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Responder imediatamente para manter o fluxo quente</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Adaptar tom de conversa conforme o perfil do lead</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Executar pré-briefing: perguntar sobre o projeto antes de falar preço</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Nunca enviar tabela de preço genérica sem entender o projeto</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Regra da última mensagem: sempre ser o último a responder no dia</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">Quem pergunta conduz. Controlar velocidade e sequência do chat é o que separa atendimento de venda.</span>
+        </div>
+      </div>
+
+      <div class="action-card">
+        <div class="action-main">
+          <input type="checkbox" class="action-checkbox">
+          <div class="action-content">
+            <div class="action-top-row">
+              <span class="action-category cat-vendas">Vendas</span>
+            </div>
+            <div class="action-title">Agendar call de fechamento de 20-30min — repetir perguntas do pré-briefing ao vivo, oferecer bônus de conversão imediata e pagamento por cartão com repasse de juros</div>
+          </div>
+        </div>
+        <ul class="sub-checklist">
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Agendar videoconferência curta: máximo 30 minutos</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Repetir perguntas do pré-briefing para extrair insights ao vivo</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Preparar bônus de conversão imediata: banner de checkout, criativos extras</span></li>
+          <li class="sub-item"><input type="checkbox" class="sub-checkbox"><span class="sub-text">Oferecer pagamento por cartão com repasse de juros (InfinitePay ou similar)</span></li>
+        </ul>
+        <div class="action-insight">
+          <span class="insight-icon">💡</span>
+          <span class="insight-text">Reunião curta evita desgaste. Quem controla o tempo, controla a venda. Bônus imediato elimina "vou pensar".</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ REFERÊNCIAS CRUZADAS ═══ -->
+    <div class="cross-refs">
+      <div class="section-title">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        Veja também em outras aulas
+      </div>
+
+      <a class="ref-card" href="#">
+        <span class="ref-pilar">Posicionamento</span>
+        <span class="ref-text">Como configurar perfil profissional e criar conteúdo intencional de atração</span>
+        <span class="ref-arrow">→</span>
+      </a>
+
+      <a class="ref-card" href="#">
+        <span class="ref-pilar">Posicionamento</span>
+        <span class="ref-text">Portfólio de conversão e estrutura de oferta única</span>
+        <span class="ref-arrow">→</span>
+      </a>
+
+      <a class="ref-card" href="#">
+        <span class="ref-pilar">Vendas</span>
+        <span class="ref-text">Script de conversão comercial e modelo de contrato fixo recorrente</span>
+        <span class="ref-arrow">→</span>
+      </a>
+
+      <a class="ref-card" href="#">
+        <span class="ref-pilar">Entrega</span>
+        <span class="ref-text">LTV de clientes recorrentes e expansão de escopo com parceiros</span>
+        <span class="ref-arrow">→</span>
+      </a>
+    </div>
+
+    <!-- ═══ FOOTER ═══ -->
+    <div class="lesson-footer">
+      <div class="footer-brand">
+        <span class="brand-dot"></span>
+        Cockpit Builder — Easy Builder
+      </div>
+      <div class="footer-source">Pilar Tráfego — Aula 01</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const mainBoxes = document.querySelectorAll('.action-checkbox');
+  const subBoxes = document.querySelectorAll('.sub-checkbox');
+
+  mainBoxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      const card = cb.closest('.action-card');
+      card.classList.toggle('done', cb.checked);
+      const subs = card.querySelectorAll('.sub-checkbox');
+      subs.forEach(s => { s.checked = cb.checked; });
+      updateProgress();
+    });
+  });
+
+  subBoxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      updateProgress();
+    });
+  });
+
+  function updateProgress() {
+    const total = mainBoxes.length;
+    let done = 0;
+    mainBoxes.forEach(cb => {
+      const card = cb.closest('.action-card');
+      const subs = card.querySelectorAll('.sub-checkbox');
+      const subsChecked = card.querySelectorAll('.sub-checkbox:checked');
+      if (subs.length > 0 && subsChecked.length === subs.length) {
+        cb.checked = true;
+        card.classList.add('done');
+        done++;
+      } else if (cb.checked && subs.length > 0 && subsChecked.length < subs.length) {
+        // keep done if manually checked
+        done++;
+      } else if (cb.checked) {
+        done++;
+      }
+    });
+    document.getElementById('progressFill').style.width = `${(done / total) * 100}%`;
+    document.getElementById('progressLabel').innerHTML = `<strong>${done}</strong> de ${total} ações`;
+    updateCadeia();
+  }
+
+  // Retorna os action-cards que pertencem a uma parede:
+  // tudo entre o cabeçalho dela e o próximo cabeçalho de parede.
+  function cardsDaParede(paredeEl) {
+    const cards = [];
+    let el = paredeEl.nextElementSibling;
+    while (el && !el.classList.contains('parede-header')) {
+      if (el.classList.contains('action-card')) cards.push(el);
+      el = el.nextElementSibling;
+    }
+    return cards;
+  }
+
+  // Cada passo da cadeia acende quando TODAS as ações daquela parede estão feitas
+  function updateCadeia() {
+    document.querySelectorAll('.cadeia-step').forEach(step => {
+      const parede = document.querySelector(step.getAttribute('href'));
+      if (!parede) return;
+      const cards = cardsDaParede(parede);
+      const feitos = cards.filter(c => c.querySelector('.action-checkbox').checked);
+      step.classList.toggle('done', cards.length > 0 && feitos.length === cards.length);
+    });
+  }
+
+  // Rolagem suave ao clicar num passo da cadeia
+  document.querySelectorAll('.cadeia-step').forEach(step => {
+    step.addEventListener('click', e => {
+      e.preventDefault();
+      const alvo = document.querySelector(step.getAttribute('href'));
+      if (alvo) alvo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  updateProgress();
+</script>
+
+</body>
+</html>

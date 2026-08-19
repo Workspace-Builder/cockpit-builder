@@ -85,6 +85,23 @@
   },
   {
     "pasta": {
+      "id": "revisao",
+      "nome": "Revisão (interno)",
+      "ordem": 2
+    },
+    "paginas": [
+      {
+        "id": "revisao-obra",
+        "nome": "Revisão da Obra 10k",
+        "pastaId": "revisao",
+        "ordem": 0,
+        "resumo": "Board de conferência: obras, extrações e HTMLs do bootcamp-10k lado a lado — não publicar pro aluno.",
+        "vistas": []
+      }
+    ]
+  },
+  {
+    "pasta": {
       "id": "setup-6d",
       "nome": "Setup Agência 6D",
       "ordem": 1

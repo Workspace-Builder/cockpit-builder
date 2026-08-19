@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cockpit Builder — Modo Execução</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --bg-base: #0a0a0a;
+    --bg-surface: #111111;
+    --bg-card: #0e0e0e;
+    --bg-elevated: #1a1a1a;
+    --border-subtle: rgba(255,255,255,0.06);
+    --border-medium: rgba(255,255,255,0.10);
+    --accent: #b8ff04;
+    --accent-dim: rgba(184,255,4,0.10);
+    --accent-glow: rgba(184,255,4,0.05);
+    --blue: #60a5fa;
+    --blue-dim: rgba(96,165,250,0.10);
+    --orange: #fb923c;
+    --orange-dim: rgba(251,146,60,0.10);
+    --purple: #a78bfa;
+    --purple-dim: rgba(167,139,250,0.10);
+    --emerald: #34d399;
+    --emerald-dim: rgba(52,211,153,0.10);
+    --rose: #f472b6;
+    --amber: #fbbf24;
+    --amber-dim: rgba(251,191,36,0.10);
+    --red: #f87171;
+    --red-dim: rgba(248,113,113,0.10);
+    --text-primary: #f0f0f0;
+    --text-secondary: #888888;
+    --text-tertiary: #555555;
+    --text-on-accent: #0a0a0a;
+    --radius-xs: 6px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding: 32px 20px 60px;
+    min-height: 100vh;
+  }
+
+  .window {
+    max-width: 720px;
+    margin: 0 auto;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.2);
+  }
+
+  .window-bar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 14px 20px;
+    background: rgba(255,255,255,0.015);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-r { background: #ff5f57; } .dot-y { background: #febc2e; } .dot-g { background: #28c840; }
+  .window-title { flex: 1; text-align: center; font-size: 12px; font-weight: 500; color: var(--text-tertiary); letter-spacing: 0.03em; }
+  .window-spacer { width: 52px; }
+  .window-body { padding: 28px 26px 32px; }
+
+  /* ─── Mode Switch ─── */
+  .mode-switch {
+    display: flex;
+    gap: 6px;
+    padding: 4px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 100px;
+    margin-bottom: 24px;
+  }
+  .mode-btn {
+    flex: 1;
+    padding: 8px 14px;
+    border-radius: 100px;
+    border: none;
+    background: transparent;
+    color: var(--text-tertiary);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .mode-btn:hover { color: var(--text-secondary); }
+  .mode-btn.active { background: var(--accent-dim); color: var(--accent); }
+
+  /* ─── Progress ─── */
+  .prog-wrap { margin-bottom: 26px; }
+  .prog-top {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 8px;
+  }
+  .prog-fase {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--accent);
+  }
+  .prog-count { font-size: 11px; color: var(--text-tertiary); }
+  .prog-track { height: 5px; background: rgba(255,255,255,0.05); border-radius: 100px; overflow: hidden; }
+  .prog-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--blue), var(--accent)); border-radius: 100px; transition: width 0.35s ease; }
+
+  /* ─── Step Card ─── */
+  .step {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 28px 26px;
+    margin-bottom: 18px;
+    animation: fade 0.25s ease;
+  }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .step-num-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 11px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-medium);
+    border-radius: 100px;
+    font-size: 10px; font-weight: 700;
+    color: var(--text-tertiary);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    margin-bottom: 14px;
+  }
+
+  .step-onde {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 11px; border-radius: 100px;
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    margin-bottom: 14px; margin-left: 6px;
+  }
+  .onde-clickup   { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(167,139,250,0.15); }
+  .onde-notebook  { background: var(--blue-dim);   color: var(--blue);   border: 1px solid rgba(96,165,250,0.15); }
+  .onde-claude    { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(184,255,4,0.15); }
+  .onde-drive     { background: var(--emerald-dim);color: var(--emerald);border: 1px solid rgba(52,211,153,0.15); }
+  .onde-hotmart   { background: var(--orange-dim); color: var(--orange); border: 1px solid rgba(251,146,60,0.15); }
+  .onde-terminal  { background: rgba(255,255,255,0.05); color: var(--text-secondary); border: 1px solid var(--border-medium); }
+
+  .step-titulo {
+    font-size: 21px; font-weight: 800; line-height: 1.28;
+    letter-spacing: -0.02em; margin-bottom: 12px;
+  }
+
+  .step-detalhe {
+    font-size: 14px; color: var(--text-secondary);
+    line-height: 1.6; margin-bottom: 16px;
+  }
+  .step-detalhe code {
+    background: var(--bg-elevated); padding: 2px 7px; border-radius: 4px;
+    font-size: 13px; color: var(--accent);
+    font-family: 'SF Mono','Fira Code',monospace;
+  }
+  .step-detalhe strong { color: var(--text-primary); font-weight: 600; }
+
+  .step-link {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 16px; margin-bottom: 16px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-sm);
+    font-size: 13px; font-weight: 600;
+    color: var(--text-primary); text-decoration: none;
+    transition: all 0.2s ease;
+  }
+  .step-link:hover { border-color: var(--accent); color: var(--accent); }
+
+  .callout {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 13px 15px; border-radius: var(--radius-sm);
+    margin-bottom: 16px;
+  }
+  .c-warn   { background: var(--amber-dim); border-left: 2px solid var(--amber); }
+  .c-danger { background: var(--red-dim);   border-left: 2px solid var(--red); }
+  .c-tip    { background: var(--accent-glow); border-left: 2px solid rgba(184,255,4,0.25); }
+  .c-icon { font-size: 15px; margin-top: 1px; }
+  .c-text { font-size: 12.5px; line-height: 1.55; color: var(--text-secondary); }
+  .c-text strong { color: var(--text-primary); font-weight: 600; }
+
+  .checagem {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px; margin-bottom: 16px;
+  }
+  .checagem-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.07em; color: var(--text-tertiary); margin-bottom: 9px;
+  }
+  .checagem ul { list-style: none; }
+  .checagem li {
+    display: flex; align-items: flex-start; gap: 9px;
+    font-size: 13px; color: var(--text-secondary);
+    line-height: 1.5; padding: 4px 0;
+  }
+  .checagem li::before {
+    content: '✓'; color: var(--accent); font-weight: 800;
+    font-size: 11px; margin-top: 3px;
+  }
+
+  .codebox {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px; margin-bottom: 16px;
+    font-family: 'SF Mono','Fira Code',monospace;
+    font-size: 12.5px; color: var(--accent);
+    line-height: 1.6; white-space: pre-wrap; word-break: break-word;
+  }
+
+  /* ─── Nav ─── */
+  .nav { display: flex; gap: 10px; align-items: center; }
+  .btn {
+    padding: 12px 22px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border-medium);
+    font-family: inherit; font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s ease;
+  }
+  .btn-primary {
+    flex: 1; background: var(--accent); color: var(--text-on-accent);
+    border-color: var(--accent);
+  }
+  .btn-primary:hover { filter: brightness(1.08); }
+  .btn-ghost { background: transparent; color: var(--text-tertiary); }
+  .btn-ghost:hover { color: var(--text-primary); border-color: var(--border-strong); }
+
+  /* ─── Done ─── */
+  .done-box { text-align: center; padding: 20px 0 6px; }
+  .done-icon { font-size: 44px; margin-bottom: 14px; }
+  .done-title { font-size: 22px; font-weight: 800; margin-bottom: 10px; letter-spacing: -0.02em; }
+  .done-title span { color: var(--accent); }
+  .done-text { font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 22px; }
+
+  /* ─── Trilha ─── */
+  .trilha {
+    margin-top: 22px; padding-top: 18px;
+    border-top: 1px solid var(--border-subtle);
+  }
+  .trilha-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.07em; color: var(--text-tertiary); margin-bottom: 11px;
+  }
+  .trilha-list { display: flex; flex-wrap: wrap; gap: 5px; }
+  .trilha-dot {
+    width: 26px; height: 26px; border-radius: var(--radius-xs);
+    background: var(--bg-card); border: 1px solid var(--border-subtle);
+    font-size: 10px; font-weight: 700; color: var(--text-tertiary);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.15s ease;
+  }
+  .trilha-dot:hover { border-color: var(--accent); color: var(--accent); }
+  .trilha-dot.feito { background: var(--accent-dim); border-color: rgba(184,255,4,0.2); color: var(--accent); }
+  .trilha-dot.atual { background: var(--accent); border-color: var(--accent); color: var(--text-on-accent); }
+
+  .reset-link {
+    display: block; margin-top: 16px; text-align: center;
+    font-size: 11px; color: var(--text-tertiary);
+    background: none; border: none; cursor: pointer;
+    font-family: inherit; width: 100%;
+  }
+  .reset-link:hover { color: var(--rose); }
+
+  @media (max-width: 640px) {
+    body { padding: 14px 8px 40px; }
+    .window-body { padding: 20px 16px 24px; }
+    .step { padding: 22px 18px; }
+    .step-titulo { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="window">
+  <div class="window-bar">
+    <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+    <div class="window-title">Cockpit Builder — Modo Execução</div>
+    <div class="window-spacer"></div>
+  </div>
+
+  <div class="window-body">
+    <div class="mode-switch">
+      <button class="mode-btn active" data-mode="setup" onclick="trocarModo('setup')">Setup — só 1 vez</button>
+      <button class="mode-btn" data-mode="aula" onclick="trocarModo('aula')">Processar uma aula</button>
+    </div>
+
+    <div class="prog-wrap">
+      <div class="prog-top">
+        <span class="prog-fase" id="progFase">—</span>
+        <span class="prog-count" id="progCount">—</span>
+      </div>
+      <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+    </div>
+
+    <div id="palco"></div>
+
+    <div class="trilha">
+      <div class="trilha-label">Trilha — clique para voltar a qualquer passo</div>
+      <div class="trilha-list" id="trilha"></div>
+    </div>
+
+    <button class="reset-link" onclick="resetar()">Recomeçar do zero</button>
+  </div>
+</div>
+
+<script>
+const DRIVE = "https://drive.google.com/open?id=1rF725Q8r2ae6J1E1ZJePGEKOHi7wfGV0";
+
+const PASSOS = {
+  setup: [
+    { fase: "Preparar", onde: "clickup", titulo: "Baixar o cockpit-kit-elvis-v6.zip",
+      detalhe: "Na task do curso no ClickUp, ir na aba de anexos e baixar o arquivo <strong>cockpit-kit-elvis-v6.zip</strong>.",
+      alerta: { tipo: "warn", txt: "Existem kits antigos anexados (v1 a v5). <strong>Pegar só o v6</strong> — é o único atualizado." } },
+
+    { fase: "Preparar", onde: "terminal", titulo: "Descompactar o zip numa pasta",
+      detalhe: "Escolher uma pasta de trabalho e descompactar o zip lá dentro. Vão aparecer 10 arquivos numerados de 00 a 09." },
+
+    { fase: "Preparar", onde: "claude", titulo: "Abrir o Claude Code dentro dessa pasta",
+      detalhe: "O Claude precisa enxergar os arquivos do kit. Abrir ele <strong>na pasta onde os 10 arquivos estão</strong>, não em outro lugar." },
+
+    { fase: "Instalar", onde: "claude", titulo: "Abrir o arquivo 00-PROMPT-SETUP.md",
+      detalhe: "Dentro dele tem um bloco de código grande. É esse bloco que vai ser copiado — não o arquivo inteiro." },
+
+    { fase: "Instalar", onde: "claude", titulo: "Copiar o bloco de código e colar no chat",
+      detalhe: "Copiar <strong>tudo</strong> que está dentro do bloco de código e colar no chat do Claude Code. Enviar.",
+      alerta: { tipo: "tip", txt: "O Claude vai instalar a skill, criar toda a estrutura de pastas e montar o índice sozinho. Leva menos de um minuto." } },
+
+    { fase: "Instalar", onde: "claude", titulo: "Ler o relatório e conferir se deu tudo certo",
+      detalhe: "No final, o Claude lista o que criou. Se algum arquivo faltar, ele avisa.",
+      checagem: [".claude/skills/cockpit-html/SKILL.md existe", "taxonomia.yaml está em cockpit-builder/", "_cadeias.yaml está em obras/bootcamp-10k/", "As pastas extracoes/ e htmls/ existem"] },
+
+    { fase: "Ativar", onde: "claude", titulo: "Fechar o Claude Code por completo",
+      detalhe: "Não é minimizar — é fechar mesmo. A skill só é carregada quando ele inicia.",
+      alerta: { tipo: "danger", txt: "<strong>Pular esse passo é o erro mais comum.</strong> Sem reiniciar, a skill não aparece e parece que o setup falhou." } },
+
+    { fase: "Ativar", onde: "claude", titulo: "Abrir o Claude Code de novo e digitar /cockpit-html",
+      detalhe: "Digitar <code>/cockpit-html</code> no chat. A skill tem que aparecer na lista de sugestões.",
+      alerta: { tipo: "warn", txt: "Se não aparecer: conferir se o arquivo está exatamente em <code>.claude/skills/cockpit-html/SKILL.md</code> e reiniciar de novo. Se persistir, avisar o Lorenzi." } }
+  ],
+
+  aula: [
+    { fase: "Escolher a aula", onde: "clickup", titulo: "Abrir a task do curso e achar a próxima subtask",
+      detalhe: "Pegar a primeira subtask com status <strong>backlog/ideias</strong>. Processar sempre na ordem dos módulos.",
+      alerta: { tipo: "tip", txt: "Ordem importa: as referências cruzadas entre aulas só fazem sentido se as anteriores já foram processadas." } },
+
+    { fase: "Escolher a aula", onde: "clickup", titulo: "Anotar curso, módulo e número da aula",
+      detalhe: "Está no nome da subtask. Exemplo: <code>[Planejamento] Aula 03: Generalista VS Especialista</code> → curso <strong>easy-sales</strong>, módulo <strong>planejamento</strong>, aula <strong>03</strong>.",
+      alerta: { tipo: "warn", txt: "Anotar agora. A skill vai pedir esses três dados e voltar no ClickUp depois quebra o ritmo." } },
+
+    { fase: "Escolher a aula", onde: "drive", titulo: "Localizar o arquivo de transcrição dessa aula",
+      detalhe: "Sem transcrição não dá pra seguir. Se não existir, avisar o Lorenzi e pular para a próxima aula que tenha." },
+
+    { fase: "Extrair", onde: "notebook", titulo: "Abrir o NotebookLM e criar um notebook novo",
+      detalhe: "Clicar em <strong>New Notebook</strong>. Um notebook novo para cada aula — nunca reaproveitar.",
+      link: { url: "https://notebooklm.google.com", txt: "Abrir o NotebookLM" } },
+
+    { fase: "Extrair", onde: "notebook", titulo: "Adicionar SÓ a transcrição dessa aula como fonte",
+      detalhe: "Clicar em <strong>Add source</strong> e subir apenas o arquivo daquela aula.",
+      alerta: { tipo: "danger", txt: "<strong>Uma fonte. Só uma.</strong> Se tiver mais de uma transcrição, as ações se misturam entre aulas e o resultado sai errado sem dar erro." },
+      checagem: ["O painel mostra exatamente 1 fonte"] },
+
+    { fase: "Extrair", onde: "notebook", titulo: "Ativar a resposta longa",
+      detalhe: "No painel lateral, procurar <strong>Notebook guide</strong> ou a engrenagem e ativar resposta detalhada. Se não existir a opção, adicionar no final do prompt: <code>Responda de forma completa e detalhada, sem resumir.</code>",
+      alerta: { tipo: "warn", txt: "É o passo mais fácil de esquecer e o que mais gera retrabalho. <strong>Resposta curta = ações perdidas</strong> — e o HTML sai incompleto sem você perceber." } },
+
+    { fase: "Extrair", onde: "notebook", titulo: "Copiar o prompt v3 do arquivo 02-PROMPT-NOTEBOOKLM.md",
+      detalhe: "Abrir o arquivo e copiar <strong>todo</strong> o bloco de código do prompt v3 — de <code>Você é um extrator</code> até <code>extraia seguindo essas regras.</code>",
+      alerta: { tipo: "warn", txt: "Tem que ser o <strong>v3</strong>. O v2 não classifica a aula e devolve vazio nas aulas conceituais." } },
+
+    { fase: "Extrair", onde: "notebook", titulo: "Colar o prompt no chat e enviar",
+      detalhe: "Colar e enviar. A resposta leva de um a dois minutos." },
+
+    { fase: "Extrair", onde: "notebook", titulo: "Conferir se a resposta começa com o bloco de CLASSIFICAÇÃO",
+      detalhe: "A primeira coisa da resposta tem que ser isso:",
+      code: "═══ CLASSIFICAÇÃO ═══\nTIPO: PRÁTICA | CONCEITUAL | HÍBRIDA\nPISTÃO: ...\nETAPA DO FUNIL: ...\n═════════════════════",
+      alerta: { tipo: "danger", txt: "Se não tiver esse bloco, o prompt foi colado pela metade. <strong>Copiar de novo e reenviar</strong> antes de seguir." } },
+
+    { fase: "Extrair", onde: "notebook", titulo: "Selecionar a resposta inteira e copiar",
+      detalhe: "Clicar na resposta, selecionar tudo e copiar.",
+      alerta: { tipo: "tip", txt: "<strong>Aula com mais de 1 hora?</strong> Rodar em duas partes: primeiro <em>“Analise apenas os primeiros 60 minutos”</em>, depois <em>“Agora analise de 1h00 até o final”</em>. Colar as duas respostas juntas, separadas por uma linha com <code>---</code>." } },
+
+    { fase: "Gerar", onde: "claude", titulo: "Abrir um chat NOVO no Claude Code",
+      detalhe: "Chat novo, do zero. Se você acabou de processar outra aula, feche aquele chat.",
+      alerta: { tipo: "danger", txt: "<strong>Uma aula por chat. Sem exceção.</strong> Duas aulas no mesmo contexto fazem a skill duplicar tijolo e confundir paredes — e ela não avisa que errou." } },
+
+    { fase: "Gerar", onde: "claude", titulo: "Digitar /cockpit-html e colar a resposta do NotebookLM",
+      detalhe: "Invocar a skill e colar tudo que foi copiado." },
+
+    { fase: "Gerar", onde: "claude", titulo: "Informar curso, módulo e número da aula",
+      detalhe: "Os três dados que você anotou lá no começo." },
+
+    { fase: "Gerar", onde: "claude", titulo: "Conferir a classificação e confirmar",
+      detalhe: "A skill mostra o tipo, o pistão e a etapa do funil que o NotebookLM identificou, com a justificativa. Ler e confirmar — ou corrigir se estiver claramente errado.",
+      alerta: { tipo: "warn", txt: "Na dúvida, <strong>aceitar o que o NotebookLM propôs</strong>. Ele leu a aula inteira. Se achar que está muito errado, comentar na subtask para o Lorenzi revisar." } },
+
+    { fase: "Gerar", onde: "claude", titulo: "Validar o título que a skill sugeriu",
+      detalhe: "O título tem que dizer <strong>o que o Builder constrói</strong> na aula.",
+      checagem: ["Bom: “Funil de Tráfego com R$7/dia”", "Bom: “Perfil Profissional que Converte”", "Ruim: “Aula de Tráfego” — genérico", "Ruim: “Como vender mais” — não diz o que constrói"],
+      alerta: { tipo: "tip", txt: "Se ficou genérico, é só pedir no mesmo chat: <em>“troca o título por um que diga o que o Builder constrói”</em>." } },
+
+    { fase: "Revisar", onde: "claude", titulo: "Conferir se os 3 artefatos foram criados",
+      detalhe: "A skill informa os caminhos no relatório final.",
+      checagem: ["extracoes/{curso}/{modulo}/aula-XX-raw.md", "obras/bootcamp-10k/{comodo}.md — com tijolos novos", "htmls/{curso}/XX-slug.html"],
+      alerta: { tipo: "danger", txt: "<strong>Se só o HTML foi criado, a skill falhou.</strong> Sem os cômodos em obras/, aquela aula não entra no Cockpit. Pedir para refazer antes de continuar." } },
+
+    { fase: "Revisar", onde: "claude", titulo: "Abrir o preview do HTML e revisar",
+      detalhe: "Passar o olho no resultado antes de publicar.",
+      checagem: ["Badges de pistão, etapa e tipo no topo", "Bloco de cadeia com os passos clicáveis (se a aula tiver cadeia)", "Cada resultado com título visível", "Cada ação com descrição abaixo do título", "Checkboxes marcam e desmarcam", "Barra de progresso mexe"],
+      alerta: { tipo: "tip", txt: "Achou algo errado? Pedir a correção no mesmo chat. Não precisa recomeçar." } },
+
+    { fase: "Revisar", onde: "claude", titulo: "Ver se a skill propôs alguma cadeia nova",
+      detalhe: "Se o relatório mostrar <code>⚠️ cadeia nova proposta</code>, ela foi registrada em <code>_cadeias-propostas.yaml</code>.",
+      alerta: { tipo: "tip", txt: "<strong>Não é problema e não trava nada.</strong> Só anotar na subtask para o Lorenzi revisar depois. Seguir normalmente." } },
+
+    { fase: "Publicar", onde: "drive", titulo: "Abrir a pasta do Drive e entrar na pasta do curso",
+      detalhe: "Se a pasta do curso ainda não existir, criar. Nunca salvar na raiz.",
+      link: { url: DRIVE, txt: "Abrir a pasta no Drive" } },
+
+    { fase: "Publicar", onde: "drive", titulo: "Subir o HTML com o nome no padrão",
+      detalhe: "Padrão: <code>{numero}-{titulo-em-slug}.html</code> — tudo minúsculo, sem acentos, espaços viram hífens, número com 2 dígitos.",
+      code: "easy-sales/03-generalista-vs-especialista.html\neasy-sales/01-funil-de-trafego-com-7-reais-dia.html",
+      alerta: { tipo: "warn", txt: "São 67 arquivos no fim. Sem pasta por curso e sem número na frente, vira bagunça em uma semana." } },
+
+    { fase: "Publicar", onde: "drive", titulo: "Copiar o link do arquivo no Drive",
+      detalhe: "Vai ser usado no comentário do ClickUp mais pra frente." },
+
+    { fase: "Publicar", onde: "hotmart", titulo: "Abrir a área de membros e editar a aula",
+      detalhe: "Achar a aula correspondente e entrar no modo de edição." },
+
+    { fase: "Publicar", onde: "hotmart", titulo: "Colar o HTML na descrição e salvar",
+      detalhe: "Colar no campo de descrição. Se a plataforma tiver bloco de <strong>HTML customizado</strong>, usar essa opção.",
+      alerta: { tipo: "warn", txt: "Se não renderizar: tentar iframe. Se continuar quebrado, avisar o Lorenzi antes de seguir para a próxima aula." } },
+
+    { fase: "Publicar", onde: "hotmart", titulo: "Visualizar a aula e testar os checkboxes",
+      detalhe: "Abrir como aluno e clicar em alguns checkboxes para confirmar que estão funcionando de verdade." },
+
+    { fase: "Publicar", onde: "hotmart", titulo: "Comparar o título da aula com o sugerido pela skill",
+      detalhe: "Se o título original for genérico e o sugerido for claramente melhor, renomear a aula.",
+      alerta: { tipo: "warn", txt: "<strong>Na dúvida, não troca.</strong> Título de aula é decisão de produto. Deixa como está e comenta na subtask para o Lorenzi decidir." } },
+
+    { fase: "Fechar", onde: "clickup", titulo: "Marcar a subtask como concluída",
+      detalhe: "Voltar na subtask daquela aula e mudar o status." },
+
+    { fase: "Fechar", onde: "clickup", titulo: "Comentar na subtask com os links",
+      detalhe: "Deixar registrado onde tudo foi parar:",
+      code: "Extração concluída.\nDrive: {link do arquivo}\nÁrea de membros: {link da aula}\nCadeia nova proposta: sim/não" },
+
+    { fase: "Fechar", onde: "claude", titulo: "Fechar o chat do Claude Code",
+      detalhe: "Encerrar esse chat agora. A próxima aula começa num chat novo.",
+      alerta: { tipo: "danger", txt: "<strong>Esse é o passo que protege a qualidade das próximas 60 aulas.</strong> Reaproveitar o chat acumula contexto e a skill começa a errar a mesclagem." } }
+  ]
+};
+
+let modo = 'setup';
+let idx = 0;
+
+const KEY = 'cockpit-exec-v1';
+
+function salvar() {
+  localStorage.setItem(KEY, JSON.stringify({ modo, idx }));
+}
+function carregar() {
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY));
+    if (s && PASSOS[s.modo]) { modo = s.modo; idx = Math.min(s.idx, PASSOS[s.modo].length); }
+  } catch (e) {}
+}
+
+function trocarModo(m) {
+  modo = m; idx = 0;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
+  salvar(); render();
+}
+
+function ir(i) { idx = i; salvar(); render(); window.scrollTo({top:0,behavior:'smooth'}); }
+function proximo() { if (idx < PASSOS[modo].length) ir(idx + 1); }
+function voltar() { if (idx > 0) ir(idx - 1); }
+function resetar() { idx = 0; salvar(); render(); }
+
+function render() {
+  const lista = PASSOS[modo];
+  const total = lista.length;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === modo));
+
+  // progresso
+  document.getElementById('progFill').style.width = `${(idx / total) * 100}%`;
+  document.getElementById('progCount').textContent = idx >= total ? `${total} de ${total}` : `Passo ${idx + 1} de ${total}`;
+  document.getElementById('progFase').textContent = idx >= total ? 'Concluído' : lista[idx].fase;
+
+  const palco = document.getElementById('palco');
+
+  if (idx >= total) {
+    palco.innerHTML = `
+      <div class="step">
+        <div class="done-box">
+          <div class="done-icon">${modo === 'setup' ? '⚡' : '✅'}</div>
+          <div class="done-title">${modo === 'setup' ? 'Setup <span>concluído</span>' : 'Aula <span>processada</span>'}</div>
+          <p class="done-text">${modo === 'setup'
+            ? 'A skill está instalada e as pastas criadas. Agora é só trocar para a aba <strong>Processar uma aula</strong> e começar pela primeira.'
+            : 'Os 3 artefatos foram criados, o HTML está publicado e a subtask está marcada.<br><br>Para a próxima aula: <strong>chat novo no Claude Code</strong> e recomeçar daqui.'}</p>
+          <div class="nav">
+            ${modo === 'setup'
+              ? `<button class="btn btn-primary" onclick="trocarModo('aula')">Começar a primeira aula</button>`
+              : `<button class="btn btn-primary" onclick="resetar()">Processar a próxima aula</button>`}
+            <button class="btn btn-ghost" onclick="voltar()">Voltar</button>
+          </div>
+        </div>
+      </div>`;
+    renderTrilha();
+    return;
+  }
+
+  const p = lista[idx];
+  const ondeMap = {
+    clickup:  ['onde-clickup',  'ClickUp'],
+    notebook: ['onde-notebook', 'NotebookLM'],
+    claude:   ['onde-claude',   'Claude Code'],
+    drive:    ['onde-drive',    'Google Drive'],
+    hotmart:  ['onde-hotmart',  'Área de membros'],
+    terminal: ['onde-terminal', 'Computador']
+  };
+  const [ondeCls, ondeTxt] = ondeMap[p.onde] || ['onde-terminal','—'];
+
+  palco.innerHTML = `
+    <div class="step">
+      <div>
+        <span class="step-num-badge">Passo ${idx + 1}</span>
+        <span class="step-onde ${ondeCls}">${ondeTxt}</span>
+      </div>
+      <h2 class="step-titulo">${p.titulo}</h2>
+      ${p.detalhe ? `<p class="step-detalhe">${p.detalhe}</p>` : ''}
+      ${p.link ? `<a class="step-link" href="${p.link.url}" target="_blank">↗ ${p.link.txt}</a>` : ''}
+      ${p.code ? `<div class="codebox">${p.code}</div>` : ''}
+      ${p.checagem ? `<div class="checagem"><div class="checagem-label">Conferir</div><ul>${p.checagem.map(c => `<li>${c}</li>`).join('')}</ul></div>` : ''}
+      ${p.alerta ? `<div class="callout c-${p.alerta.tipo}"><span class="c-icon">${p.alerta.tipo === 'danger' ? '🚫' : p.alerta.tipo === 'warn' ? '⚠️' : '💡'}</span><span class="c-text">${p.alerta.txt}</span></div>` : ''}
+      <div class="nav">
+        <button class="btn btn-primary" onclick="proximo()">Feito — próximo passo</button>
+        ${idx > 0 ? `<button class="btn btn-ghost" onclick="voltar()">Voltar</button>` : ''}
+      </div>
+    </div>`;
+
+  renderTrilha();
+}
+
+function renderTrilha() {
+  const lista = PASSOS[modo];
+  document.getElementById('trilha').innerHTML = lista.map((_, i) =>
+    `<div class="trilha-dot ${i < idx ? 'feito' : ''} ${i === idx ? 'atual' : ''}" onclick="ir(${i})">${i + 1}</div>`
+  ).join('');
+}
+
+carregar();
+render();
+</script>
+
+</body>
+</html>

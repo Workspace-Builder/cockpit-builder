@@ -173,6 +173,19 @@ export default function BoardCanvas({
   /** quantos itens o último Ctrl+C guardou — só pro aviso, zera sozinho */
   const [copiados, setCopiados] = useState(0);
 
+  /** Nó `iframe` aberto em modal — ver nota em NoDoBoard sobre `.ifr-guard`. */
+  const [iframeAberto, setIframeAberto] = useState<{ src: string; label: string } | null>(null);
+  const abrirIframe = useCallback((src: string, label: string) => setIframeAberto({ src, label }), []);
+
+  useEffect(() => {
+    if (!iframeAberto) return;
+    function aoTeclar(e: KeyboardEvent) {
+      if (e.key === "Escape") setIframeAberto(null);
+    }
+    window.addEventListener("keydown", aoTeclar);
+    return () => window.removeEventListener("keydown", aoTeclar);
+  }, [iframeAberto]);
+
   /**
    * Precisa ser estável, e precisa comparar antes de gravar.
    *
@@ -267,10 +280,11 @@ export default function BoardCanvas({
             editando,
             temConteudo: gavetas[n.id]?.some((a) => a.itens.length) ?? false,
             aoRedimensionar: redimensionarNo,
+            aoAbrirIframe: abrirIframe,
           },
         };
       }),
-    [nos, editando, gavetas, tamanhos, redimensionarNo],
+    [nos, editando, gavetas, tamanhos, redimensionarNo, abrirIframe],
   );
 
   /**
@@ -808,6 +822,42 @@ export default function BoardCanvas({
             {editando
               ? "Escolha uma forma na barra à esquerda e clique aqui pra colocar."
               : "Clique em Editar, na barra de baixo, pra abrir as ferramentas."}
+          </div>
+        </div>
+      )}
+
+      {/* Modal do nó `iframe` (ver `.ifr-guard` em NoDoBoard): clicar fora
+          (o fundo) ou no X fecha; Esc fecha também (efeito acima). Fica
+          dentro do ReactFlow pra herdar o "fora do viewport transformado" —
+          senão o modal encolheria/andaria junto com o zoom/pan do board. */}
+      {iframeAberto && (
+        <div
+          className="absolute inset-0 z-[999] grid place-items-center bg-black/80 backdrop-blur-sm"
+          onClick={() => setIframeAberto(null)}
+        >
+          <div
+            className="relative flex h-[92%] w-[92%] flex-col overflow-hidden rounded-xl border border-fio bg-painel shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex flex-none items-center justify-between border-b border-fio px-4 py-2.5">
+              <span className="truncate text-[13px] font-semibold text-texto-2">
+                {iframeAberto.label}
+              </span>
+              <button
+                type="button"
+                onClick={() => setIframeAberto(null)}
+                className="grid h-7 w-7 flex-none place-items-center rounded-md border border-fio text-texto-2 transition-colors hover:border-azul hover:text-texto"
+                aria-label="Fechar"
+                title="Fechar (Esc)"
+              >
+                ✕
+              </button>
+            </div>
+            <iframe
+              src={iframeAberto.src}
+              title={iframeAberto.label}
+              className="h-full w-full flex-1 border-0 bg-white"
+            />
           </div>
         </div>
       )}
